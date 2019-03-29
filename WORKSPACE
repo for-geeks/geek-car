@@ -164,15 +164,13 @@ http_archive(
 )
 
 # rtps
-#http_archive(
-#    name = "fastrtps",
-#    strip_prefix = "v1.7.2",
-#    build_file = "third_party/fastrtps.BUILD",
-#    url = "https://github.com/eProsima/Fast-RTPS/archive/v1.7.2.tar.gz",
-#)
-# rtps
-git_repository(
+new_http_archive(
     name = "fastrtps",
-    remote = "https://github.com/eProsima/Fast-RTPS.git",
-    tag = "v1.7.2",
+    build_file = "third_party/fastrtps.BUILD",
+    #strip_prefix = "Fast-RTPS-1.7.2",
+    url = "https://github.com/eProsima/Fast-RTPS/archive/v1.7.2.tar.gz",
 )
+#bind(
+#    name = "fastrtps",
+#    actual = "@fastrtps//:Fast-RTPS-1.7.2",
+#)

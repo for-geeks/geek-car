@@ -6,7 +6,7 @@ cc_library(
     ]),
 
     includes = [
-        "include",
+        "Fast-RTPS-1.7.2/include",
     ],
 
     visibility = ["//visibility:public"],
