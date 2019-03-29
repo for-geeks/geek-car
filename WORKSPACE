@@ -75,14 +75,6 @@ new_http_archive(
     url = "https://github.com/jpbarrette/curlpp/archive/v0.8.1.tar.gz",
 )
 
-#ros
-new_http_archive(
-    name = "ros",
-    build_file = "third_party/ros.BUILD",
-    strip_prefix = "ros",
-    url = "https://github.com/ApolloAuto/apollo-platform/releases/download/1.5.0/ros-indigo-apollo-1.5.0-MACHINE_ARCH.tar.gz",
-)
-
 # OpenCV 2.4.13.2
 new_http_archive(
     name = "opencv2",
@@ -172,9 +164,15 @@ http_archive(
 )
 
 # rtps
-new_http_archive(
+#http_archive(
+#    name = "fastrtps",
+#    strip_prefix = "v1.7.2",
+#    build_file = "third_party/fastrtps.BUILD",
+#    url = "https://github.com/eProsima/Fast-RTPS/archive/v1.7.2.tar.gz",
+#)
+# rtps
+git_repository(
     name = "fastrtps",
-    strip_prefix = "fastrtps-1.7.2",
-    build_file = "third_party/fastrtps.BUILD",
-    url = "https://github.com/eProsima/Fast-RTPS/archive/v1.7.2.tar.gz",
+    remote = "https://github.com/eProsima/Fast-RTPS.git",
+    tag = "v1.7.2",
 )
