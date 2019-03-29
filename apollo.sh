@@ -28,12 +28,6 @@ function source_apollo_base() {
 }
 
 function apollo_check_system_config() {
-  # check docker environment
-  if [ ${MACHINE_ARCH} == "x86_64" ] && [ ${APOLLO_IN_DOCKER} != "true" ]; then
-    echo -e "${RED}Must run $0 in dev docker or release docker${NO_COLOR}"
-    exit 0
-  fi
-
   # check operating system
   OP_SYSTEM=$(uname -s)
   case $OP_SYSTEM in
@@ -62,33 +56,9 @@ function check_machine_arch() {
   # the machine type, currently support x86_64, aarch64
   MACHINE_ARCH=$(uname -m)
 
-  # Generate WORKSPACE file based on marchine architecture
-  if [ "$MACHINE_ARCH" == 'x86_64' ]; then
-    sed "s/MACHINE_ARCH/x86_64/g" WORKSPACE.in > WORKSPACE
-  elif [ "$MACHINE_ARCH" == 'aarch64' ]; then
-    sed "s/MACHINE_ARCH/aarch64/g" WORKSPACE.in > WORKSPACE
-  else
-    fail "Unknown machine architecture $MACHINE_ARCH"
-    exit 1
-  fi
-
   #setup vtk folder name for different systems.
-  VTK_VERSION=$(find /usr/include/ -type d  -name "vtk-*" | tail -n1 | cut -d '-' -f 2)
-  sed -i "s/VTK_VERSION/${VTK_VERSION}/g" WORKSPACE
-}
-
-function check_esd_files() {
-  CAN_CARD="fake_can"
-
-  if [ -f ./third_party/can_card_library/esd_can/include/ntcan.h \
-      -a -f ./third_party/can_card_library/esd_can/lib/libntcan.so.4 \
-      -a -f ./third_party/can_card_library/esd_can/lib/libntcan.so.4.0.1 ]; then
-      USE_ESD_CAN=true
-      CAN_CARD="esd_can"
-  else
-      warning "ESD CAN library supplied by ESD Electronics does not exist. If you need ESD CAN, please refer to third_party/can_card_library/esd_can/README.md."
-      USE_ESD_CAN=false
-  fi
+  #VTK_VERSION=$(find /usr/include/ -type d  -name "vtk-*" | tail -n1 | cut -d '-' -f 2)
+  #sed -i "s/VTK_VERSION/${VTK_VERSION}/g" WORKSPACE
 }
 
 function generate_build_targets() {
@@ -116,9 +86,6 @@ function generate_build_targets() {
   if [ $? -ne 0 ]; then
     fail 'Build failed!'
   fi
-  if ! $USE_ESD_CAN; then
-     BUILD_TARGETS=$(echo $BUILD_TARGETS |tr ' ' '\n' | grep -v "esd")
-  fi
   #skip msf for non x86_64 platforms
   if [ ${MACHINE_ARCH} != "x86_64" ]; then
      BUILD_TARGETS=$(echo $BUILD_TARGETS |tr ' ' '\n' | grep -v "msf")
@@ -140,8 +107,11 @@ function build() {
   generate_build_targets
   info "Building on $MACHINE_ARCH..."
 
+  # Get nproc in linux
+  portable_nproc
+
   MACHINE_ARCH=$(uname -m)
-  JOB_ARG="--jobs=$(nproc) --ram_utilization_factor 80"
+  JOB_ARG="--jobs=${NPROCS} --ram_utilization_factor 80"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
     JOB_ARG="--jobs=3"
   fi
@@ -180,7 +150,7 @@ function cibuild_extended() {
   cd /apollo
   info "Building modules ..."
 
-  JOB_ARG="--jobs=$(nproc)"
+  JOB_ARG="--jobs=${NPROCS}"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
     JOB_ARG="--jobs=3"
   fi
@@ -216,7 +186,7 @@ function cibuild() {
 
   info "Building modules ..."
 
-  JOB_ARG="--jobs=$(nproc)"
+  JOB_ARG="--jobs=${NPROCS}"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
     JOB_ARG="--jobs=3"
   fi
@@ -444,7 +414,7 @@ function gen_coverage() {
 }
 
 function run_test() {
-  JOB_ARG="--jobs=$(nproc) --ram_utilization_factor 80"
+  JOB_ARG="--jobs=${NPROCS} --ram_utilization_factor 80"
 
   generate_build_targets
   if [ "$USE_GPU" == "1" ]; then
@@ -477,7 +447,7 @@ function citest_basic() {
     `bazel query //modules/... union //cyber/...`
   "
 
-  JOB_ARG="--jobs=$(nproc) --ram_utilization_factor 80"
+  JOB_ARG="--jobs=${NPROCS} --ram_utilization_factor 80"
 
   BUILD_TARGETS="`echo "$BUILD_TARGETS" | grep "modules\/" | grep "test" \
           | grep -v "modules\/planning" \
@@ -514,7 +484,7 @@ function citest_extended() {
     `bazel query //modules/prediction/... union //modules/control/...`
   "
 
-  JOB_ARG="--jobs=$(nproc) --ram_utilization_factor 80"
+  JOB_ARG="--jobs=${NPROCS} --ram_utilization_factor 80"
 
   BUILD_TARGETS="`echo "$BUILD_TARGETS" | grep "test"`"
 
@@ -655,6 +625,19 @@ function set_use_gpu() {
   fi
 }
 
+function portable_nproc() {
+    OS=$(uname -s)
+
+    if [ "$OS" = "Linux" ]; then
+        NPROCS=$(nproc --all)
+    elif [ "$OS" = "Darwin" ] || [ '$(echo $OS | grep -q BSD' = "BSD" ]; then
+        NPROCS=$(sysctl -n hw.ncpu)
+    else
+        NPROCS=$(getconf _NPROCESSORS_ONLN)  # glibc/coreutils fallback
+    fi
+}
+
+
 function print_usage() {
   RED='\033[0;31m'
   BLUE='\033[0;34m'
@@ -695,7 +678,6 @@ function main() {
   source_apollo_base
   check_machine_arch
   apollo_check_system_config
-  check_esd_files
 
   DEFINES="--define ARCH=${MACHINE_ARCH} --define CAN_CARD=${CAN_CARD} --cxxopt=-DUSE_ESD_CAN=${USE_ESD_CAN}"
 
