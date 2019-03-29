@@ -1,0 +1,178 @@
+workspace(name = "apollo")
+
+# googletest (GTest and GMock)
+new_http_archive(
+    name = "gtest",
+    build_file = "third_party/gtest.BUILD",
+    sha256 = "58a6f4277ca2bc8565222b3bbd58a177609e9c488e8a72649359ba51450db7d8",
+    strip_prefix = "googletest-release-1.8.0",
+    url = "https://github.com/google/googletest/archive/release-1.8.0.tar.gz",
+)
+
+# gflags
+http_archive(
+    name = "com_github_gflags_gflags",
+    sha256 = "466c36c6508a451734e4f4d76825cf9cd9b8716d2b70ef36479ae40f08271f88",
+    strip_prefix = "gflags-2.2.0",
+    url = "https://github.com/gflags/gflags/archive/v2.2.0.tar.gz",
+)
+
+bind(
+    name = "gflags",
+    actual = "@com_github_gflags_gflags//:gflags",
+)
+
+# glog
+new_http_archive(
+    name = "glog",
+    build_file = "third_party/glog.BUILD",
+    sha256 = "7580e408a2c0b5a89ca214739978ce6ff480b5e7d8d7698a2aa92fadc484d1e0",
+    strip_prefix = "glog-0.3.5",
+    url = "https://github.com/google/glog/archive/v0.3.5.tar.gz",
+)
+
+# Google Benchmark
+new_http_archive(
+    name = "benchmark",
+    build_file = "third_party/benchmark.BUILD",
+    sha256 = "e7334dd254434c6668e33a54c8f839194c7c61840d52f4b6258eee28e9f3b20e",
+    strip_prefix = "benchmark-1.1.0",
+    url = "https://github.com/google/benchmark/archive/v1.1.0.tar.gz",
+)
+
+# cpplint from google style guide
+new_git_repository(
+    name = "google_styleguide",
+    build_file = "third_party/google_styleguide.BUILD",
+    commit = "159b4c81bbca97a9ca00f1195a37174388398a67",
+    remote = "https://github.com/google/styleguide.git",
+)
+
+# eigen
+new_http_archive(
+    name = "eigen",
+    build_file = "third_party/eigen.BUILD",
+    sha256 = "04f8a4fa4afedaae721c1a1c756afeea20d3cdef0ce3293982cf1c518f178502",
+    strip_prefix = "eigen-eigen-b9cd8366d4e8",
+    url = "https://bitbucket.org/eigen/eigen/get/3.2.10.tar.gz",
+)
+
+# CivetWeb (web server)
+new_http_archive(
+    name = "civetweb",
+    build_file = "third_party/civetweb.BUILD",
+    sha256 = "880d741724fd8de0ebc77bc5d98fa673ba44423dc4918361c3cd5cf80955e36d",
+    strip_prefix = "civetweb-1.9.1",
+    url = "https://github.com/civetweb/civetweb/archive/v1.9.1.tar.gz",
+)
+
+# curlpp
+new_http_archive(
+    name = "curlpp",
+    build_file = "third_party/curlpp.BUILD",
+    sha256 = "97e3819bdcffc3e4047b6ac57ca14e04af85380bd93afe314bee9dd5c7f46a0a",
+    strip_prefix = "curlpp-0.8.1",
+    url = "https://github.com/jpbarrette/curlpp/archive/v0.8.1.tar.gz",
+)
+
+# OpenCV 2.4.13.2
+new_http_archive(
+    name = "opencv2",
+    build_file = "third_party/opencv2.BUILD",
+    strip_prefix = "opencv-2.4.13.2",
+    url = "https://github.com/opencv/opencv/archive/2.4.13.2.zip",
+)
+
+# PCL 1.7
+# =======
+# This requires libpcl-dev to be installed in your Ubuntu/Debian.
+new_local_repository(
+    name = "pcl",
+    build_file = "third_party/pcl.BUILD",
+    path = "/usr/local/include/pcl-1.7",
+)
+
+new_local_repository(
+    name = "glew",
+    build_file = "third_party/glew.BUILD",
+    path = "/usr/include",
+)
+
+new_local_repository(
+    name = "opengl",
+    build_file = "third_party/opengl.BUILD",
+    path = "/usr/include",
+)
+
+new_local_repository(
+    name = "glfw",
+    build_file = "third_party/glfw.BUILD",
+    path = "/usr/include",
+)
+
+new_local_repository(
+    name = "vtk",
+    build_file = "third_party/vtk.BUILD",
+    path = "/usr/include/vtk-5.8",
+)
+
+# Caffe
+new_local_repository(
+    name = "caffe",
+    build_file = "third_party/caffe.BUILD",
+    path = "/usr/include/caffe",
+)
+
+# YAML-CPP
+new_http_archive(
+    name = "yaml_cpp",
+    build_file = "third_party/yaml_cpp.BUILD",
+    strip_prefix = "yaml-cpp-yaml-cpp-0.5.3",
+    url = "https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip",
+)
+
+# qpOASES
+new_http_archive(
+    name = "qp_oases",
+    build_file = "third_party/qp_oases.BUILD",
+    sha256 = "ae15eee80455c26d0c26078498893582b67b1d71df18f14f12591023561e5f88",
+    strip_prefix = "qpOASES-3.2.1",
+    url = "https://www.coin-or.org/download/source/qpOASES/qpOASES-3.2.1.zip",
+)
+
+# Proj.4
+new_http_archive(
+    name = "proj4",
+    build_file = "third_party/proj4.BUILD",
+    strip_prefix = "proj.4-4.9.3",
+    url = "https://github.com/OSGeo/proj.4/archive/4.9.3.zip",
+)
+
+# tinyxml2
+new_http_archive(
+    name = "tinyxml2",
+    build_file = "third_party/tinyxml2.BUILD",
+    strip_prefix = "tinyxml2-5.0.1",
+    url = "https://github.com/leethomason/tinyxml2/archive/5.0.1.zip",
+)
+
+#protobuf 3.3
+http_archive(
+    name = "com_google_protobuf",
+    strip_prefix = "protobuf-3.3.0",
+    url = "https://github.com/google/protobuf/releases/download/v3.3.0/protobuf-cpp-3.3.0.tar.gz",
+)
+
+# rtps
+#http_archive(
+#    name = "fastrtps",
+#    strip_prefix = "v1.7.2",
+#    build_file = "third_party/fastrtps.BUILD",
+#    url = "https://github.com/eProsima/Fast-RTPS/archive/v1.7.2.tar.gz",
+#)
+# rtps
+git_repository(
+    name = "fastrtps",
+    remote = "https://github.com/eProsima/Fast-RTPS.git",
+    tag = "v1.7.2",
+)
