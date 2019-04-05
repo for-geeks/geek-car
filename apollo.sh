@@ -131,12 +131,6 @@ function build() {
   ./bazel-bin/modules/common/kv_db/kv_db_tool --op=put \
       --key="apollo:data:commit_id" --value="$REVISION"
 
-  if [ -d /apollo-simulator ] && [ -e /apollo-simulator/build.sh ]; then
-    cd /apollo-simulator && bash build.sh build
-    if [ $? -ne 0 ]; then
-      fail 'Build failed!'
-    fi
-  fi
   if [ $? -eq 0 ]; then
     success 'Build passed!'
   else
@@ -546,11 +540,6 @@ function run_lint() {
 function clean() {
   # Remove bazel cache.
   bazel clean --async
-
-  # Remove bazel cache in associated directories
-  if [ -d /apollo-simulator ]; then
-    cd /apollo-simulator && bazel clean --async
-  fi
 
   # Remove cmake cache.
   rm -fr framework/build
