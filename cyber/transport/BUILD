@@ -422,6 +422,7 @@ cc_library(
     hdrs = ["shm/shm_conf.h"],
     deps = [
         "//cyber/common:log",
+        "@glog",
     ],
 )
 
