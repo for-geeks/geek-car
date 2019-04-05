@@ -125,12 +125,6 @@ function build() {
   # Build python proto
   build_py_proto
 
-  # Clear KV DB and update commit_id after compiling.
-  rm -fr data/kv_db*
-  REVISION=$(get_revision)
-  ./bazel-bin/modules/common/kv_db/kv_db_tool --op=put \
-      --key="apollo:data:commit_id" --value="$REVISION"
-
   if [ $? -eq 0 ]; then
     success 'Build passed!'
   else
