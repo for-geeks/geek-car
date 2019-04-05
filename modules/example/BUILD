@@ -1,3 +1,7 @@
+modules/example/BUILDload("//tools:cpplint.bzl", "cpplint")
+
+package(default_visibility = ["//visibility:public"])
+
 cc_library(
     name = "hello-greet",
     srcs = ["hello-greet.cc"],
@@ -11,3 +15,5 @@ cc_binary(
         ":hello-greet",
     ],
 )
+
+cpplint()
