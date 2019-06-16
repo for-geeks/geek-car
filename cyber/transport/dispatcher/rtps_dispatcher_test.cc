@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "cyber/common/util.h"
+#include "cyber/init.h"
 #include "cyber/proto/unit_test.pb.h"
 #include "cyber/transport/common/identity.h"
 #include "cyber/transport/qos/qos_profile_conf.h"
@@ -73,7 +74,7 @@ TEST(RtpsDispatcherTest, on_message) {
 
   auto transmitter = Transport::Instance()->CreateTransmitter<proto::Chatter>(
       self_attr, proto::OptionalMode::RTPS);
-  EXPECT_TRUE(transmitter != nullptr);
+  EXPECT_NE(transmitter, nullptr);
 
   auto send_msg = std::make_shared<proto::Chatter>();
   send_msg->set_timestamp(123);
@@ -104,6 +105,7 @@ TEST(RtpsDispatcherTest, shutdown) {
 
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
+  apollo::cyber::Init(argv[0]);
   apollo::cyber::transport::Transport::Instance();
   auto res = RUN_ALL_TESTS();
   apollo::cyber::transport::Transport::Instance()->Shutdown();

@@ -103,7 +103,7 @@ def module_monitor(mod):
     while True:
         line = mod.popen.stdout.readline()
         if line:
-            logger.debug('%s: %s' % (mod.name, line.strip('\n')))
+            logger.debug('%s# %s' % (mod.name, line.strip('\n')))
             continue
         time.sleep(0.01)
 
@@ -367,6 +367,9 @@ def start(launch_file=''):
 
     process_list = []
     root = tree.getroot()
+    for env in root.findall('environment'):
+        for var in env.getchildren():
+            os.environ[var.tag] = str(var.text)
     for module in root.findall('module'):
         module_name = module.find('name').text
         dag_conf = module.find('dag_conf').text
@@ -470,7 +473,7 @@ def stop_launch(launch_file):
     sys.exit(0)
 
 
-def signal_handler(sig):
+def signal_handler(sig, frame):
     logger.info('Keyboard interrupt received. Stop all processes.')
     stop(sig)
 

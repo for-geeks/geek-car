@@ -24,7 +24,6 @@
 #include "cyber/common/global_data.h"
 #include "cyber/common/log.h"
 #include "cyber/croutine/croutine.h"
-#include "cyber/scheduler/processor_context.h"
 
 namespace apollo {
 namespace cyber {
@@ -36,7 +35,7 @@ Processor::Processor() { running_.exchange(true); }
 
 Processor::~Processor() { Stop(); }
 
-void Processor::SetAffinity(const std::vector<int> &cpus,
+void Processor::SetSchedAffinity(const std::vector<int> &cpus,
                             const std::string &affinity, int p) {
   cpu_set_t set;
   CPU_ZERO(&set);

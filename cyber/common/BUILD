@@ -26,7 +26,6 @@ cc_library(
     ],
     deps = [
         "//cyber/common:log",
-        "@glog",
     ],
 )
 
@@ -72,9 +71,6 @@ cc_library(
     name = "environment",
     hdrs = [
         "environment.h",
-    ],
-    deps = [
-        "//cyber/common:log",
     ],
 )
 

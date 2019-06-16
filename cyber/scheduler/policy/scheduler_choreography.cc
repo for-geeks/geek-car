@@ -49,15 +49,24 @@ SchedulerChoreography::SchedulerChoreography() {
 
   apollo::cyber::proto::CyberConfig cfg;
   if (PathExists(cfg_file) && GetProtoFromFile(cfg_file, &cfg)) {
+    for (auto& thr : cfg.scheduler_conf().threads()) {
+      inner_thr_confs_[thr.name()] = thr;
+    }
+
+    if (cfg.scheduler_conf().has_process_level_cpuset()) {
+      process_level_cpuset_ = cfg.scheduler_conf().process_level_cpuset();
+      ProcessLevelResourceControl();
+    }
+
     const apollo::cyber::proto::ChoreographyConf& choreography_conf =
-          cfg.scheduler_conf().choreography_conf();
+        cfg.scheduler_conf().choreography_conf();
     proc_num_ = choreography_conf.choreography_processor_num();
     choreography_affinity_ = choreography_conf.choreography_affinity();
-    choreography_processor_policy_ = choreography_conf
-                                         .choreography_processor_policy();
+    choreography_processor_policy_ =
+        choreography_conf.choreography_processor_policy();
 
-    choreography_processor_prio_ = choreography_conf
-                                         .choreography_processor_prio();
+    choreography_processor_prio_ =
+        choreography_conf.choreography_processor_prio();
     ParseCpuset(choreography_conf.choreography_cpuset(), &choreography_cpuset_);
 
     task_pool_size_ = choreography_conf.pool_processor_num();
@@ -91,7 +100,7 @@ void SchedulerChoreography::CreateProcessor() {
     auto ctx = std::make_shared<ChoreographyContext>();
 
     proc->BindContext(ctx);
-    proc->SetAffinity(choreography_cpuset_, choreography_affinity_, i);
+    proc->SetSchedAffinity(choreography_cpuset_, choreography_affinity_, i);
     proc->SetSchedPolicy(choreography_processor_policy_,
                          choreography_processor_prio_);
     pctxs_.emplace_back(ctx);
@@ -99,11 +108,11 @@ void SchedulerChoreography::CreateProcessor() {
   }
 
   for (uint32_t i = 0; i < task_pool_size_; i++) {
+    auto proc = std::make_shared<Processor>();
     auto ctx = std::make_shared<ClassicContext>();
 
-    auto proc = std::make_shared<Processor>();
     proc->BindContext(ctx);
-    proc->SetAffinity(pool_cpuset_, pool_affinity_, i);
+    proc->SetSchedAffinity(pool_cpuset_, pool_affinity_, i);
     proc->SetSchedPolicy(pool_processor_policy_, pool_processor_prio_);
     pctxs_.emplace_back(ctx);
     processors_.emplace_back(proc);
@@ -177,6 +186,7 @@ bool SchedulerChoreography::RemoveTask(const std::string& name) {
   auto crid = GlobalData::GenerateHashId(name);
   return RemoveCRoutine(crid);
 }
+
 bool SchedulerChoreography::RemoveCRoutine(uint64_t crid) {
   // we use multi-key mutex to prevent race condition
   // when del && add cr with same crid
@@ -204,6 +214,7 @@ bool SchedulerChoreography::RemoveCRoutine(uint64_t crid) {
       auto cr = p->second;
       prio = cr->priority();
       pid = cr->processor_id();
+      group_name = cr->group_name();
       id_cr_[crid]->Stop();
       id_cr_.erase(crid);
     } else {
@@ -215,13 +226,13 @@ bool SchedulerChoreography::RemoveCRoutine(uint64_t crid) {
   if (pid == -1) {
     WriteLockGuard<AtomicRWLock> lk(
         ClassicContext::rq_locks_[group_name].at(prio));
-    for (auto it = ClassicContext::cr_group_[group_name].at(prio).begin();
-         it != ClassicContext::cr_group_[group_name].at(prio).end(); ++it) {
+    auto& croutines = ClassicContext::cr_group_[group_name].at(prio);
+    for (auto it = croutines.begin(); it != croutines.end(); ++it) {
       if ((*it)->id() == crid) {
         auto cr = *it;
 
         cr->Stop();
-        ClassicContext::cr_group_[group_name].at(prio).erase(it);
+        croutines.erase(it);
         cr->Release();
         return true;
       }

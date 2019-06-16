@@ -85,10 +85,8 @@ void Scheduler::ParseCpuset(const std::string& str, std::vector<int>* cpuset) {
     lines.push_back(l);
   }
 
-  for (std::vector<std::string>::const_iterator it = lines.begin(),
-                                                e = lines.end();
-       it != e; ++it) {
-    std::stringstream ss(*it);
+  for (auto line : lines) {
+    std::stringstream ss(line);
     std::vector<std::string> range;
 
     while (getline(ss, l, '-')) {
@@ -106,6 +104,17 @@ void Scheduler::ParseCpuset(const std::string& str, std::vector<int>* cpuset) {
       exit(0);
     }
   }
+}
+
+void Scheduler::ProcessLevelResourceControl() {
+  std::vector<int> cpus;
+  ParseCpuset(process_level_cpuset_, &cpus);
+  cpu_set_t set;
+  CPU_ZERO(&set);
+  for (const auto cpu : cpus) {
+    CPU_SET(cpu, &set);
+  }
+  pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
 }
 
 void Scheduler::SetInnerThreadAttr(const std::string& name, std::thread* thr) {

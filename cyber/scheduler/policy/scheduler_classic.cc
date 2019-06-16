@@ -48,6 +48,15 @@ SchedulerClassic::SchedulerClassic() {
 
   apollo::cyber::proto::CyberConfig cfg;
   if (PathExists(cfg_file) && GetProtoFromFile(cfg_file, &cfg)) {
+    for (auto& thr : cfg.scheduler_conf().threads()) {
+      inner_thr_confs_[thr.name()] = thr;
+    }
+
+    if (cfg.scheduler_conf().has_process_level_cpuset()) {
+      process_level_cpuset_ = cfg.scheduler_conf().process_level_cpuset();
+      ProcessLevelResourceControl();
+    }
+
     classic_conf_ = cfg.scheduler_conf().classic_conf();
     for (auto& group : classic_conf_.groups()) {
       auto& group_name = group.name();
@@ -95,7 +104,7 @@ void SchedulerClassic::CreateProcessor() {
 
       auto proc = std::make_shared<Processor>();
       proc->BindContext(ctx);
-      proc->SetAffinity(cpuset, affinity, i);
+      proc->SetSchedAffinity(cpuset, affinity, i);
       proc->SetSchedPolicy(processor_policy, processor_prio);
       processors_.emplace_back(proc);
     }

@@ -55,7 +55,7 @@ void DisplayUsage(const std::string& binary, const std::string& command,
 void DisplayUsage(const std::string& binary) {
   std::cout << "usage: " << binary << " <command> [<args>]\n"
             << "The " << binary << " commands are:\n"
-            << "\tinfo\tShow infomation of an exist record.\n"
+            << "\tinfo\tShow information of an exist record.\n"
             << "\tplay\tPlay an exist record.\n"
             << "\trecord\tRecord same topic.\n"
             << "\tsplit\tSplit an exist record.\n"
@@ -414,7 +414,7 @@ int main(int argc, char** argv) {
       return -1;
     }
     if (opt_output_vec.size() > 1) {
-      std::cout << "TOO many ouput file option (-o)." << std::endl;
+      std::cout << "TOO many output file option (-o)." << std::endl;
       return -1;
     }
     if (opt_output_vec.empty()) {
