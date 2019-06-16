@@ -41,9 +41,6 @@ function apollo_check_system_config() {
          warning "System memory [${MEM_SIZE}G] is lower than minimum required memory size [2.0G]. Apollo build could fail."
       fi
       ;;
-    "Darwin")
-      warning "Mac OS is not officially supported in the current version. Build could fail. We recommend using Ubuntu 14.04."
-      ;;
     *)
       error "Unsupported system: ${OP_SYSTEM}."
       error "Please use Linux, we recommend Ubuntu 14.04."
@@ -56,9 +53,19 @@ function check_machine_arch() {
   # the machine type, currently support x86_64, aarch64
   MACHINE_ARCH=$(uname -m)
 
+  # Generate WORKSPACE file based on marchine architecture
+  if [ "$MACHINE_ARCH" == 'x86_64' ]; then
+    sed "s/MACHINE_ARCH/x86_64/g" WORKSPACE.in > WORKSPACE
+  elif [ "$MACHINE_ARCH" == 'aarch64' ]; then
+    sed "s/MACHINE_ARCH/aarch64/g" WORKSPACE.in > WORKSPACE
+  else
+    fail "Unknown machine architecture $MACHINE_ARCH"
+    exit 1
+  fi
+
   #setup vtk folder name for different systems.
-  #VTK_VERSION=$(find /usr/include/ -type d  -name "vtk-*" | tail -n1 | cut -d '-' -f 2)
-  #sed -i "s/VTK_VERSION/${VTK_VERSION}/g" WORKSPACE
+  VTK_VERSION=$(find /usr/include/ -type d  -name "vtk-*" | tail -n1 | cut -d '-' -f 2)
+  sed -i "s/VTK_VERSION/${VTK_VERSION}/g" WORKSPACE
 }
 
 function generate_build_targets() {
@@ -636,12 +643,6 @@ function print_usage() {
   ${BLUE}build_cpu${NONE}: dbg build with CPU
   ${BLUE}build_gpu${NONE}: run build only with Caffe GPU mode support
   ${BLUE}build_opt_gpu${NONE}: build optimized binary with Caffe GPU mode support
-  ${BLUE}build_fe${NONE}: compile frontend javascript code, this requires all the node_modules to be installed already
-  ${BLUE}build_planning${NONE}: compile planning and its dependencies.
-  ${BLUE}build_control${NONE}: compile control and its dependencies.
-  ${BLUE}build_prediction${NONE}: compile prediction and its dependencies.
-  ${BLUE}build_pnc${NONE}: compile pnc and its dependencies.
-  ${BLUE}build_no_perception [dbg|opt]${NONE}: run build, skip building perception module, useful when some perception dependencies are not satisified, e.g., CUDA, CUDNN, LIDAR, etc.
   ${BLUE}build_prof${NONE}: build for gprof support.
   ${BLUE}buildify${NONE}: fix style of BUILD files
   ${BLUE}check${NONE}: run build/lint/test, please make sure it passes before checking in new code
@@ -675,7 +676,7 @@ function main() {
   check_machine_arch
   apollo_check_system_config
 
-  DEFINES="--define ARCH=${MACHINE_ARCH} --define CAN_CARD=${CAN_CARD} --cxxopt=-DUSE_ESD_CAN=${USE_ESD_CAN}"
+  DEFINES="--define ARCH=${MACHINE_ARCH} "
 
   if [ ${MACHINE_ARCH} == "x86_64" ]; then
     DEFINES="${DEFINES} --copt=-mavx2"
@@ -700,33 +701,6 @@ function main() {
       ;;
     build_prof)
       DEFINES="${DEFINES} --config=cpu_prof --cxxopt=-DCPU_ONLY"
-      apollo_build_dbg $@
-      ;;
-    build_no_perception)
-      DEFINES="${DEFINES} --cxxopt=-DCPU_ONLY"
-      BUILD_FILTER="no_perception"
-      if [ "$1" == "opt" ]; then
-        shift
-        apollo_build_opt $@
-      else
-        shift
-        apollo_build_dbg $@
-      fi
-      ;;
-    build_control)
-      BUILD_FILTER="control"
-      apollo_build_dbg $@
-      ;;
-    build_planning)
-      BUILD_FILTER="planning"
-      apollo_build_dbg $@
-      ;;
-    build_prediction)
-      BUILD_FILTER="prediction"
-      apollo_build_dbg $@
-      ;;
-    build_pnc)
-      BUILD_FILTER="pnc"
       apollo_build_dbg $@
       ;;
     cibuild)
