@@ -7,6 +7,22 @@
 #ENV DEBIAN_FRONTEND=noninteractive
 
 sudo apt clean
+
+# Add Bionic source
+#echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic main restricted" > /etc/apt/sources.list
+#echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic-updates main restricted" >> /etc/apt/sources.list
+#echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic universe" >> /etc/apt/sources.list
+#echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic-updates universe" >> /etc/apt/sources.list
+#echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic multiverse" >> /etc/apt/sources.list
+#echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic-updates multiverse" >> /etc/apt/sources.list
+#echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list
+
+#add Trusty universe into apt source for Poco foundation 9
+#echo "deb http://ports.ubuntu.com/ubuntu-ports/ trusty main" >> /etc/apt/sources.list
+#echo "deb http://ports.ubuntu.com/ubuntu-ports/ trusty universe" >> /etc/apt/sources.list
+#echo "deb http://ports.ubuntu.com/ubuntu-ports/ xenial main" >> /etc/apt/sources.list
+#echo "deb http://ports.ubuntu.com/ubuntu-ports/ xenial universe" >> /etc/apt/sources.list
+
 sudo apt update -y && \
     apt install -y \
     build-essential \
@@ -59,27 +75,13 @@ sudo ln -s /etc/alternatives/g++ /usr/bin/g++
 
 # Run installer [build|download]
 cp -r installers /tmp/installers
-bash /tmp/installers/install_bazel.sh ${INSTALL_MODE}
+bash /tmp/installers/install_bazel.sh download
 bash /tmp/installers/install_gflags_glog.sh
 bash /tmp/installers/install_protobuf.sh
 bash /tmp/installers/install_bazel_packages.sh
 bash /tmp/installers/install_google_styleguide.sh
-bash /tmp/installers/install_osqp.sh ${INSTALL_MODE}
+bash /tmp/installers/install_osqp.sh download
 
-# Add Bionic source
-echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic main restricted" > /etc/apt/sources.list
-echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic-updates main restricted" >> /etc/apt/sources.list
-echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic universe" >> /etc/apt/sources.list
-echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic-updates universe" >> /etc/apt/sources.list
-echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic multiverse" >> /etc/apt/sources.list
-echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic-updates multiverse" >> /etc/apt/sources.list
-echo "deb http://mirrors.ustc.edu.cn/ubuntu-ports/ubuntu-ports/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list
-
-#add Trusty universe into apt source for Poco foundation 9
-echo "deb http://ports.ubuntu.com/ubuntu-ports/ trusty main" >> /etc/apt/sources.list
-echo "deb http://ports.ubuntu.com/ubuntu-ports/ trusty universe" >> /etc/apt/sources.list
-echo "deb http://ports.ubuntu.com/ubuntu-ports/ xenial main" >> /etc/apt/sources.list
-echo "deb http://ports.ubuntu.com/ubuntu-ports/ xenial universe" >> /etc/apt/sources.list
 sudo apt update -y
 sudo apt install -y --allow-downgrades \
     libboost-system1.54.0 \
@@ -115,7 +117,7 @@ sudo ln -s /usr/lib/aarch64-linux-gnu/libboost_chrono.so.1.54.0 /usr/lib/aarch64
 sudo ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.aarch64-linux-gnu.so /usr/lib/aarch64-linux-gnu/libvtkRenderingPythonTkWidgets.so
 
 bash /tmp/installers/install_fast-rtps.sh
-bash /tmp/installers/install_pcl.sh ${INSTALL_MODE}
+bash /tmp/installers/install_pcl.sh download
 sudo rm -fr /tmp/*
 
 #WORKDIR /apollo
