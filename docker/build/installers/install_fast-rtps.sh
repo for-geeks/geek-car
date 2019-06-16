@@ -16,30 +16,18 @@
 # limitations under the License.
 ###############################################################################
 
-# Fail on first error.
 set -e
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# Prepare
-apt-get update -y
-apt-get install -y \
-    automake \
-    autotools-dev \
-    g++ \
-    libcurl4-openssl-dev \
-    libfuse-dev \
-    libssl-dev \
-    make \
-    uuid-dev
-PACKAGE="bosfs-1.0.0.9.tar.gz"
-wget http://sdk.bce.baidu.com/console-sdk/${PACKAGE}
-tar zxf ${PACKAGE}
-
-# Build and install.
-pushd bosfs-1.0.0
-  bash build.sh
+git clone https://github.com/eProsima/Fast-RTPS.git
+pushd Fast-RTPS
+git checkout origin/release/1.5.0
+git submodule init
+git submodule update
+patch -p1 < ../FastRTPS_1.5.0.patch
+mkdir -p build && cd build
+cmake -DEPROSIMA_BUILD=ON -DCMAKE_INSTALL_PREFIX=/usr/local/fast-rtps ../
+make -j 8
+make install
 popd
-
-# Clean
-rm -fr ${PACKAGE} bosfs-1.0.0

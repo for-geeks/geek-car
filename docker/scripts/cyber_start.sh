@@ -18,12 +18,10 @@
 
 INCHINA="no"
 LOCAL_IMAGE="no"
-FAST_BUILD_MODE="no"
-FAST_TEST_MODE="no"
 VERSION=""
 ARCH=$(uname -m)
-VERSION_X86_64="dev-x86_64-20190604_1720"
-VERSION_AARCH64="dev-aarch64-20170927_1111"
+VERSION_X86_64="cyber-x86_64-18.04-20190613_1540"
+VERSION_AARCH64="cyber-aarch64-18.04-20190611_2033"
 VERSION_OPT=""
 
 # Check whether user has agreed license agreement
@@ -52,14 +50,16 @@ function check_agreement() {
   fi
 }
 
+function check_host_environment() {
+  echo 'Host evvironment checking done.'
+}
+
 function show_usage()
 {
 cat <<EOF
 Usage: $(basename $0) [options] ...
 OPTIONS:
     -C                     Pull docker image from China mirror.
-    -b, --fast-build       Light mode for building without pulling all the map volumes
-    -f, --fast-test        Light mode for testing without pulling limited set of map volumes
     -h, --help             Display this help and exit.
     -t, --tag <version>    Specify which version of a docker image to pull.
     -l, --local            Use local docker image.
@@ -86,42 +86,25 @@ do
 done
 }
 
-APOLLO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd -P )"
+APOLLO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
-if [ "$(readlink -f /apollo)" != "${APOLLO_ROOT_DIR}" ]; then
-    sudo ln -snf ${APOLLO_ROOT_DIR} /apollo
+if [ ! -e /apollo ]; then
+    sudo ln -sf ${APOLLO_ROOT_DIR} /apollo
 fi
 
 if [ -e /proc/sys/kernel ]; then
     echo "/apollo/data/core/core_%e.%p" | sudo tee /proc/sys/kernel/core_pattern > /dev/null
 fi
 
-source ${APOLLO_ROOT_DIR}/scripts/apollo_base.sh
+source ${APOLLO_ROOT_DIR}/scripts/apollo_base.sh CYBER_ONLY
 check_agreement
-
-VOLUME_VERSION="latest"
-DEFAULT_MAPS=(
-  sunnyvale_big_loop
-  sunnyvale_loop
-  sunnyvale_with_two_offices
-  san_mateo
-)
-DEFAULT_TEST_MAPS=(
-  sunnyvale_big_loop
-  sunnyvale_loop
-)
-MAP_VOLUME_CONF=""
-OTHER_VOLUME_CONF=""
+check_host_environment
 
 while [ $# -gt 0 ]
 do
     case "$1" in
     -C|--docker-cn-mirror)
         INCHINA="yes"
-        ;;
-    -image)
-        echo -e "\033[093mWarning\033[0m: This option has been replaced by \"-t\" and \"--tag\", please use the new one.\n"
-        show_usage
         ;;
     -t|--tag)
         VAR=$1
@@ -131,29 +114,11 @@ do
         [ -z ${VERSION_OPT// /} ] && echo -e "Missing parameter for $VAR" && exit 2
         [[ $VERSION_OPT =~ ^-.* ]] && echo -e "Missing parameter for $VAR" && exit 2
         ;;
-    dev-*) # keep backward compatibility, should be removed from further version.
-        [ -z $VERSION_OPT ] || echo -e "\033[093mWarning\033[0m: mixed option $1 with -t/--tag, only the last one will take effect.\n"
-        VERSION_OPT=$1
-        echo -e "\033[93mWarning\033[0m: You are using an old style command line option which may be removed from"
-        echo -e "further versoin, please use -t <version> instead.\n"
-        ;;
-    -b|--fast-build)
-        FAST_BUILD_MODE="yes"
-        ;;
-    -f|--fast-test)
-        FAST_TEST_MODE="yes"
-        ;;
     -h|--help)
         show_usage
         ;;
     -l|--local)
         LOCAL_IMAGE="yes"
-        ;;
-    --map)
-        map_name=$2
-        shift
-        source ${APOLLO_ROOT_DIR}/docker/scripts/restart_map_volume.sh \
-            "${map_name}" "${VOLUME_VERSION}"
         ;;
     stop)
 	stop_containers
@@ -199,8 +164,15 @@ function local_volumes() {
              -v $HOME/.cache:${DOCKER_HOME}/.cache"
     case "$(uname -s)" in
         Linux)
-            volumes="${volumes} -v /dev:/dev \
-                                -v /media:/media \
+            case "$(lsb_release -r | cut -f2)" in
+                14.04)
+                    volumes="${volumes} "
+                    ;;
+                *)
+                    volumes="${volumes} -v /dev:/dev "
+                    ;;
+            esac
+            volumes="${volumes} -v /media:/media \
                                 -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
                                 -v /etc/localtime:/etc/localtime:ro \
                                 -v /usr/src:/usr/src \
@@ -227,59 +199,12 @@ function main(){
         fi
     fi
 
-    APOLLO_DEV="apollo_dev_${USER}"
-    docker ps -a --format "{{.Names}}" | grep "$APOLLO_DEV" 1>/dev/null
+    APOLLO_CYBER="apollo_cyber_${USER}"
+    docker ps -a --format "{{.Names}}" | grep "$APOLLO_CYBER" 1>/dev/null
     if [ $? == 0 ]; then
-        docker stop $APOLLO_DEV 1>/dev/null
-        docker rm -v -f $APOLLO_DEV 1>/dev/null
+        docker stop $APOLLO_CYBER 1>/dev/null
+        docker rm -v -f $APOLLO_CYBER 1>/dev/null
     fi
-
-    if [ "$FAST_BUILD_MODE" == "no" ]; then
-        if [ "$FAST_TEST_MODE" == "no" ]; then
-            # Included default maps.
-            for map_name in ${DEFAULT_MAPS[@]}; do
-              source ${APOLLO_ROOT_DIR}/docker/scripts/restart_map_volume.sh ${map_name} "${VOLUME_VERSION}"
-            done
-            YOLO3D_VOLUME=apollo_yolo3d_volume_$USER
-            docker stop ${YOLO3D_VOLUME} > /dev/null 2>&1
-
-            YOLO3D_VOLUME_IMAGE=${DOCKER_REPO}:yolo3d_volume-${ARCH}-latest
-            docker pull ${YOLO3D_VOLUME_IMAGE}
-            docker run -it -d --rm --name ${YOLO3D_VOLUME} ${YOLO3D_VOLUME_IMAGE}
-
-            OTHER_VOLUME_CONF="${OTHER_VOLUME_CONF} --volumes-from ${YOLO3D_VOLUME}"
-        else
-            # Included default maps.
-            for map_name in ${DEFAULT_TEST_MAPS[@]}; do
-              source ${APOLLO_ROOT_DIR}/docker/scripts/restart_map_volume.sh ${map_name} "${VOLUME_VERSION}"
-            done
-        fi
-    fi
-
-    LOCALIZATION_VOLUME=apollo_localization_volume_$USER
-    docker stop ${LOCALIZATION_VOLUME} > /dev/null 2>&1
-
-    LOCALIZATION_VOLUME_IMAGE=${DOCKER_REPO}:localization_volume-${ARCH}-latest
-    docker pull ${LOCALIZATION_VOLUME_IMAGE}
-    docker run -it -d --rm --name ${LOCALIZATION_VOLUME} ${LOCALIZATION_VOLUME_IMAGE}
-
-    PADDLE_VOLUME=apollo_paddlepaddle_volume_$USER
-    docker stop ${PADDLE_VOLUME} > /dev/null 2>&1
-
-    PADDLE_VOLUME_IMAGE=${DOCKER_REPO}:paddlepaddle_volume-${ARCH}-latest
-    docker pull ${PADDLE_VOLUME_IMAGE}
-    docker run -it -d --rm --name ${PADDLE_VOLUME} ${PADDLE_VOLUME_IMAGE}
-
-    LOCAL_THIRD_PARTY_VOLUME=apollo_local_third_party_volume_$USER
-    docker stop ${LOCAL_THIRD_PARTY_VOLUME} > /dev/null 2>&1
-
-    LOCAL_THIRD_PARTY_VOLUME_IMAGE=${DOCKER_REPO}:local_third_party_volume-${ARCH}-latest
-    docker pull ${LOCAL_THIRD_PARTY_VOLUME_IMAGE}
-    docker run -it -d --rm --name ${LOCAL_THIRD_PARTY_VOLUME} ${LOCAL_THIRD_PARTY_VOLUME_IMAGE}
-
-    OTHER_VOLUME_CONF="${OTHER_VOLUME_CONF} --volumes-from ${LOCALIZATION_VOLUME} "
-    OTHER_VOLUME_CONF="${OTHER_VOLUME_CONF} --volumes-from ${PADDLE_VOLUME}"
-    OTHER_VOLUME_CONF="${OTHER_VOLUME_CONF} --volumes-from ${LOCAL_THIRD_PARTY_VOLUME}"
 
     local display=""
     if [[ -z ${DISPLAY} ]];then
@@ -302,7 +227,7 @@ function main(){
         mkdir "$HOME/.cache"
     fi
 
-    info "Starting docker container \"${APOLLO_DEV}\" ..."
+    info "Starting docker container \"${APOLLO_CYBER}\" ..."
 
     DOCKER_CMD="nvidia-docker"
     USE_GPU=1
@@ -311,14 +236,10 @@ function main(){
         USE_GPU=0
     fi
 
-    set -x
-
     ${DOCKER_CMD} run -it \
         -d \
         --privileged \
-        --name $APOLLO_DEV \
-        ${MAP_VOLUME_CONF} \
-        ${OTHER_VOLUME_CONF} \
+        --name $APOLLO_CYBER \
         -e DISPLAY=$display \
         -e DOCKER_USER=$USER \
         -e USER=$USER \
@@ -327,28 +248,33 @@ function main(){
         -e DOCKER_GRP_ID=$GRP_ID \
         -e DOCKER_IMG=$IMG \
         -e USE_GPU=$USE_GPU \
+        -e OMP_NUM_THREADS=1 \
         $(local_volumes) \
         --net host \
         -w /apollo \
-        --add-host in_dev_docker:127.0.0.1 \
+        --add-host in_cyber_docker:127.0.0.1 \
         --add-host ${LOCAL_HOST}:127.0.0.1 \
-        --hostname in_dev_docker \
+        --hostname in_cyber_docker \
         --shm-size 2G \
         --pid=host \
         -v /dev/null:/dev/raw1394 \
         $IMG \
         /bin/bash
-    set +x
+
     if [ $? -ne 0 ];then
-        error "Failed to start docker container \"${APOLLO_DEV}\" based on image: $IMG"
+        error "Failed to start docker container \"${APOLLO_CYBER}\" based on image: $IMG"
         exit 1
     fi
 
-    if [ "${USER}" != "root" ]; then
-        docker exec $APOLLO_DEV bash -c '/apollo/scripts/docker_adduser.sh'
+    if [ ${ARCH} == "x86_64" ]; then
+        if [ "${USER}" != "root" ]; then
+            docker exec $APOLLO_CYBER bash -c '/apollo/scripts/docker_adduser.sh'
+        fi
+    else
+        warning "!!! Due to the problem with 'docker exec' on Drive PX platform, please run '/apollo/scripts/docker_adduser.sh' for the first time when you get into the docker !!!"
     fi
 
-    ok "Finished setting up Apollo docker environment. Now you can enter with: \nbash docker/scripts/dev_into.sh"
+    ok "Finished setting up Apollo docker environment. Now you can enter with: \nbash docker/scripts/cyber_into.sh"
     ok "Enjoy!"
 }
 

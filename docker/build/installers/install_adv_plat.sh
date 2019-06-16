@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright 2019 The Apollo Authors. All Rights Reserved.
+# Copyright 2018 The Apollo Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,27 +19,25 @@
 # Fail on first error.
 set -e
 
-cd "$(dirname "${BASH_SOURCE[0]}")"
+APOLLO_LIB_PATH=/usr/local/apollo
+# Expected file structure:
+#  ${APOLLO_LIB_PATH}/
+#    - jsoncpp
+#      - lib/*.so
+#    - adv_plat
+#      - include/*.h
+#      - lib/*.a
 
-# Prepare
-apt-get update -y
-apt-get install -y \
-    automake \
-    autotools-dev \
-    g++ \
-    libcurl4-openssl-dev \
-    libfuse-dev \
-    libssl-dev \
-    make \
-    uuid-dev
-PACKAGE="bosfs-1.0.0.9.tar.gz"
-wget http://sdk.bce.baidu.com/console-sdk/${PACKAGE}
-tar zxf ${PACKAGE}
+mkdir -p ${APOLLO_LIB_PATH}
+cd ${APOLLO_LIB_PATH}
 
-# Build and install.
-pushd bosfs-1.0.0
-  bash build.sh
-popd
+# Install jsoncpp.
+wget https://apollocache.blob.core.windows.net/apollo-cache/jsoncpp.zip
+unzip jsoncpp.zip
 
-# Clean
-rm -fr ${PACKAGE} bosfs-1.0.0
+# Install adv plat.
+wget https://apollocache.blob.core.windows.net/apollo-cache/adv_plat.zip
+unzip adv_plat.zip
+
+# Clean up.
+rm -fr jsoncpp.zip adv_plat.zip
