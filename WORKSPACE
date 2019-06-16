@@ -48,33 +48,6 @@ new_git_repository(
     remote = "https://github.com/google/styleguide.git",
 )
 
-# eigen
-new_http_archive(
-    name = "eigen",
-    build_file = "third_party/eigen.BUILD",
-    sha256 = "04f8a4fa4afedaae721c1a1c756afeea20d3cdef0ce3293982cf1c518f178502",
-    strip_prefix = "eigen-eigen-b9cd8366d4e8",
-    url = "https://bitbucket.org/eigen/eigen/get/3.2.10.tar.gz",
-)
-
-# CivetWeb (web server)
-new_http_archive(
-    name = "civetweb",
-    build_file = "third_party/civetweb.BUILD",
-    sha256 = "880d741724fd8de0ebc77bc5d98fa673ba44423dc4918361c3cd5cf80955e36d",
-    strip_prefix = "civetweb-1.9.1",
-    url = "https://github.com/civetweb/civetweb/archive/v1.9.1.tar.gz",
-)
-
-# curlpp
-new_http_archive(
-    name = "curlpp",
-    build_file = "third_party/curlpp.BUILD",
-    sha256 = "97e3819bdcffc3e4047b6ac57ca14e04af85380bd93afe314bee9dd5c7f46a0a",
-    strip_prefix = "curlpp-0.8.1",
-    url = "https://github.com/jpbarrette/curlpp/archive/v0.8.1.tar.gz",
-)
-
 # OpenCV 2.4.13.2
 new_http_archive(
     name = "opencv2",
@@ -83,94 +56,48 @@ new_http_archive(
     url = "https://github.com/opencv/opencv/archive/2.4.13.2.zip",
 )
 
-# PCL 1.7
-# =======
-# This requires libpcl-dev to be installed in your Ubuntu/Debian.
-new_local_repository(
-    name = "pcl",
-    build_file = "third_party/pcl.BUILD",
-    path = "/usr/local/include/pcl-1.7",
-)
-
+# glew
 new_local_repository(
     name = "glew",
     build_file = "third_party/glew.BUILD",
     path = "/usr/include",
 )
 
-new_local_repository(
-    name = "opengl",
-    build_file = "third_party/opengl.BUILD",
-    path = "/usr/include",
-)
-
-new_local_repository(
-    name = "glfw",
-    build_file = "third_party/glfw.BUILD",
-    path = "/usr/include",
-)
-
-new_local_repository(
-    name = "vtk",
-    build_file = "third_party/vtk.BUILD",
-    path = "/usr/include/vtk-5.8",
-)
-
-# Caffe
-new_local_repository(
-    name = "caffe",
-    build_file = "third_party/caffe.BUILD",
-    path = "/usr/include/caffe",
-)
-
-# YAML-CPP
-new_http_archive(
-    name = "yaml_cpp",
-    build_file = "third_party/yaml_cpp.BUILD",
-    strip_prefix = "yaml-cpp-yaml-cpp-0.5.3",
-    url = "https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip",
-)
-
-# qpOASES
-new_http_archive(
-    name = "qp_oases",
-    build_file = "third_party/qp_oases.BUILD",
-    sha256 = "ae15eee80455c26d0c26078498893582b67b1d71df18f14f12591023561e5f88",
-    strip_prefix = "qpOASES-3.2.1",
-    url = "https://www.coin-or.org/download/source/qpOASES/qpOASES-3.2.1.zip",
-)
-
-# Proj.4
-new_http_archive(
-    name = "proj4",
-    build_file = "third_party/proj4.BUILD",
-    strip_prefix = "proj.4-4.9.3",
-    url = "https://github.com/OSGeo/proj.4/archive/4.9.3.zip",
-)
-
-# tinyxml2
-new_http_archive(
-    name = "tinyxml2",
-    build_file = "third_party/tinyxml2.BUILD",
-    strip_prefix = "tinyxml2-5.0.1",
-    url = "https://github.com/leethomason/tinyxml2/archive/5.0.1.zip",
-)
+#protobuf 3.6.1
+#http_archive(
+#    name = "com_google_protobuf",
+#    strip_prefix = "protobuf-3.6.1",
+#    url = "file:///tmp/protobuf-cpp-3.6.1.tar.gz",
+#)
 
 #protobuf 3.3
 http_archive(
     name = "com_google_protobuf",
-    strip_prefix = "protobuf-3.3.0",
-    url = "https://github.com/google/protobuf/releases/download/v3.3.0/protobuf-cpp-3.3.0.tar.gz",
+    strip_prefix = "protobuf-3.5.1",
+    url = "https://github.com/google/protobuf/releases/download/v3.5.1/protobuf-cpp-3.5.1.tar.gz",
 )
 
 # rtps
-new_http_archive(
+#new_http_archive(
+#    name = "fastrtps",
+#    build_file = "third_party/fastrtps.BUILD",
+#    #strip_prefix = "Fast-RTPS-1.7.2",
+#    url = "https://github.com/eProsima/Fast-RTPS/archive/v1.7.2.tar.gz",
+#)
+
+new_local_repository(
     name = "fastrtps",
     build_file = "third_party/fastrtps.BUILD",
-    #strip_prefix = "Fast-RTPS-1.7.2",
-    url = "https://github.com/eProsima/Fast-RTPS/archive/v1.7.2.tar.gz",
+    path = "/usr/local/fast-rtps",
 )
 #bind(
 #    name = "fastrtps",
 #    actual = "@fastrtps//:Fast-RTPS-1.7.2",
 #)
+
+# python
+new_local_repository(
+    name = "python27",
+    build_file = "third_party/python27.BUILD",
+    path = "/usr/local/Cellar/python@2/2.7.16/Frameworks/Python.framework/Versions/2.7/",
+)
