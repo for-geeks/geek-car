@@ -1,11 +1,9 @@
 #FROM ubuntu:18.04
 
-#LABEL version="1.0"
-
 #ENV DEBIAN_FRONTEND=noninteractive
 
-sudo apt clean
-sudo apt update -y && \
+apt clean
+apt update -y && \
     apt install -y \
     build-essential \
     gcc-4.8 \
@@ -47,39 +45,34 @@ sudo apt update -y && \
     software-properties-common
 
 #install gcc 4.8.5
-sudo rm -f /usr/bin/gcc
-sudo ln -s /usr/bin/gcc-4.8 /etc/alternatives/gcc
-sudo ln -s /etc/alternatives/gcc /usr/bin/gcc
-sudo rm -f /usr/bin/g++
-sudo ln -s /usr/bin/g++-4.8 /etc/alternatives/g++
-sudo ln -s /etc/alternatives/g++ /usr/bin/g++
+rm -f /usr/bin/gcc
+ln -s /usr/bin/gcc-4.8 /etc/alternatives/gcc
+ln -s /etc/alternatives/gcc /usr/bin/gcc
+rm -f /usr/bin/g++
+ln -s /usr/bin/g++-4.8 /etc/alternatives/g++
+ln -s /etc/alternatives/g++ /usr/bin/g++
 
 # Run installer
-sudo cp -r installers /tmp/installers
-sudo bash /tmp/installers/install_bazel.sh
-sudo bash /tmp/installers/install_gflags_glog.sh
-sudo bash /tmp/installers/install_protobuf.sh
-sudo bash /tmp/installers/install_bazel_packages.sh
-sudo bash /tmp/installers/install_google_styleguide.sh
-sudo bash /tmp/installers/install_osqp.sh
+cp -r installers /tmp/installers
+bash /tmp/installers/install_bazel.sh
+bash /tmp/installers/install_gflags_glog.sh
+bash /tmp/installers/install_protobuf.sh
+bash /tmp/installers/install_bazel_packages.sh
+bash /tmp/installers/install_google_styleguide.sh
+bash /tmp/installers/install_osqp.sh
 
 # Add Bionic source
-sudo echo "deb https://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse" > /etc/apt/sources.list
-sudo echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse" >> /etc/apt/sources.list
-sudo echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse" >> /etc/apt/sources.list
-sudo echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse" >> /etc/apt/sources.list
-sudo echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list
-
-#sudo echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic-updates multiverse" >> /etc/apt/sources.list
-#sudo echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list
-#sudo echo "deb http://security.ubuntu.com/ubuntu bionic-security main restricted" >> /etc/apt/sources.list
-#sudo echo "deb http://security.ubuntu.com/ubuntu bionic-security multiverse" >> /etc/apt/sources.list
+echo "deb https://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse" > /etc/apt/sources.list
+echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse" >> /etc/apt/sources.list
+echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse" >> /etc/apt/sources.list
+echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse" >> /etc/apt/sources.list
+echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list
 
 #add Trusty universe into apt source for Poco foundation 9
-sudo echo "deb http://dk.archive.ubuntu.com/ubuntu/ trusty main" >> /etc/apt/sources.list
-sudo echo "deb http://dk.archive.ubuntu.com/ubuntu/ trusty universe" >> /etc/apt/sources.list
-sudo apt update -y
-sudo apt install -y --allow-downgrades \
+echo "deb http://dk.archive.ubuntu.com/ubuntu/ trusty main" >> /etc/apt/sources.list
+echo "deb http://dk.archive.ubuntu.com/ubuntu/ trusty universe" >> /etc/apt/sources.list
+apt update -y
+apt install -y --allow-downgrades \
     libboost-system1.54.0 \
     libboost-thread1.54.0 \
     libboost-signals1.54.0 \
@@ -97,22 +90,22 @@ sudo apt install -y --allow-downgrades \
     libvtk6.3 \
     vtk6 \
     libpocofoundation9
-sudo rm -f /usr/lib/libPocoFoundation.so
-sudo ln -s /usr/lib/libPocoFoundation.so.9 /usr/lib/libPocoFoundation.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_filesystem.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_iostreams.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.65.1 /usr/lib/x86_64-linux-gnu/libboost_date_time.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.65.1 /usr/lib/x86_64-linux-gnu/libboost_regex.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_serialization.so.1.65.1 /usr/lib/x86_64-linux-gnu/libboost_serialization.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_signals.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_signals.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_system.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_thread.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_thread.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_wserialization.so.1.65.1 /usr/lib/x86_64-linux-gnu/libboost_wserialization.so
-sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_chrono.so
-sudo ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.x86_64-linux-gnu.so /usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so
+rm -f /usr/lib/libPocoFoundation.so
+ln -s /usr/lib/libPocoFoundation.so.9 /usr/lib/libPocoFoundation.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_filesystem.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_iostreams.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_date_time.so.1.65.1 /usr/lib/x86_64-linux-gnu/libboost_date_time.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.65.1 /usr/lib/x86_64-linux-gnu/libboost_regex.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_serialization.so.1.65.1 /usr/lib/x86_64-linux-gnu/libboost_serialization.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_signals.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_signals.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_system.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_thread.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_thread.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_wserialization.so.1.65.1 /usr/lib/x86_64-linux-gnu/libboost_wserialization.so
+ln -s /usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_chrono.so
+ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.x86_64-linux-gnu.so /usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so
 
-sudo bash /tmp/installers/install_fast-rtps.sh
-sudo bash /tmp/installers/install_pcl.sh
+bash /tmp/installers/install_fast-rtps.sh
+bash /tmp/installers/install_pcl.sh
 
 #WORKDIR /apollo
 #USER apollo

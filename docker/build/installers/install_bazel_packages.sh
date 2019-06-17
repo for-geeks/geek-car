@@ -22,8 +22,6 @@ set -e
 mkdir -p /home/tmp
 cd /home/tmp
 
-wget -O opencv-2.4.13.2.zip \
-    https://github.com/opencv/opencv/archive/2.4.13.2.zip
 wget -O googletest-release-1.8.0.tar.gz \
     https://github.com/google/googletest/archive/release-1.8.0.tar.gz
 wget -O gflags-2.2.0.tar.gz \
@@ -34,8 +32,6 @@ wget -O benchmark-1.1.0.tar.gz \
     https://github.com/google/benchmark/archive/v1.1.0.tar.gz
 wget -O eigen-3.2.10.tar.gz \
     https://bitbucket.org/eigen/eigen/get/3.2.10.tar.gz
-wget -O civetweb-1.10.tar.gz \
-    https://github.com/civetweb/civetweb/archive/v1.10.tar.gz
 wget -O curlpp-0.8.1.tar.gz \
     https://github.com/jpbarrette/curlpp/archive/v0.8.1.tar.gz
 wget -O yaml-cpp-0.5.3.zip \
@@ -50,5 +46,3 @@ wget -O protobuf-3.3.0.tar.gz \
     https://github.com/google/protobuf/releases/download/v3.3.0/protobuf-cpp-3.3.0.tar.gz
 wget -O v1.14.2.tar.gz \
     https://github.com/grpc/grpc/archive/v1.14.2.tar.gz
-wget -O v1.11.tar.gz \
-    https://github.com/civetweb/civetweb/archive/v1.11.tar.gz

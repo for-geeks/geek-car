@@ -1,6 +1,4 @@
-# Apollo_lite
-lite version based on cyber RT
-
+# A Sample Framework Based On Cyber RT.
 
 ## Environment Build
 
@@ -27,16 +25,33 @@ deb https://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe
 
 Let's Install Basical Library and Tools:
 
-Arm Mode :
+Arm Plarform :
+
 ```bash
 cd docker/build 
-bash cyber.aarch64.sh
+sudo bash cyber.aarch64.sh
 ```
+X86 Platform:
 
-X86:
 ```bash
 cd docker/build
-bash cyber.x86_64.sh
+sudo bash cyber.x86_64.sh
+```
+
+## Build Framework
+
+```bash
+bash apollo.sh build_opt
 ```
 
 ## Have a try on Cyber RT
+
+
+## Appendix I Cyber RT
+
+- Bazel
+- Protobuf
+- Glog
+- Gtest
+- Fast-rtps
+- Pcl
