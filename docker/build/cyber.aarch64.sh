@@ -1,10 +1,3 @@
-#FROM arm64v8/ubuntu:18.04
-
-#ARG INSTALL_MODE
-
-#LABEL version="1.0"
-
-#ENV DEBIAN_FRONTEND=noninteractive
 
 apt clean
 
@@ -19,7 +12,7 @@ echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-backports ma
 
 #add Trusty universe into apt source for Poco foundation 9
 echo "deb http://ports.ubuntu.com/ubuntu-ports/ trusty main" >> /etc/apt/sources.list
-cho "deb http://ports.ubuntu.com/ubuntu-ports/ trusty universe" >> /etc/apt/sources.list
+echo "deb http://ports.ubuntu.com/ubuntu-ports/ trusty universe" >> /etc/apt/sources.list
 echo "deb http://ports.ubuntu.com/ubuntu-ports/ xenial main" >> /etc/apt/sources.list
 echo "deb http://ports.ubuntu.com/ubuntu-ports/ xenial universe" >> /etc/apt/sources.list
 
