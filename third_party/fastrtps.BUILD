@@ -4,10 +4,8 @@ cc_library(
         "lib/*.so.*",
         "lib/*.so",
     ]),
-
     includes = [
-        "Fast-RTPS-1.7.2/include",
+        "include",
     ],
-
     visibility = ["//visibility:public"],
 )
