@@ -1,5 +1,5 @@
 export CYBER_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-export ROOT_PATH="${ROOT_PATH}/../"
+ROOT_PATH="$(dirname ${CYBER_PATH})"
 
 binary_path="${ROOT_PATH}/bazel-bin/cyber"
 cyber_tool_path="${ROOT_PATH}/bazel-bin/cyber/tools"
