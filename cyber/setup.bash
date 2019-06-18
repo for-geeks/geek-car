@@ -1,17 +1,19 @@
-export CYBER_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-binary_path="/apollo/bazel-bin/cyber"
-cyber_tool_path="/apollo/bazel-bin/cyber/tools"
-apollo_tool_path="/apollo/bazel-bin/modules/tools"
+ROOT_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+export CYBER_PATH="${ROOT_PATH}/cyber"
+
+binary_path="${ROOT_PATH}/bazel-bin/cyber"
+cyber_tool_path="${ROOT_PATH}/bazel-bin/cyber/tools"
+apollo_tool_path="${ROOT_PATH}/bazel-bin/modules/tools"
 recorder_path="${cyber_tool_path}/cyber_recorder"
 monitor_path="${cyber_tool_path}/cyber_monitor"
 visualizer_path="${apollo_tool_path}/visualizer"
-PYTHON_LD_PATH="/apollo/bazel-bin/cyber/py_wrapper"
+PYTHON_LD_PATH="${ROOT_PATH}/bazel-bin/cyber/py_wrapper"
 launch_path="${CYBER_PATH}/tools/cyber_launch"
 channel_path="${CYBER_PATH}/tools/cyber_channel"
 node_path="${CYBER_PATH}/tools/cyber_node"
 service_path="${CYBER_PATH}/tools/cyber_service"
 qt_path=/usr/local/Qt5.5.1/5.5/gcc_64
-rosbag_to_record_path="/apollo/bazel-bin/modules/data/tools/rosbag_to_record"
+rosbag_to_record_path="${ROOT_PATH}/bazel-bin/modules/data/tools/rosbag_to_record"
 
 
 export LD_LIBRARY_PATH=${qt_path}/lib:$LD_LIBRARY_PATH
@@ -22,7 +24,7 @@ export PYTHONPATH=${PYTHON_LD_PATH}:${CYBER_PATH}/python:$PYTHONPATH
 export CYBER_DOMAIN_ID=80
 export CYBER_IP=127.0.0.1
 
-export GLOG_log_dir=/apollo/data/log
+export GLOG_log_dir=${ROOT_PATH}/data/log
 export GLOG_alsologtostderr=0
 export GLOG_colorlogtostderr=1
 export GLOG_minloglevel=0
