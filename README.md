@@ -36,7 +36,7 @@ sudo bash cyber.x86_64.sh
 
 ## Build Framework
 
-**Note:Please use debug not optimization mode**
+**Note:If you use ARM plarform, Please use debug not optimization mode**
 ```bash
 # in apollo_lite directory
 bash apollo.sh build
