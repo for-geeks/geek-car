@@ -36,9 +36,10 @@ sudo bash cyber.x86_64.sh
 
 ## Build Framework
 
+**Note:Please use debug not optimization mode**
 ```bash
 # in apollo_lite directory
-bash apollo.sh build_opt
+bash apollo.sh build
 ```
 
 ## Have a try on Cyber RT
