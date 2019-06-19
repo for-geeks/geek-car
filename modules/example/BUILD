@@ -16,4 +16,26 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "libexample.so",
+    linkopt = ["-shared"],
+    linkstatic = False,
+    deps = [":example_lib"]
+)
+
+cc_library(
+    name = "example_lib",
+    srcs = [
+        "example_component.cc",
+    ],
+    hdrs = [
+        "example_component.h",
+    ],
+    deps = [
+        "//cyber",
+        "//cyber/example/proto:example_cc_proto",
+    ],
+)
+
+
 cpplint()

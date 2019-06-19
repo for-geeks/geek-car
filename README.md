@@ -401,3 +401,25 @@ More details about develop toolschain you can find here：[CyberRT_Developer_Too
 - Gtest
 - Fast-rtps
 - Pcl
+
+## Appendix II: Update
+
+```bash
+# open coredump
+ulimit -c unlimited
+
+# core dump to target directory
+if [ -e /proc/sys/kernel ]; then
+    echo "/apollo/data/core/core_%e.%p" | sudo tee /proc/sys/kernel/core_pattern > /dev/null
+fi
+
+# install protobuf
+pip install protobuf
+
+```
+
+## FAQ
+
+1.`ImportError:No module named proto.unit_test_pb2`:
+
+`source scripts/apollo_base.sh`
