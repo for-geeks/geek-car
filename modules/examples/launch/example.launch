@@ -1,0 +1,8 @@
+<cyber>
+  <module>
+    <name>
+    <dag_conf>examples/dag/example.dag</dag_conf>
+    <process_name>example_component</process_name>
+    </name>
+  </module>
+</cyber>

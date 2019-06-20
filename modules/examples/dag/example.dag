@@ -1,0 +1,16 @@
+# Dag all comes in DAG streming.
+module_config {
+  module_library : "apollo_lite/bazel-bin/modules/example/libexample.so"
+  components {
+    class_name : "ExampleComponent"
+    config {
+      name: "example"
+      readers {
+        channel : "/apollo/prediction"
+      }
+      reader {
+        channel: " /apollo/test"
+      }
+    }
+  }
+}
