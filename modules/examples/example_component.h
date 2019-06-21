@@ -16,11 +16,12 @@
 #include <memory>
 
 #include "cyber/class_loader/class_loader.h"
-#include "modules/examples/proto/example.pb.h"
+#include "cyber/component/component.h"
+#include "modules/examples/proto/examples.pb.h"
 
 using apollo::cyber::Component;
 using apollo::cyber::ComponentBase;
-using apollo::modules::examples::Driver;
+using apollo::examples::proto::Driver;
 
 class ExampleComponent : public Component<Driver, Driver> {
  public:

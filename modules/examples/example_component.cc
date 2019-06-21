@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *****************************************************************************/
-#pragma once
-
 #include "modules/examples/example_component.h"
 
 #include "cyber/class_loader/class_loader.h"
@@ -28,8 +26,8 @@ bool ExampleComponent::Init() {
 bool ExampleComponent::Proc(const std::shared_ptr<Driver>& msg0,
                             const std::shared_ptr<Driver>& msg1) {
   AINFO << "message from ExampleComponent::Proc()"
-        << "msg0 is :" << msg0.DebugString()
-        << "msg1 is :" << msg1.DebugString();
+        << "msg0 is :" << msg0->DebugString()
+        << "msg1 is :" << msg1->DebugString();
 
   return true;
 }

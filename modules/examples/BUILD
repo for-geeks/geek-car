@@ -33,7 +33,7 @@ cc_library(
     ],
     deps = [
         "//cyber",
-        "//modules/examples/proto:example_cc_proto",
+        "//modules/examples/proto:examples_cc_proto",
     ],
 )
 
@@ -59,6 +59,7 @@ cc_binary(
     srcs = ["listener.cc"],
     deps = [
         "//cyber",
+        "//modules/examples/proto:examples_cc_proto",
     ],
 )
 
@@ -75,7 +76,7 @@ cc_binary(
     srcs = ["paramserver.cc"],
     deps = [
         "//cyber",
-        "//modules/parameter",
+        "//cyber/parameter",
     ],
 )
 
