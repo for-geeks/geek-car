@@ -98,5 +98,21 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "camera",
+    srcs = ["camera.cc"],
+    linkopts = [
+        "-lopencv_core",
+        "-lopencv_highgui",
+        "-lopencv_videoio",
+        "-lopencv_imgproc",
+        "-lopencv_imgcodecs",
+    ],
+    deps = [
+        "//cyber",
+        "//modules/examples/proto:examples_cc_proto",
+    ]
+)
+
 
 cpplint()
