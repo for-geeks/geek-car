@@ -18,7 +18,7 @@ cc_binary(
 
 cc_binary(
     name = "libexample.so",
-    linkopt = ["-shared"],
+    linkopts = ["-shared"],
     linkstatic = False,
     deps = [":example_lib"]
 )
@@ -33,7 +33,67 @@ cc_library(
     ],
     deps = [
         "//cyber",
-        "//cyber/example/proto:example_cc_proto",
+        "//modules/examples/proto:example_cc_proto",
+    ],
+)
+
+cc_binary(
+    name = "talker",
+    srcs = ["talker.cc"],
+    deps = [
+        "//cyber",
+        "//modules/examples/proto:examples_cc_proto",
+    ],
+)
+
+cc_binary(
+    name = "performance_talker",
+    srcs = ["performance_talker.cc"],
+    deps = [
+        "//cyber",
+    ],
+)
+
+cc_binary(
+    name = "listener",
+    srcs = ["listener.cc"],
+    deps = [
+        "//cyber",
+    ],
+)
+
+cc_binary(
+    name = "performance_listener",
+    srcs = ["performance_listener.cc"],
+    deps = [
+        "//cyber",
+    ],
+)
+
+cc_binary(
+    name = "paramserver",
+    srcs = ["paramserver.cc"],
+    deps = [
+        "//cyber",
+        "//modules/parameter",
+    ],
+)
+
+cc_binary(
+    name = "service",
+    srcs = ["service.cc"],
+    deps = [
+        "//cyber",
+        "//modules/examples/proto:examples_cc_proto",
+    ],
+)
+
+cc_binary(
+    name = "record",
+    srcs = ["record.cc"],
+    deps = [
+        "//cyber",
+        "//cyber/proto:record_cc_proto",
     ],
 )
 
