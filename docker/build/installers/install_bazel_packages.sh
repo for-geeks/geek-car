@@ -22,6 +22,8 @@ set -e
 mkdir -p /home/tmp
 cd /home/tmp
 
+wget -O opencv-2.4.13.2.zip \
+    https://github.com/opencv/opencv/archive/2.4.13.2.zip
 wget -O googletest-release-1.8.0.tar.gz \
     https://github.com/google/googletest/archive/release-1.8.0.tar.gz
 wget -O gflags-2.2.0.tar.gz \
