@@ -1,6 +1,5 @@
 # Bazel
 bazel-apollo_lite
-bazel-apollo_dev
 bazel-bin
 bazel-genfiles
 bazel-out
@@ -12,6 +11,7 @@ WORKSPACE
 # temporary files
 *.swp
 *.swo
+.DS_Store
 # generated files
 generated_data_warehouse.conf
 modules/common/data/ssl_keys

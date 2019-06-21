@@ -1,0 +1,22 @@
+# Define all coms in DAG streaming.
+module_config {
+    module_library : "/apollo/bazel-bin/modules/drivers/video/libvideo_driver_component.so"
+
+#    components {
+#      class_name : "CompCameraH265Compressed"
+#      config {
+#        name : "camera_front_6mm_compress"
+#        config_file_path : "/apollo/modules/drivers/video/conf/video_front_6mm.pb.txt"
+#      }
+#    }
+
+#    components {
+#      class_name : "CompCameraH265Compressed"
+#      config {
+#        name : "camera_front_12mm_compress"
+#        config_file_path : "/apollo/modules/drivers/video/conf/video_front_12mm.pb.txt"
+#       }
+#    }
+
+}
+
