@@ -13,3 +13,21 @@ message Image {
   optional uint32 step = 7;  // Full row length in bytes
   optional bytes data = 8;   // actual matrix data, size is (step * rows)
 }
+
+// Define https://github.com/IntelRealSense/librealsense/tree/master/examples/pose
+message Pose {
+  optional Translation translation = 1;
+  optional double velocity = 2; // (in meter/sec)
+  optional double rotation = 3; //(as represented in quaternion rotation, relative to initial position)
+  optional double angular_velocity = 4; //(in radians/sec)
+  optional double angular_acceleration = 5; //(in radians/sec^2)
+  optional double tracker_confidence = 6;//(pose data confidence 0x0 - Failed, 0x1 - Low, 0x2 - Medium, 0x3 - High)
+  optional double mapper_confidence  = 7;//(pose data confidence 0x0 - Failed, 0x1 - Low, 0x2 - Medium, 0x3 - High)
+
+}
+
+message Translation {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+}
