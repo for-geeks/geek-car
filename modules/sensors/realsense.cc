@@ -11,7 +11,7 @@
 #include "cyber/cyber.h"
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
-#include "modules/examples/proto/examples.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 
 using apollo::cyber::Rate;
 using apollo::cyber::Time;

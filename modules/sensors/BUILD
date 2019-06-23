@@ -11,11 +11,11 @@ cc_binary(
         "-lopencv_videoio",
         "-lopencv_imgproc",
         "-lopencv_imgcodecs",
+        "-lrealsense2",
     ],
     deps = [
         "//cyber",
         "//modules/sensors/proto:sensors_cc_proto",
-        "@librealsense2",
     ]
 )
 
