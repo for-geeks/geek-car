@@ -11,6 +11,7 @@ cc_binary(
         "-lopencv_videoio",
         "-lopencv_imgproc",
         "-lopencv_imgcodecs",
+        "-lopencv_calib3d",
         "-lrealsense2",
     ],
     deps = [
