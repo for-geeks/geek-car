@@ -7,8 +7,8 @@
 #include <opencv2/opencv.hpp>
 #include <thread>
 
-#include "cyber/common/log.h"
 #include "cyber/cyber.h"
+#include "cyber/common/log.h"
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
 #include "modules/sensors/proto/sensors.pb.h"
@@ -18,6 +18,11 @@ using apollo::cyber::Time;
 using apollo::sensors::Image;
 
 int main(int argc, char* argv[]) try {
+  apollo::cyber::Init(argv[0]);
+  auto image_node = apollo::cyber::CreateNode("realsense");
+  auto image_writer =
+    image_node->CreateWriter<Image>("/realsense/raw_image");
+  Rate rate(10.0);
   // Declare RealSense pipeline, encapsulating the actual device and sensors
   rs2::pipeline pipe;
   // Create a configuration for configuring the pipeline with a non default
@@ -62,22 +67,9 @@ int main(int argc, char* argv[]) try {
                     CV_8U, (void*)fs.get_fisheye_frame(1).get_data(),
                     cv::Mat::AUTO_STEP);
       cv::Mat dst;
-      /*
-      cv::fisheye::undistortImage(
-              image,
-              dst,
-              intrinsicsL,
-              distCoeffsL
-        );*/
       cv::remap(image, dst, map1, map2, cv::INTER_LINEAR);
+      
       /*------------- write image channel ------------------*/
-      apollo::cyber::Init(argv[0]);
-
-      auto image_node = apollo::cyber::CreateNode("realsense");
-      auto image_writer =
-          image_node->CreateWriter<Image>("/realsense/raw_image");
-      Rate rate(10.0);
-
       while (apollo::cyber::OK()) {
         auto image_proto = std::make_shared<Image>();
         image_proto->set_frame_id(frame_counter);
