@@ -10,20 +10,18 @@
 
 namespace apollo {
 namespace sensors {
-namespace realsense {
 
 using apollo::cyber::Component;
 using apollo::cyber::Writer;
-using apollo::sensors::Image;
 
 class RealsenseComponent : public Component<> {
  public:
   bool Init() override;
-  bool Proc() override;
+  bool Proc();
 
  private:
   bool OnImage(cv::Mat dst);
-  bool OnPose(rs2::rs2_pose pose_data);
+  bool OnPose(rs2_pose pose_data);
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
   // realsense device
@@ -45,6 +43,5 @@ class RealsenseComponent : public Component<> {
 };
 
 CYBER_REGISTER_COMPONENT(RealsenseComponent)
-}  // namespace realsense
 }  // namespace sensors
 }  // namespace apollo

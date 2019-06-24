@@ -1,8 +1,8 @@
 # Dag all comes in DAG streming.
 module_config {
-  module_library : "apollo_lite/bazel-bin/modules/sensors/librealsense_component.so"
+  module_library : "../../apollo_lite/bazel-bin/modules/sensors/librealsense_component.so"
   components {
-    class_name : "RealSenceComponent"
+    class_name : "RealsenceComponent"
     config {
       name: "realsense_component"
     }

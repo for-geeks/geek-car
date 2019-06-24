@@ -1,4 +1,5 @@
-#pragma once
+
+#include "modules/sensors/realsense_component.h"
 
 #include <chrono>
 #include <iomanip>
@@ -16,6 +17,8 @@
 #include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/realsense.h"
 
+namespace apollo {
+namespace sensors {
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::sensors::Image;
@@ -37,6 +40,7 @@ bool RealsenseComponent::Init() {
   // Note: It is not currently possible to enable only one
   cfg_.enable_stream(RS2_STREAM_FISHEYE, 1, RS2_FORMAT_Y8);
   cfg_.enable_stream(RS2_STREAM_FISHEYE, 2, RS2_FORMAT_Y8);
+  return true;
 }
 
 /**
@@ -70,14 +74,15 @@ bool RealsenseComponent::Proc() {
     // Copy current camera pose
     // device_pose_in_world = pose_frame.get_pose_data();
 
-    fp = frame.as<rs2::pose_frame>();
+    auto fp = frame.as<rs2::pose_frame>();
     rs2_pose pose_data = fp.get_pose_data();
     OnPose(pose_data);
 
-    auto fs = frame.as<rs2::frameset>() cv::Mat image(
-        cv::Size(fs.get_fisheye_frame(1).get_width(),
-                 fs.get_fisheye_frame(1).get_height()),
-        CV_8U, (void*)fs.get_fisheye_frame(1).get_data(), cv::Mat::AUTO_STEP);
+    auto fs = frame.as<rs2::frameset>();
+    cv::Mat image(cv::Size(fs.get_fisheye_frame(1).get_width(),
+                           fs.get_fisheye_frame(1).get_height()),
+                  CV_8U, (void*)fs.get_fisheye_frame(1).get_data(),
+                  cv::Mat::AUTO_STEP);
     cv::Mat dst;
     cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
     OnImage(dst);
@@ -94,7 +99,7 @@ bool RealsenseComponent::Proc() {
     }
   };
   // Start streaming through the callback
-  rs2::pipeline_profile profiles = pipe.start(cfg_, callback);
+  rs2::pipeline_profile profiles = pipe_.start(cfg_, callback);
   rs2::stream_profile fisheye_stream =
       profiles.get_stream(RS2_STREAM_FISHEYE, 1);
   rs2_intrinsics intrinsicsleft =
@@ -112,9 +117,10 @@ bool RealsenseComponent::Proc() {
                                        cv::Size(848, 816), CV_16SC2, map1_,
                                        map2_);
   AINFO << "image and pose data have been written.";
+  return true;
 }
 
-bool OnImage(cv::Mat dst) {
+bool RealsenseComponent::OnImage(cv::Mat dst) {
   // TODO channel move to config
   image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
   auto image_proto = std::make_shared<Image>();
@@ -123,12 +129,12 @@ bool OnImage(cv::Mat dst) {
   auto m_size = dst.rows * dst.cols * dst.elemSize();
   image_proto->set_data(dst.data, m_size);
   image_writer_->Write(image_proto);
-  rate.Sleep();
+  // rate.Sleep();
   frame_counter_++;
   return true;
 }
 
-bool OnPose(rs2::rs2_pose pose_data) {
+bool RealsenseComponent::OnPose(rs2_pose pose_data) {
   // TODO channel move to config
   pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
 
@@ -138,15 +144,18 @@ bool OnPose(rs2::rs2_pose pose_data) {
   translation->set_y(pose_data.translation.y);
   translation->set_z(pose_data.translation.z);
 
-  pose_proto->set_velocity(pose_data.velocity());
-  pose_proto->set_rotation(pose_data.rotation());
-  pose_proto->set_angular_velocity(pose_data.angular_velocity());
-  pose_proto->set_angular_accelaration(pose_data.angular_acceleration());
-  pose_proto->set_trancker_confidence(pose_data.tracker_confidence);
-  pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
+  // pose_proto->set_velocity(pose_data.velocity());
+  // pose_proto->set_rotation(pose_data.rotation());
+  // pose_proto->set_angular_velocity(pose_data.angular_velocity());
+  // pose_proto->set_angular_accelaration(pose_data.angular_acceleration());
+  // pose_proto->set_trancker_confidence(pose_data.tracker_confidence);
+  // pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
 
   pose_writer_->Write(pose_proto);
   pose_counter_++;
 
   return true;
 }
+
+}  // namespace sensors
+}  // namespace apollo

@@ -1,11 +1,11 @@
-#pragma once
-
 #include <iomanip>
 #include <iostream>
 #include <librealsense2/rs.hpp>
 #include <map>
 #include <utility>
 #include <vector>
+
+#include "cyber/common/log"
 
 /**
  * https://github.com/IntelRealSense/librealsense/blob/master/examples/sensor-control/api_how_to.h
@@ -303,7 +303,7 @@ class RealSense {
     AINFO << "  Step          : " << difference_to_next_value << std::endl;
 
     bool change_option = false;
-    change_option = prompt_yes_no("Change option's value?");
+    // change_option = prompt_yes_no("Change option's value?");
 
     if (change_option) {
       AINFO << "Enter the new value for this option: ";
@@ -393,9 +393,10 @@ class RealSense {
       //     rs2::context, has a unique identifier
       //    This identifier is unique across all streams, regardless of the
       //    stream type.
-      int unique_stream_id =
-          stream_profile.unique_id();  // The unique identifier can be used for
-                                       // comparing two streams
+      // int unique_stream_id =
+      //    stream_profile.unique_id();  // The unique identifier can be used
+      //    for
+      // comparing two streams
       AINFO << std::setw(3) << profile_num << ": " << stream_data_type << " #"
             << stream_index;
 
@@ -460,7 +461,7 @@ class RealSense {
     // and we capture it by reference inside a C++11 lambda which is passed to
     // the start() function
     // util::frame_viewer display(oss.str());
-    sensor.start([&](rs2::frame f) { display(f); });
+    // sensor.start([&](rs2::frame f) { display(f); });
 
     // At this point, frames will asynchronously arrive to the callback handler
     // This thread will continue to run in parallel.
@@ -468,7 +469,7 @@ class RealSense {
     // wait() function
     AINFO << "Streaming profile: " << stream_profile.stream_name()
           << ". Close display window to continue...";
-    display.wait();
+    // display.wait();
 
     // To stop streaming, we simply need to call the sensor's stop method
     // After returning from the call to stop(), no frames will arrive from this
