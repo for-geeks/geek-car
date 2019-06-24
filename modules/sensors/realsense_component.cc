@@ -48,9 +48,10 @@ bool RealsenseComponent::Init() {
  * @return [description]
  */
 bool RealsenseComponent::Proc() {
-  // The callback is executed on a sensor thread and can be called
-  // simultaneously from multiple sensors Therefore any modification to common
-  // memory should be done under lock
+// The callback is executed on a sensor thread and can be called
+// simultaneously from multiple sensors Therefore any modification to common
+// memory should be done under lock
+#if 0
   std::mutex data_mutex;
   bool first_data = true;
   auto last_print = std::chrono::system_clock::now();
@@ -62,17 +63,6 @@ bool RealsenseComponent::Proc() {
       first_data = false;
       last_print = std::chrono::system_clock::now();
     }
-
-    // Wait for the next set of frames from the camera
-    // auto frames = pipe.wait_for_frames();
-    // Get a frame from the fisheye stream
-    // rs2::video_frame fisheye_frame =
-    //    frames.get_fisheye_frame(fisheye_sensor_idx);
-    // Get a frame from the pose stream
-    // rs2::pose_frame pose_frame = frames.get_pose_frame();
-
-    // Copy current camera pose
-    // device_pose_in_world = pose_frame.get_pose_data();
 
     auto fp = frame.as<rs2::pose_frame>();
     rs2_pose pose_data = fp.get_pose_data();
@@ -98,8 +88,10 @@ bool RealsenseComponent::Proc() {
       last_print = now;
     }
   };
+#endif
   // Start streaming through the callback
-  rs2::pipeline_profile profiles = pipe_.start(cfg_, callback);
+  rs2::pipeline_profile profiles = pipe_.start(cfg_);
+
   rs2::stream_profile fisheye_stream =
       profiles.get_stream(RS2_STREAM_FISHEYE, 1);
   rs2_intrinsics intrinsicsleft =
@@ -116,10 +108,34 @@ bool RealsenseComponent::Proc() {
   cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
                                        cv::Size(848, 816), CV_16SC2, map1_,
                                        map2_);
+  // Wait for the next set of frames from the camera
+  auto frames = pipe_.wait_for_frames();
+  // Get a frame from the fisheye stream
+  rs2::video_frame fisheye_frame = frames.get_fisheye_frame(1);
+
+  cv::Mat image(cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
+                CV_8U, (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
+  cv::Mat dst;
+  cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
+  OnImage(dst);
+  // Get a frame from the pose stream
+  rs2::pose_frame pose_frame = frames.get_pose_frame();
+
+  // Copy current camera pose
+  rs2::pose pose_data = pose_frame.get_pose_data();
+  OnPose(pose_data);
+
   AINFO << "image and pose data have been written.";
   return true;
 }
 
+/**
+ * @brief callback of Image data
+ *
+ * @param dst
+ * @return true
+ * @return false
+ */
 bool RealsenseComponent::OnImage(cv::Mat dst) {
   // TODO channel move to config
   image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
@@ -134,6 +150,13 @@ bool RealsenseComponent::OnImage(cv::Mat dst) {
   return true;
 }
 
+/**
+ * @brief callback of Pose data
+ *
+ * @param pose_data
+ * @return true
+ * @return false
+ */
 bool RealsenseComponent::OnPose(rs2_pose pose_data) {
   // TODO channel move to config
   pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
@@ -144,10 +167,10 @@ bool RealsenseComponent::OnPose(rs2_pose pose_data) {
   translation->set_y(pose_data.translation.y);
   translation->set_z(pose_data.translation.z);
 
-  // pose_proto->set_velocity(pose_data.velocity());
-  // pose_proto->set_rotation(pose_data.rotation());
-  // pose_proto->set_angular_velocity(pose_data.angular_velocity());
-  // pose_proto->set_angular_accelaration(pose_data.angular_acceleration());
+  // pose_proto->set_velocity(pose_data.velocity);
+  // pose_proto->set_rotation(pose_data.rotation);
+  // pose_proto->set_angular_velocity(pose_data.angular_velocity);
+  // pose_proto->set_angular_accelaration(pose_data.angular_acceleration);
   // pose_proto->set_trancker_confidence(pose_data.tracker_confidence);
   // pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
 
