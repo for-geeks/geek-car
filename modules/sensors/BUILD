@@ -3,7 +3,7 @@ load("//tools:cpplint.bzl", "cpplint")
 package(default_visibility = ["//visibility:public"])
 
 cc_binary(
-    name = "librealsense_component",
+    name = "librealsense_component.so",
     linkopts = ["-shared"],
     linkstatic = False,
     deps = [":realsense_component_lib"],

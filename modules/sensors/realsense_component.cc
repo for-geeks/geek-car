@@ -15,10 +15,10 @@
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
 #include "modules/sensors/proto/sensors.pb.h"
-#include "modules/sensors/realsense.h"
 
 namespace apollo {
 namespace sensors {
+
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::sensors::Image;
@@ -122,7 +122,7 @@ bool RealsenseComponent::Proc() {
   rs2::pose_frame pose_frame = frames.get_pose_frame();
 
   // Copy current camera pose
-  rs2::pose pose_data = pose_frame.get_pose_data();
+  rs2_pose pose_data = pose_frame.get_pose_data();
   OnPose(pose_data);
 
   AINFO << "image and pose data have been written.";

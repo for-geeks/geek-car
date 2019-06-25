@@ -2,7 +2,7 @@
 module_config {
   module_library : "../../apollo_lite/bazel-bin/modules/sensors/librealsense_component.so"
   components {
-    class_name : "RealsenceComponent"
+    class_name : "RealsenseComponent"
     config {
       name: "realsense_component"
     }
