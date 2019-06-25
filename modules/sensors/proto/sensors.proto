@@ -3,7 +3,7 @@ syntax = "proto2";
 package apollo.sensors;
 
 message Image {
-  optional uint64 frame_id = 2;
+  optional string frame_id = 2;
   optional double measurement_time = 3;
 
   optional uint32 height = 4; // image height, that is, number of rows
@@ -24,14 +24,14 @@ message Pose {
   optional double angular_velocity = 4;     //(in radians/sec)
   optional double angular_acceleration = 5; //(in radians/sec^2)
   optional bytes tracker_confidence = 6; //(pose data confidence 0x0 - Failed,
-                                          //0x1 - Low, 0x2 - Medium, 0x3 - High)
+                                         // 0x1 - Low, 0x2 - Medium, 0x3 - High)
   optional bytes mapper_confidence = 7;  //(pose data confidence 0x0 - Failed,
-                                          //0x1 - Low, 0x2 - Medium, 0x3 - High)
+                                         // 0x1 - Low, 0x2 - Medium, 0x3 - High)
 }
 
 message Imu {
   optional Translation acc = 1;
-  optional Translation gyro=2;
+  optional Translation gyro = 2;
 }
 
 message Translation {
@@ -40,4 +40,3 @@ message Translation {
   optional double y = 2;
   optional double z = 3;
 }
-

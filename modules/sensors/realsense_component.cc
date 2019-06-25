@@ -25,6 +25,20 @@ using apollo::cyber::Time;
 using apollo::sensors::Image;
 using apollo::sensors::Pose;
 
+rs2::device get_device(const std::string& serial_number = "") {
+  rs2::context ctx;
+  while (true) {
+    for (auto&& dev : ctx.query_devices()) {
+      if (((serial_number.empty() &&
+            std::strstr(dev.get_info(RS2_CAMERA_INFO_NAME), "T265")) ||
+           std::strcmp(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER),
+                       serial_number.c_str()) == 0))
+        return dev;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
+
 /**
  * @brief device and sensor init
  *
@@ -32,7 +46,42 @@ using apollo::sensors::Pose;
  * @return false
  */
 bool RealsenseComponent::Init() {
-  try {
+  std::string serial_number = "908412111198";  // serial number
+  device_ = get_device(serial_number);
+
+  std::cout << "Device with serial number "
+            << device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER) << " got"
+            << std::endl;
+  cyber::SleepFor(std::chrono::milliseconds(device_wait_));
+
+  // open the profiles you need, or all of them
+  sensor_ = device.first<rs2::sensor>();
+  sensor_.open(sensor_.get_stream_profiles());
+
+  image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
+  pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
+
+  // start the sensor providing a callback to get the frame
+  sensor_.start([](rs2::frame f) {
+    if (f.get_profile().stream_type() == RS2_STREAM_POSE) {
+      auto pose_frame = f.as<rs2::pose_frame>();
+      auto pose_data = pose_frame.get_pose_data();
+      std::cout << "pose " << pose_data.translation << std::endl;
+      OnPose(pose_data);
+    } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE) {
+      // this is one of the fisheye imagers
+      auto fisheye_frame = f.as<rs2::video_frame>(1);
+      std::cout << "fisheye " << f.get_profile().stream_index() << ", "
+                << fisheye_frame.get_width() << "x"
+                << fisheye_frame.get_height() << std::endl;
+
+      cv::Mat image(
+          cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
+          CV_8U, (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
+      OnImage(image);
+    }
+  });
+#if 0
     device_ = RealSense::getDevice();
     if (!device_) {
       AERROR << "Device T265 is not ready or connected.";
@@ -86,18 +135,8 @@ bool RealsenseComponent::Init() {
     cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
                                          cv::Size(848, 816), CV_16SC2, map1_,
                                          map2_);
-  } catch (const rs2::error& e) {
-    AERROR << "RealSense error calling " << e.get_failed_function() << "("
-           << e.get_failed_args() << "):\n    " << e.what();
-    return false;
-  } catch (const std::exception& e) {
-    AERROR << e.what();
-    return false;
-  }
-  image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
-  pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
-
-  async_result_ = cyber::Async(&RealsenseComponent::Proc, this);
+#endif
+  // async_result_ = cyber::Async(&RealsenseComponent::Proc, this);
 
   return true;
 }
@@ -115,9 +154,9 @@ void RealsenseComponent::Proc() {
     }
 
     // Wait for the next set of frames from the camera
-    auto frames = pipe_.wait_for_frames();
+    //    auto frames = pipe_.wait_for_frames();
     // Get a frame from the fisheye stream
-    rs2::video_frame fisheye_frame = frames.get_fisheye_frame(1);
+    // rs2::video_frame fisheye_frame = frames.get_fisheye_frame(1);
 
     cv::Mat image(
         cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()), CV_8U,
@@ -133,9 +172,6 @@ void RealsenseComponent::Proc() {
     OnPose(pose_data);
 
     cyber::SleepFor(std::chrono::microseconds(spin_rate_));
-
-    AINFO << "Pose rate: " << pose_counter_
-          << " Frame Rate: " << frame_counter_;
   }
 }
 
@@ -148,13 +184,12 @@ void RealsenseComponent::Proc() {
  */
 bool RealsenseComponent::OnImage(cv::Mat dst) {
   auto image_proto = std::make_shared<Image>();
-  image_proto->set_frame_id(frame_counter_);
+  image_proto->set_frame_id("t265");
   image_proto->set_measurement_time(Time::Now().ToSecond());
   auto m_size = dst.rows * dst.cols * dst.elemSize();
   image_proto->set_data(dst.data, m_size);
   image_writer_->Write(image_proto);
   // rate.Sleep();
-  frame_counter_++;
   return true;
 }
 
@@ -180,8 +215,6 @@ bool RealsenseComponent::OnPose(rs2_pose pose_data) {
   // pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
 
   pose_writer_->Write(pose_proto);
-  pose_counter_++;
-
   return true;
 }
 

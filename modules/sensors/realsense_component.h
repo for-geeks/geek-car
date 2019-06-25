@@ -38,7 +38,7 @@ class RealsenseComponent : public Component<> {
   int index_ = 0;
 
   int buffer_size_ = 16;
-
+  // ms
   uint32_t spin_rate_ = 200;
 
   // pipe
@@ -50,9 +50,6 @@ class RealsenseComponent : public Component<> {
   cv::Mat distCoeffsL;
   cv::Mat map1_;
   cv::Mat map2_;
-
-  uint64_t pose_counter_ = 0;
-  uint64_t frame_counter_ = 0;
 };
 
 CYBER_REGISTER_COMPONENT(RealsenseComponent)
