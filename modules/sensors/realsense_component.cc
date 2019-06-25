@@ -59,6 +59,9 @@ bool RealsenseComponent::Init() {
     cfg_.enable_stream(RS2_STREAM_FISHEYE, 1, RS2_FORMAT_Y8);
     cfg_.enable_stream(RS2_STREAM_FISHEYE, 2, RS2_FORMAT_Y8);
 
+    // serial number : 908412111198
+    // fireware version 0.0.18.5502
+
     // Enable imu parameter
     // cfg_.enable_stream(RS2_STREAM_GYRO);
     // cfg_.enable_stream(RS2_STREAM_ACCEL);

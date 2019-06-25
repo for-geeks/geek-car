@@ -34,4 +34,12 @@ cc_library(
     ]
 )
 
+cc_binary(
+    name = "connect_check",
+    srcs = ["connect_check.cc"],
+    linkopts = [
+        "-lrealsense2",
+    ],
+)
+
 cpplint()
