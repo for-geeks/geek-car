@@ -61,19 +61,22 @@ bool RealsenseComponent::Init() {
   pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
   image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
 
-  // start the sensor providing a callback to get the frame
-  sensor_.start([](rs2::frame f) {
+  rs2::frame_queue q;
+
+  dev.start([](rs2::frame f) {
+    q.enqueue(std::move(f));  // enqueue any new frames into q
+  });
+
+  while (true) {
+    // wait until new frame is available and dequeue it
+    // handle frames in the main event loop
+    rs2::frame f = q.wait_for_frame();
     if (f.get_profile().stream_type() == RS2_STREAM_POSE) {
       auto pose_frame = f.as<rs2::pose_frame>();
       auto pose_data = pose_frame.get_pose_data();
       std::cout << "pose " << pose_data.translation << std::endl;
 
-      auto pose_proto = std::make_shared<Pose>();
-      auto translation = pose_proto->mutable_translation();
-      translation->set_x(pose_data.translation.x);
-      translation->set_y(pose_data.translation.y);
-      translation->set_z(pose_data.translation.z);
-      pose_writer_->Write(pose_proto);
+      OnPose(pose_data);
     } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
                f.get_profile().stream_index() == 1) {
       // this is one of the fisheye imagers
@@ -85,15 +88,9 @@ bool RealsenseComponent::Init() {
       cv::Mat image(
           cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
           CV_8U, (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
-      // OnImage(image);
-      auto image_proto = std::make_shared<Image>();
-      image_proto->set_frame_id("t265");
-      image_proto->set_measurement_time(Time::Now().ToSecond());
-      auto m_size = dst.rows * dst.cols * dst.elemSize();
-      image_proto->set_data(dst.data, m_size);
-      image_writer_->Write(image_proto);
+      OnImage(image);
     }
-  });
+  }
 #if 0
     device_ = RealSense::getDevice();
     if (!device_) {
