@@ -32,57 +32,65 @@ using apollo::sensors::Pose;
  * @return false
  */
 bool RealsenseComponent::Init() {
-  device_ = RealSense::getDevice();
-  if (!device_) {
-    AERROR << "Device T265 is not ready or connected.";
+  try {
+    device_ = RealSense::getDevice();
+    if (!device_) {
+      AERROR << "Device T265 is not ready or connected.";
+      return false;
+    }
+
+    // print device infomation
+    AINFO << "Device name :" << RealSense::getDeviceName(device_);
+    RealSense::printDeviceInformation(device_);
+
+    // select sensor default senser is 1. is it fisheye?
+    sensor_ = RealSense::getSensorFromDevice(device_);
+    if (!sensor_) {
+      AERROR << "Sensor of Device T265 is not ready or selected.";
+      return false;
+    }
+    AINFO << "Sensor Name: " << RealSense::getSensorName(sensor_);
+    RealSense::getSensorOption(sensor_);
+
+    // Add pose stream
+    cfg_.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
+    // Enable both image streams
+    // Note: It is not currently possible to enable only one
+    cfg_.enable_stream(RS2_STREAM_FISHEYE, 1, RS2_FORMAT_Y8);
+    cfg_.enable_stream(RS2_STREAM_FISHEYE, 2, RS2_FORMAT_Y8);
+
+    // Enable imu parameter
+    // cfg_.enable_stream(RS2_STREAM_GYRO);
+    // cfg_.enable_stream(RS2_STREAM_ACCEL);
+
+    // Start streaming through the callback
+    rs2::pipeline_profile profiles = pipe_.start(cfg_);
+
+    // calibration
+    rs2::stream_profile fisheye_stream =
+        profiles.get_stream(RS2_STREAM_FISHEYE, 1);
+    rs2_intrinsics intrinsicsleft =
+        fisheye_stream.as<rs2::video_stream_profile>().get_intrinsics();
+    intrinsicsL =
+        (cv::Mat_<double>(3, 3) << intrinsicsleft.fx, 0, intrinsicsleft.ppx, 0,
+         intrinsicsleft.fy, intrinsicsleft.ppy, 0, 0, 1);
+    distCoeffsL = cv::Mat(1, 4, CV_32F, intrinsicsleft.coeffs);
+    cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
+    cv::Mat P =
+        (cv::Mat_<double>(3, 4) << intrinsicsleft.fx, 0, intrinsicsleft.ppx, 0,
+         0, intrinsicsleft.fy, intrinsicsleft.ppy, 0, 0, 0, 1, 0);
+
+    cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
+                                         cv::Size(848, 816), CV_16SC2, map1_,
+                                         map2_);
+  } catch (const rs2::error& e) {
+    AERROR << "RealSense error calling " << e.get_failed_function() << "("
+           << e.get_failed_args() << "):\n    " << e.what();
+    return false;
+  } catch (const std::exception& e) {
+    AERROR << e.what();
     return false;
   }
-
-  // print device infomation
-  AINFO << "Device name :" << RealSense::getDeviceName(device_);
-  RealSense::printDeviceInformation(device_);
-
-  // select sensor default senser is 1. is it fisheye?
-  sensor_ = RealSense::getSensorFromDevice(device_);
-  if (!sensor_) {
-    AERROR << "Sensor of Device T265 is not ready or selected.";
-    return false;
-  }
-  AINFO << "Sensor Name: " << RealSense::getSensorName(sensor_);
-  RealSense::getSensorOption(sensor_);
-
-  // Add pose stream
-  cfg_.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
-  // Enable both image streams
-  // Note: It is not currently possible to enable only one
-  cfg_.enable_stream(RS2_STREAM_FISHEYE, 1, RS2_FORMAT_Y8);
-  cfg_.enable_stream(RS2_STREAM_FISHEYE, 2, RS2_FORMAT_Y8);
-
-  // Enable imu parameter
-  // cfg_.enable_stream(RS2_STREAM_GYRO);
-  // cfg_.enable_stream(RS2_STREAM_ACCEL);
-
-  // Start streaming through the callback
-  rs2::pipeline_profile profiles = pipe_.start(cfg_);
-
-  // calibration
-  rs2::stream_profile fisheye_stream =
-      profiles.get_stream(RS2_STREAM_FISHEYE, 1);
-  rs2_intrinsics intrinsicsleft =
-      fisheye_stream.as<rs2::video_stream_profile>().get_intrinsics();
-  intrinsicsL =
-      (cv::Mat_<double>(3, 3) << intrinsicsleft.fx, 0, intrinsicsleft.ppx, 0,
-       intrinsicsleft.fy, intrinsicsleft.ppy, 0, 0, 1);
-  distCoeffsL = cv::Mat(1, 4, CV_32F, intrinsicsleft.coeffs);
-  cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
-  cv::Mat P =
-      (cv::Mat_<double>(3, 4) << intrinsicsleft.fx, 0, intrinsicsleft.ppx, 0, 0,
-       intrinsicsleft.fy, intrinsicsleft.ppy, 0, 0, 0, 1, 0);
-
-  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
-                                       cv::Size(848, 816), CV_16SC2, map1_,
-                                       map2_);
-
   image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
   pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
 
