@@ -46,7 +46,7 @@ class RealSense {
     // Range-based for loop)
     int index = 0;
     for (rs2::device device : devices) {
-      AINFO << index++ << " : " << get_device_name(device);
+      AINFO << index++ << " : " << getDeviceName(device);
     }
 
     // TODO move to config
@@ -122,7 +122,7 @@ class RealSense {
     int index = 0;
     // We can now iterate the sensors and print their names
     for (rs2::sensor sensor : sensors) {
-      AINFO << "  " << index++ << " : " << get_sensor_name(sensor);
+      AINFO << "  " << index++ << " : " << getSensorName(sensor);
     }
 
     uint32_t selected_sensor_index = 1;

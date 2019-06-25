@@ -29,9 +29,15 @@ message Pose {
                                           //0x1 - Low, 0x2 - Medium, 0x3 - High)
 }
 
+message Imu {
+  optional Translation acc = 1;
+  optional Translation gyro=2;
+}
+
 message Translation {
   // meters
   optional double x = 1;
   optional double y = 2;
   optional double z = 3;
 }
+
