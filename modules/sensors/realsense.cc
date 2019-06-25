@@ -14,7 +14,7 @@
  */
 class RealSense {
  public:
-  static rs2::device get_device() {
+  static rs2::device getDevice() {
     // First, create a rs2::context.
     // The context represents the current platform with respect to connected
     // devices
@@ -60,7 +60,7 @@ class RealSense {
     return selected_device;
   }
 
-  static void print_device_information(const rs2::device& dev) {
+  static void printDeviceInformation(const rs2::device& dev) {
     // Each device provides some information on itself
     // The different types of available information are represented using the
     // "RS2_CAMERA_INFO_*" enum
@@ -84,7 +84,7 @@ class RealSense {
     }
   }
 
-  static std::string get_device_name(const rs2::device& dev) {
+  static std::string getDeviceName(const rs2::device& dev) {
     // Each device provides some information on itself, such as name:
     std::string name = "Unknown Device";
     if (dev.supports(RS2_CAMERA_INFO_NAME))
@@ -98,7 +98,7 @@ class RealSense {
     return name + " " + sn;
   }
 
-  static std::string get_sensor_name(const rs2::sensor& sensor) {
+  static std::string getSensorName(const rs2::sensor& sensor) {
     // Sensors support additional information, such as a human readable name
     if (sensor.supports(RS2_CAMERA_INFO_NAME))
       return sensor.get_info(RS2_CAMERA_INFO_NAME);
@@ -106,7 +106,7 @@ class RealSense {
       return "Unknown Sensor";
   }
 
-  static rs2::sensor get_a_sensor_from_a_device(const rs2::device& dev) {
+  static rs2::sensor getSensorFromDevice(const rs2::device& dev) {
     // A rs2::device is a container of rs2::sensors that have some correlation
     // between them. For example:
     //    * A device where all sensors are on a single board
@@ -133,7 +133,7 @@ class RealSense {
     return sensors[selected_sensor_index];
   }
 
-  static rs2_option get_sensor_option(const rs2::sensor& sensor) {
+  static rs2_option getSensorOption(const rs2::sensor& sensor) {
     // Sensors usually have several options to control their properties
     //  such as Exposure, Brightness etc.
 
@@ -172,7 +172,7 @@ class RealSense {
     return static_cast<rs2_option>(selected_sensor_option);
   }
 
-  static float get_depth_units(const rs2::sensor& sensor) {
+  static float getDepthUnits(const rs2::sensor& sensor) {
     // A Depth stream contains an image that is composed of pixels with depth
     // information. The value of each pixel is the distance from the camera, in
     // some distance units. To get the distance in units of meters, each pixel's
@@ -185,7 +185,7 @@ class RealSense {
     } else
       throw std::runtime_error("Given sensor is not a depth sensor");
   }
-
+#if 0
   static void get_field_of_view(const rs2::stream_profile& stream) {
     // A sensor's stream (rs2::stream_profile) is in general a stream of data
     // with no specific type. For video streams (streams of images), the sensor
@@ -247,9 +247,9 @@ class RealSense {
       AERROR << "Given stream profile has no intrinsics data";
     }
   }
-
-  static void get_extrinsics(const rs2::stream_profile& from_stream,
-                             const rs2::stream_profile& to_stream) {
+#endif
+  static void getExtrinsics(const rs2::stream_profile& from_stream,
+                            const rs2::stream_profile& to_stream) {
     // If the device/sensor that you are using contains more than a single
     // stream, and it was calibrated then the SDK provides a way of getting the
     // transformation between any two streams (if such exists)
@@ -271,8 +271,8 @@ class RealSense {
     }
   }
 
-  static void change_sensor_option(const rs2::sensor& sensor,
-                                   rs2_option option_type) {
+  static void changeSensorOption(const rs2::sensor& sensor,
+                                 rs2_option option_type) {
     // Sensors usually have several options to control their properties
     //  such as Exposure, Brightness etc.
 
@@ -323,8 +323,7 @@ class RealSense {
     }
   }
 
-  static rs2::stream_profile choose_a_streaming_profile(
-      const rs2::sensor& sensor) {
+  static rs2::stream_profile chooseStreamingProfile(const rs2::sensor& sensor) {
     // A Sensor is an object that is capable of streaming one or more types of
     // data. For example:
     //    * A stereo sensor with Left and Right Infrared streams that
@@ -428,8 +427,8 @@ class RealSense {
     return stream_profiles[selected_profile_index];
   }
 
-  static void start_streaming_a_profile(
-      const rs2::sensor& sensor, const rs2::stream_profile& stream_profile) {
+  static void startStreamingProfile(const rs2::sensor& sensor,
+                                    const rs2::stream_profile& stream_profile) {
     // The sensor controls turning the streaming on and off
     // To start streaming, two calls must be made with the following order:
     //  1) open(stream_profiles_to_open)

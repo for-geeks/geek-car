@@ -177,6 +177,7 @@ bool RealsenseComponent::OnPose(rs2_pose pose_data) {
 RealsenseComponent::~RealsenseComponent() {
   sensor_.stop();
   sensor_.close();
+  async_result_.wait();
 }
 
 }  // namespace sensors
