@@ -4,9 +4,13 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "librealsense_component.so",
-    linkopts = ["-shared"],
+    #linkopts = ["-shared"],
+    linkshared = True,
     linkstatic = False,
-    deps = [":realsense_component_lib"],
+    deps = [
+        ":realsense_component_lib",
+        ":realsense_lib",
+    ],
 )
 
 cc_library(
@@ -27,11 +31,12 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/sensors/proto:sensors_cc_proto",
+        ":realsense_lib",
     ]
 )
 
 cc_library(
-    name = "realsense",
+    name = "realsense_lib",
     srcs = ["realsense.cc"],
     linkopts = [
         "-lrealsense2",

@@ -32,24 +32,24 @@ using apollo::sensors::Pose;
  * @return false
  */
 bool RealsenseComponent::Init() {
-  device_ = RealSense::get_device();
+  device_ = RealSense::getDevice();
   if (!device_) {
     AERROR << "Device T265 is not ready or connected.";
     return false;
   }
 
   // print device infomation
-  AINFO << "Device name :" << RealSense::get_device_name(device_);
-  RealSense::print_device_information(device_);
+  AINFO << "Device name :" << RealSense::getDeviceName(device_);
+  RealSense::printDeviceInformation(device_);
 
   // select sensor default senser is 1. is it fisheye?
-  sensor_ = RealSense::get_a_sensor_from_a_device(device);
+  sensor_ = RealSense::getSensorFromDevice(device_);
   if (!sensor_) {
     AERROR << "Sensor of Device T265 is not ready or selected.";
     return false;
   }
-  AINFO << "Sensor Name: " << RealSense::get_sensor_name(sensor_);
-  RealSense::get_sensor_option(sensor_);
+  AINFO << "Sensor Name: " << RealSense::getSensorName(sensor_);
+  RealSense::getSensorOption(sensor_);
 
   // Add pose stream
   cfg_.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
@@ -83,7 +83,11 @@ bool RealsenseComponent::Init() {
                                        cv::Size(848, 816), CV_16SC2, map1_,
                                        map2_);
 
+  image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
+  pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
+
   async_result_ = cyber::Async(&RealsenseComponent::Proc, this);
+
   return true;
 }
 
@@ -91,7 +95,7 @@ bool RealsenseComponent::Init() {
  * [RealSense:: collect frames of T265]
  * @return [description]
  */
-bool RealsenseComponent::Proc() {
+void RealsenseComponent::Proc() {
   while (!cyber::IsShutdown()) {
     if (!device_) {
       // sleep for next check
@@ -121,7 +125,6 @@ bool RealsenseComponent::Proc() {
 
     AINFO << "Pose rate: " << pose_counter_
           << " Frame Rate: " << frame_counter_;
-    return true;
   }
 }
 
@@ -133,7 +136,6 @@ bool RealsenseComponent::Proc() {
  * @return false
  */
 bool RealsenseComponent::OnImage(cv::Mat dst) {
-  image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
   auto image_proto = std::make_shared<Image>();
   image_proto->set_frame_id(frame_counter_);
   image_proto->set_measurement_time(Time::Now().ToSecond());
@@ -153,8 +155,6 @@ bool RealsenseComponent::OnImage(cv::Mat dst) {
  * @return false
  */
 bool RealsenseComponent::OnPose(rs2_pose pose_data) {
-  pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
-
   auto pose_proto = std::make_shared<Pose>();
   auto translation = pose_proto->mutable_translation();
   translation->set_x(pose_data.translation.x);
@@ -174,7 +174,7 @@ bool RealsenseComponent::OnPose(rs2_pose pose_data) {
   return true;
 }
 
-void RealsenseComponent::~RealsenseComponent() {
+RealsenseComponent::~RealsenseComponent() {
   sensor_.stop();
   sensor_.close();
 }

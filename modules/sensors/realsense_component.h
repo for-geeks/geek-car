@@ -17,18 +17,20 @@ using apollo::cyber::Writer;
 class RealsenseComponent : public Component<> {
  public:
   bool Init() override;
-  bool Proc();
-  void ~RealsenseComponent();
+  void Proc();
+  ~RealsenseComponent();
 
  private:
   bool OnImage(cv::Mat dst);
   bool OnPose(rs2_pose pose_data);
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
+
   // realsense device
-  std::shared_ptr<rs2::device> device_;
+  rs2::device device_;
   // sensor include imu and camera;
   rs2::sensor sensor_;
+  std::future<void> async_result_;
 
   // ms
   uint32_t device_wait_ = 2000;
