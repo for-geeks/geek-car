@@ -9,7 +9,6 @@ cc_binary(
     linkstatic = False,
     deps = [
         ":realsense_component_lib",
-        ":realsense_lib",
     ],
 )
 
@@ -18,6 +17,7 @@ cc_library(
     srcs = ["realsense_component.cc"],
     hdrs = [
         "realsense_component.h",
+        "realsense.h",
     ],
     linkopts = [
         "-lopencv_core",
@@ -31,21 +31,7 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/sensors/proto:sensors_cc_proto",
-        ":realsense_lib",
     ]
 )
-
-cc_library(
-    name = "realsense_lib",
-    srcs = ["realsense.cc"],
-    linkopts = [
-        "-lrealsense2",
-    ],
-    hdrs = ["realsense.h"],
-    deps = [
-       "//cyber",
-    ]
-)
-
 
 cpplint()
