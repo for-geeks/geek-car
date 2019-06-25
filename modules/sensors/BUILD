@@ -30,17 +30,17 @@ cc_library(
     ]
 )
 
-# cc_library(
-#     name = "realsense",
-#     srcs = ["realsense.cc"],
-#     linkopts = [
-#         "-lrealsense2",
-#     ],
-#     hdrs = ["realsense.h"],
-#     deps = [
-#        "//cyber",
-#     ]
-# )
+cc_library(
+    name = "realsense",
+    srcs = ["realsense.cc"],
+    linkopts = [
+        "-lrealsense2",
+    ],
+    hdrs = ["realsense.h"],
+    deps = [
+       "//cyber",
+    ]
+)
 
 
 cpplint()

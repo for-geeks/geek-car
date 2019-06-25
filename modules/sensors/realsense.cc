@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "cyber/common/log"
+#include "cyber/common/log.h"
 
 /**
  * https://github.com/IntelRealSense/librealsense/blob/master/examples/sensor-control/api_how_to.h
@@ -48,7 +48,6 @@ class RealSense {
 
     // TODO move to config
     uint32_t selected_device_index = 1;
-    // get_user_selection("Select a device by index: ");
 
     // The second way is using the subscript ("[]") operator:
     if (selected_device_index >= devices.size()) {
@@ -167,7 +166,6 @@ class RealSense {
     }
 
     uint32_t selected_sensor_option = 1;
-    // get_user_selection("Select an option by index: ");
     if (selected_sensor_option >= static_cast<int>(RS2_OPTION_COUNT)) {
       throw std::out_of_range("Selected option is out of range");
     }

@@ -18,6 +18,7 @@ class RealsenseComponent : public Component<> {
  public:
   bool Init() override;
   bool Proc();
+  void ~RealsenseComponent();
 
  private:
   bool OnImage(cv::Mat dst);
@@ -28,6 +29,16 @@ class RealsenseComponent : public Component<> {
   std::shared_ptr<rs2::device> device_;
   // sensor include imu and camera;
   rs2::sensor sensor_;
+
+  // ms
+  uint32_t device_wait_ = 2000;
+
+  int index_ = 0;
+
+  int buffer_size_ = 16;
+
+  uint32_t spin_rate_ = 200;
+
   // pipe
   rs2::pipeline pipe_;
   // Create a configuration for configuring the pipeline with a non default

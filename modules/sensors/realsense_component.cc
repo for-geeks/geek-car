@@ -15,6 +15,7 @@
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense.h"
 
 namespace apollo {
 namespace sensors {
@@ -25,14 +26,30 @@ using apollo::sensors::Image;
 using apollo::sensors::Pose;
 
 /**
- * @brief
+ * @brief device and sensor init
  *
  * @return true
  * @return false
  */
 bool RealsenseComponent::Init() {
-  // realsense CONFIG
-  // device_.reset(new RealSense());
+  device_ = RealSense::get_device();
+  if (!device_) {
+    AERROR << "Device T265 is not ready or connected.";
+    return false;
+  }
+
+  // print device infomation
+  AINFO << "Device name :" << RealSense::get_device_name(device_);
+  RealSense::print_device_information(device_);
+
+  // select sensor default senser is 1. is it fisheye?
+  sensor_ = RealSense::get_a_sensor_from_a_device(device);
+  if (!sensor_) {
+    AERROR << "Sensor of Device T265 is not ready or selected.";
+    return false;
+  }
+  AINFO << "Sensor Name: " << RealSense::get_sensor_name(sensor_);
+  RealSense::get_sensor_option(sensor_);
 
   // Add pose stream
   cfg_.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
@@ -40,58 +57,15 @@ bool RealsenseComponent::Init() {
   // Note: It is not currently possible to enable only one
   cfg_.enable_stream(RS2_STREAM_FISHEYE, 1, RS2_FORMAT_Y8);
   cfg_.enable_stream(RS2_STREAM_FISHEYE, 2, RS2_FORMAT_Y8);
-  return true;
-}
 
-/**
- * [RealSense::Proc description]
- * @return [description]
- */
-bool RealsenseComponent::Proc() {
-// The callback is executed on a sensor thread and can be called
-// simultaneously from multiple sensors Therefore any modification to common
-// memory should be done under lock
-#if 0
-  std::mutex data_mutex;
-  bool first_data = true;
-  auto last_print = std::chrono::system_clock::now();
-  auto callback = [&](const rs2::frame& frame) {
-    std::lock_guard<std::mutex> lock(data_mutex);
-    // Only start measuring time elapsed once we have received the
-    // first piece of data
-    if (first_data) {
-      first_data = false;
-      last_print = std::chrono::system_clock::now();
-    }
+  // Enable imu parameter
+  // cfg_.enable_stream(RS2_STREAM_GYRO);
+  // cfg_.enable_stream(RS2_STREAM_ACCEL);
 
-    auto fp = frame.as<rs2::pose_frame>();
-    rs2_pose pose_data = fp.get_pose_data();
-    OnPose(pose_data);
-
-    auto fs = frame.as<rs2::frameset>();
-    cv::Mat image(cv::Size(fs.get_fisheye_frame(1).get_width(),
-                           fs.get_fisheye_frame(1).get_height()),
-                  CV_8U, (void*)fs.get_fisheye_frame(1).get_data(),
-                  cv::Mat::AUTO_STEP);
-    cv::Mat dst;
-    cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
-    OnImage(dst);
-
-    // Print the approximate pose and image rates once per second
-    auto now = std::chrono::system_clock::now();
-    if (now - last_print >= std::chrono::seconds(1)) {
-      AINFO << std::setprecision(0) << std::fixed
-            << " Pose rate: " << pose_counter_
-            << " Image rate: " << frame_counter_;
-      pose_counter_ = 0;
-      frame_counter_ = 0;
-      last_print = now;
-    }
-  };
-#endif
   // Start streaming through the callback
   rs2::pipeline_profile profiles = pipe_.start(cfg_);
 
+  // calibration
   rs2::stream_profile fisheye_stream =
       profiles.get_stream(RS2_STREAM_FISHEYE, 1);
   rs2_intrinsics intrinsicsleft =
@@ -108,25 +82,47 @@ bool RealsenseComponent::Proc() {
   cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
                                        cv::Size(848, 816), CV_16SC2, map1_,
                                        map2_);
-  // Wait for the next set of frames from the camera
-  auto frames = pipe_.wait_for_frames();
-  // Get a frame from the fisheye stream
-  rs2::video_frame fisheye_frame = frames.get_fisheye_frame(1);
 
-  cv::Mat image(cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
-                CV_8U, (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
-  cv::Mat dst;
-  cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
-  OnImage(dst);
-  // Get a frame from the pose stream
-  rs2::pose_frame pose_frame = frames.get_pose_frame();
-
-  // Copy current camera pose
-  rs2_pose pose_data = pose_frame.get_pose_data();
-  OnPose(pose_data);
-
-  AINFO << "image and pose data have been written.";
+  async_result_ = cyber::Async(&RealsenseComponent::Proc, this);
   return true;
+}
+
+/**
+ * [RealSense:: collect frames of T265]
+ * @return [description]
+ */
+bool RealsenseComponent::Proc() {
+  while (!cyber::IsShutdown()) {
+    if (!device_) {
+      // sleep for next check
+      cyber::SleepFor(std::chrono::milliseconds(device_wait_));
+      continue;
+    }
+
+    // Wait for the next set of frames from the camera
+    auto frames = pipe_.wait_for_frames();
+    // Get a frame from the fisheye stream
+    rs2::video_frame fisheye_frame = frames.get_fisheye_frame(1);
+
+    cv::Mat image(
+        cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()), CV_8U,
+        (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
+    cv::Mat dst;
+    cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
+    OnImage(dst);
+    // Get a frame from the pose stream
+    rs2::pose_frame pose_frame = frames.get_pose_frame();
+
+    // Copy current camera pose
+    rs2_pose pose_data = pose_frame.get_pose_data();
+    OnPose(pose_data);
+
+    cyber::SleepFor(std::chrono::microseconds(spin_rate_));
+
+    AINFO << "Pose rate: " << pose_counter_
+          << " Frame Rate: " << frame_counter_;
+    return true;
+  }
 }
 
 /**
@@ -137,7 +133,6 @@ bool RealsenseComponent::Proc() {
  * @return false
  */
 bool RealsenseComponent::OnImage(cv::Mat dst) {
-  // TODO channel move to config
   image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
   auto image_proto = std::make_shared<Image>();
   image_proto->set_frame_id(frame_counter_);
@@ -158,7 +153,6 @@ bool RealsenseComponent::OnImage(cv::Mat dst) {
  * @return false
  */
 bool RealsenseComponent::OnPose(rs2_pose pose_data) {
-  // TODO channel move to config
   pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
 
   auto pose_proto = std::make_shared<Pose>();
@@ -178,6 +172,11 @@ bool RealsenseComponent::OnPose(rs2_pose pose_data) {
   pose_counter_++;
 
   return true;
+}
+
+void RealsenseComponent::~RealsenseComponent() {
+  sensor_.stop();
+  sensor_.close();
 }
 
 }  // namespace sensors
