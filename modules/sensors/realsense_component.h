@@ -17,7 +17,7 @@ using apollo::cyber::Writer;
 class RealsenseComponent : public Component<> {
  public:
   bool Init() override;
-  void Proc();
+  void run();
   ~RealsenseComponent();
 
  private:
@@ -30,19 +30,23 @@ class RealsenseComponent : public Component<> {
   rs2::device device_;
   // sensor include imu and camera;
   rs2::sensor sensor_;
+
   std::future<void> async_result_;
 
   // ms
   uint32_t device_wait_ = 2000;
 
-  int index_ = 0;
-
   int buffer_size_ = 16;
   // ms
   uint32_t spin_rate_ = 200;
 
+  // frame queue
+  rs2::frame_queue q_;
+
+  std::string serial_number_ = "908412111198";  // serial number
+
   // pipe
-  rs2::pipeline pipe_;
+  // rs2::pipeline pipe_;
   // Create a configuration for configuring the pipeline with a non default
   // profile
   rs2::config cfg_;
