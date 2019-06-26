@@ -9,6 +9,7 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/opencv.hpp>
 #include <thread>
+#include <utility>
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
@@ -48,31 +49,93 @@ rs2::device get_device(const std::string& serial_number = "") {
 bool RealsenseComponent::Init() {
   device_ = get_device(serial_number_);
 
-  std::cout << "Device with serial number "
-            << device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER) << " got"
-            << std::endl;
+  // print device information
+  RealSense::getDevice(device_);
+
+  AINFO << "Got device with serial number "
+        << device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
   cyber::SleepFor(std::chrono::milliseconds(device_wait_));
 
-  // open the profiles you need, or all of them
   sensor_ = device_.first<rs2::sensor>();
+  // print sensor option to log
+  RealSense::getSensorOption(sensor_);
+  sensor_.set_option(RS2_OPTION_FRAMES_QUEUE_SIZE, queue_size_);
   sensor_.open(sensor_.get_stream_profiles());
 
   pose_writer_ = node_->CreateWriter<Pose>("/realsense/pose");
   image_writer_ = node_->CreateWriter<Image>("/realsense/raw_image");
 
-  sensor_.start([q_](rs2::frame f) {
+  sensor_.start([this](rs2::frame f) {
     q_.enqueue(std::move(f));  // enqueue any new frames into q
   });
 
-#if 0
-  // Start streaming through the callback
-  rs2::pipeline_profile profiles = sensor_.get_stream_profiles();
+  // async_result_ = cyber::Async(&RealsenseComponent::run, this);
+  async_result_ =
+      std::async(std::launch::async, &RealsenseComponent::run, this);
+  return true;
+}
 
-  // calibration
-  rs2::stream_profile fisheye_stream =
-      profiles.get_stream(RS2_STREAM_FISHEYE, 1);
+/**
+ * [RealSense:: collect frames of T265]
+ * @return [description]
+ */
+void RealsenseComponent::run() {
+  while (!cyber::IsShutdown()) {
+    // wait for device is ready. in case of device is busy
+    if (!device_) {
+      device = get_device();
+      continue;
+    }
+
+    // wait until new frame is available and dequeue it
+    // handle frames in the main event loop
+    rs2::frame f = q_.wait_for_frame();
+
+    // core of data write to channel
+    switch (f.get_profile().stream_type()) {
+      case RS2_STREAM_POSE:
+        auto pose_frame = f.as<rs2::pose_frame>();
+        auto pose_data = pose_frame.get_pose_data();
+        AINFO << "pose " << pose_data.translation;
+        OnPose(pose_data, pose_frame->get_frame_number());
+      case RS2_STREAM_GYRO:
+        rs2_vector gyro_sample = gyro_frame.get_motion_data();
+        AINFO << "Gyro:" << gyro_sample.x << ", " << gyro_sample.y << ", "
+              << gyro_sample.z;
+      case RS2_STREAM_ACCEL:
+        rs2_vector accel_sample = accel_frame.get_motion_data();
+        AINFO << "Accel:" << accel_sample.x << ", " << accel_sample.y << ", "
+              << accel_sample.z;
+      case RS2_STREAM_FISHEYE:
+        // left fisheye
+        if (f.get_profile().stream_index() == 1) {
+          // this is one of the fisheye imagers
+          auto fisheye_frame = f.as<rs2::video_frame>();
+          CalibrationLeft(f);
+
+          AINFO << "fisheye " << f.get_profile().stream_index() << ", "
+                << fisheye_frame.get_width() << "x"
+                << fisheye_frame.get_height();
+
+          cv::Mat image(
+              cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
+              CV_8U, reinterpret_cast<void*> fisheye_frame.get_data(),
+              cv::Mat::AUTO_STEP);
+          OnImage(image, fisheye.get_frame_number());
+        }
+    }
+    cyber::SleepFor(std::chrono::milliseconds(spin_rate_));
+  }
+}
+
+/**
+ * @brief
+ *
+ * @param f
+ */
+void CalibrationLeft(rs2::frame f) {
   rs2_intrinsics intrinsicsleft =
-      fisheye_stream.as<rs2::video_stream_profile>().get_intrinsics();
+      f.as<rs2::video_stream_profile>().get_intrinsics();
   intrinsicsL =
       (cv::Mat_<double>(3, 3) << intrinsicsleft.fx, 0, intrinsicsleft.ppx, 0,
        intrinsicsleft.fy, intrinsicsleft.ppy, 0, 0, 1);
@@ -85,71 +148,6 @@ bool RealsenseComponent::Init() {
   cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
                                        cv::Size(848, 816), CV_16SC2, map1_,
                                        map2_);
-#endif
-
-  while (!cyber::IsShutdown()) {
-    // wait until new frame is available and dequeue it
-    // handle frames in the main event loop
-    rs2::frame f = q_.wait_for_frame();
-    if (f.get_profile().stream_type() == RS2_STREAM_POSE) {
-      auto pose_frame = f.as<rs2::pose_frame>();
-      auto pose_data = pose_frame.get_pose_data();
-      std::cout << "pose " << pose_data.translation << std::endl;
-      OnPose(pose_data);
-    } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
-               f.get_profile().stream_index() == 1) {
-      // this is one of the fisheye imagers
-      auto fisheye_frame = f.as<rs2::video_frame>();
-      // rs2::video_frame fisheye_frame = frames.get_fisheye_frame(1);
-
-      std::cout << "fisheye " << f.get_profile().stream_index() << ", "
-                << fisheye_frame.get_width() << "x"
-                << fisheye_frame.get_height() << std::endl;
-
-      cv::Mat image(
-          cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
-          CV_8U, (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
-      OnImage(image);
-    }
-  }
-
-  // async_result_ = cyber::Async(&RealsenseComponent::run, this);
-  return true;
-}
-
-/**
- * [RealSense:: collect frames of T265]
- * @return [description]
- */
-void RealsenseComponent::run() {
-  while (!cyber::IsShutdown()) {
-    // wait until new frame is available and dequeue it
-    // handle frames in the main event loop
-    rs2::frame f = q_.wait_for_frame();
-    if (f.get_profile().stream_type() == RS2_STREAM_POSE) {
-      auto pose_frame = f.as<rs2::pose_frame>();
-      auto pose_data = pose_frame.get_pose_data();
-      std::cout << "pose " << pose_data.translation << std::endl;
-      OnPose(pose_data);
-    } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
-               f.get_profile().stream_index() == 1) {
-      // this is one of the fisheye imagers
-      auto fisheye_frame = f.as<rs2::video_frame>();
-      // rs2::video_frame fisheye_frame = frames.get_fisheye_frame(1);
-
-      std::cout << "fisheye " << f.get_profile().stream_index() << ", "
-                << fisheye_frame.get_width() << "x"
-                << fisheye_frame.get_height() << std::endl;
-
-      cv::Mat image(
-          cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
-          CV_8U, (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
-      cv::Mat dst;
-      cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
-      OnImage(dst);
-    }
-    cyber::SleepFor(std::chrono::microseconds(spin_rate_));
-  }
 }
 
 /**
@@ -159,9 +157,11 @@ void RealsenseComponent::run() {
  * @return true
  * @return false
  */
-bool RealsenseComponent::OnImage(cv::Mat dst) {
+bool RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_on) {
   auto image_proto = std::make_shared<Image>();
-  image_proto->set_frame_id("t265");
+  // todo update frame number
+  image_proto->set_frame_no(frame_no);
+  image_proto->set_encoding(RS2_FORMAT_Y8);  // grey
   image_proto->set_measurement_time(Time::Now().ToSecond());
   auto m_size = dst.rows * dst.cols * dst.elemSize();
   image_proto->set_data(dst.data, m_size);
@@ -176,16 +176,29 @@ bool RealsenseComponent::OnImage(cv::Mat dst) {
  * @return true
  * @return false
  */
-bool RealsenseComponent::OnPose(rs2_pose pose_data) {
+bool RealsenseComponent::OnPose(rs2_pose pose_data, uint64 frame_on) {
   auto pose_proto = std::make_shared<Pose>();
+  pose_proto->set_frame_no(frame_no);
   auto translation = pose_proto->mutable_translation();
   translation->set_x(pose_data.translation.x);
   translation->set_y(pose_data.translation.y);
   translation->set_z(pose_data.translation.z);
 
-  // pose_proto->set_velocity(pose_data.velocity);
-  // pose_proto->set_rotation(pose_data.rotation);
-  // pose_proto->set_angular_velocity(pose_data.angular_velocity);
+  auto velocity = pose_proto->mutable_velocity();
+  velocity->set_x(pose_data.velocity.x);
+  velocity->set_y(pose_data.velocity.y);
+  velocity->set_z(pose_data.velocity.z);
+
+  auto rotation = pose_proto->mutable_rotation();
+  rotation->set_x(pose_data.rotation.x);
+  rotation->set_y(pose_data.rotation.y);
+  rotation->set_z(pose_data.rotation.z);
+
+  auto angular_velocity = pose_data->mutable_angular_velocity();
+  angular_velocity->set_x(pose_data.angular_velocity.x);
+  angular_velocity->set_y(pose_data.angular_velocity.y);
+  angular_velocity->set_z(pose_data.angular_velocity.z);
+
   // pose_proto->set_angular_accelaration(pose_data.angular_acceleration);
   // pose_proto->set_trancker_confidence(pose_data.tracker_confidence);
   // pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
@@ -197,7 +210,7 @@ bool RealsenseComponent::OnPose(rs2_pose pose_data) {
 RealsenseComponent::~RealsenseComponent() {
   sensor_.stop();
   sensor_.close();
-  // async_result_.wait();
+  async_result_.wait();
 }
 
 }  // namespace sensors

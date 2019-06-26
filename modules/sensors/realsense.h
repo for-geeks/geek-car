@@ -75,15 +75,18 @@ class RealSense {
     for (int i = 0; i < static_cast<int>(RS2_CAMERA_INFO_COUNT); i++) {
       rs2_camera_info info_type = static_cast<rs2_camera_info>(i);
       // SDK enum types can be streamed to get a string that represents them
-      AINFO << std::left << std::setw(20) << info_type << " : ";
+      std::string device_info = std::left << std::setw(20) << info_type
+                                          << " : ";
 
       // A device might not support all types of RS2_CAMERA_INFO.
       // To prevent throwing exceptions from the "get_info" method we first
       // check if the device supports this type of info
       if (dev.supports(info_type))
-        AINFO << dev.get_info(info_type);
+        device_info += dev.get_info(info_type);
       else
-        AINFO << "N/A";
+        device_info += "N/A";
+
+      AINFO << device_info;
     }
   }
 
@@ -147,7 +150,7 @@ class RealSense {
     for (int i = 0; i < static_cast<int>(RS2_OPTION_COUNT); i++) {
       rs2_option option_type = static_cast<rs2_option>(i);
       // SDK enum types can be streamed to get a string that represents them
-      AINFO << "  " << i << ": " << option_type;
+      std::string option_item = "  " << i << ": " << option_type;
 
       // To control an option, use the following api:
 
@@ -155,17 +158,18 @@ class RealSense {
       if (sensor.supports(option_type)) {
         // Get a human readable description of the option
         const char* description = sensor.get_option_description(option_type);
-        AINFO << "       Description   : " << description;
+        option_item += "       Description   : " << description;
 
         // Get the current value of the option
         float current_value = sensor.get_option(option_type);
-        AINFO << "       Current Value : " << current_value;
+        option_item += "       Current Value : " << current_value;
 
         // To change the value of an option, please follow the
         // change_sensor_option() function
       } else {
-        AINFO << " is not supported";
+        option_item += " is not supported";
       }
+      AINFO << option_item;
     }
 
     uint32_t selected_sensor_option = 1;
