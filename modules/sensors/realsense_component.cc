@@ -107,15 +107,14 @@ void RealsenseComponent::run() {
       OnPose(pose_data, pose_frame.get_frame_number());
     } else if (f.get_profile().stream_type() == RS2_STREAM_GYRO) {
       auto gyro_frame = f.as<rs2::motion_frame>();
-      rs2_vector gyro_sample = gyro_frame.get_motion_data();
-      AINFO << "Gyro:" << gyro_sample.x << ", " << gyro_sample.y << ", "
-            << gyro_sample.z;
+      rs2_vector gyro = gyro_frame.get_motion_data();
+      AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
       OnGyro(gyro, gyro_frame.get_frame_number());
     } else if (f.get_profile().stream_type() == RS2_STREAM_ACCEL) {
       auto accel_frame = f.as<rs2::motion_frame>();
       rs2_vector accel = accel_frame.get_motion_data();
       AINFO << "Accel:" << accel.x << ", " << accel.y << ", " << accel.z;
-      OnAcc(accel, acc_frame.get_frame_number());
+      OnAcc(accel, accel_frame.get_frame_number());
     } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
                f.get_profile().stream_index() == 1) {
       // left fisheye
@@ -144,7 +143,7 @@ void RealsenseComponent::run() {
 void RealsenseComponent::Calibration() {
   cv::Mat intrinsicsL;
   cv::Mat distCoeffsL;
-  rs2_intrinsics left = sensor_.get_stream_profilse()[0]
+  rs2_intrinsics left = sensor_.get_stream_profiles()[0]
                             .as<rs2::video_stream_profile>()
                             .get_intrinsics();
   intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
