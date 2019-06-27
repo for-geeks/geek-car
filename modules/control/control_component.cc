@@ -27,19 +27,17 @@ float BLEndianFloat(float value) {
   d2.c[3] = d1.c[0];
   return d2.f;
 }
-
-bool Control_Component::Init() {
-  arduino_.reset(Uart("ttyACM0"));
-
+Uart arduino_("ttyACM0");
+bool ControlComponent::Init() {
   arduino_.SetOpt(9600, 8, 'N', 1);  //, int bits, char event, int stop);
 
   chassis_writer_ = node_->CreateWriter<Chassis>("/chassis");
   control_writer_ = node_->CreateWriter<Control_Command>("/control");
 
   // collect chassis feedback
-  chassis_feedback_ = cyber::Async(&Control_Component::ChassisFeedback, this);
+  chassis_feedback_ = cyber::Async(&ControlComponent::ChassisFeedback, this);
   // chassis_feedback_ = std::aysnc(std::launch::async,
-  // &Control_Component::Chassis, this);
+  // &ControlComponent::ChassisFeedback, this);
   return true;
 }
 
@@ -47,7 +45,7 @@ bool Control_Component::Init() {
  * @brief read arduino and write to chassis channel
  *
  */
-void Control_Component::ChassisFeedback() {
+void ControlComponent::ChassisFeedback() {
   while (!cyber::IsShutdown()) {
     static char buffer[100];
     memset(buffer, 0, 100);
@@ -66,21 +64,21 @@ void Control_Component::ChassisFeedback() {
   }
 }
 
-void Control_Component::GenerateCommand() {
+void ControlComponent::GenerateCommand() {
   // write to channel
 }
 
-void Control_Component::TestCommand() {
-  float t = 0.0;
-  auto cmd = Control_Command();
+void ControlComponent::TestCommand() {
+  double t = 0.0;
   while (1) {
-    cmd.steer_angle = 40 * sin(t);
-    cmd.throttle = 20 * cos(t);
+    // TODO read from generated control command
+    float steer_angle = (float)(40 * sin(t));
+    float steer_throttle = (float)(20 * cos(t));
     char protoco_buf[10];
-    float steer = BLEndianFloat(cmd.steerangle);
-    float throttle = BLEndianFloat(cmd.throttle);
-    memcpy(protoco_buf, &cmd.steerangle, 4);
-    memcpy(protoco_buf + 4, &cmd.throttle, 4);
+    // float steer = BLEndianFloat(steer_angle);
+    // float throttle = BLEndianFloat(steer_throttle);
+    memcpy(protoco_buf, &steer_angle, 4);
+    memcpy(protoco_buf + 4, &steer_throttle, 4);
     protoco_buf[8] = 0x0d;
     protoco_buf[9] = 0x0a;
     arduino_.Write(protoco_buf, 10);

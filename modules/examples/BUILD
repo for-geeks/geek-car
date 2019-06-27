@@ -20,7 +20,7 @@ cc_binary(
     name = "libexample.so",
     linkopts = ["-shared"],
     linkstatic = False,
-    deps = [":example_lib"]
+    deps = [":example_lib"],
 )
 
 cc_library(
@@ -33,7 +33,7 @@ cc_library(
     ],
     deps = [
         "//cyber",
-        "//modules/examples/proto:examples_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
 
@@ -111,8 +111,7 @@ cc_binary(
     deps = [
         "//cyber",
         "//modules/examples/proto:examples_cc_proto",
-    ]
+    ],
 )
-
 
 cpplint()

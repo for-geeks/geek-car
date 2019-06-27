@@ -3,6 +3,6 @@ syntax = "proto2";
 package apollo.control;
 
 message Control_Command {
-  optional float steer_angle = 1;
-  optional float throttle = 2;
+  optional double steer_angle = 1;
+  optional double throttle = 2;
 }

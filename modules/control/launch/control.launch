@@ -1,0 +1,7 @@
+<cyber>
+  <module>
+    <name>control_component</name>
+    <dag_conf>../modules/control/dag/control.dag</dag_conf>
+    <process_name>control_component</process_name>
+  </module>
+</cyber>
