@@ -32,8 +32,11 @@ message Pose {
   optional Point translation = 8;
 }
 
-message Imu {
+message Acc {
   optional Point acc = 1;
+}
+
+message Gryo {
   optional Point gyro = 2;
 }
 

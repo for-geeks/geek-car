@@ -21,11 +21,17 @@ class RealsenseComponent : public Component<> {
   ~RealsenseComponent();
 
  private:
-  void CalibrationLeft(const rs2::frame& f);
-  bool OnImage(cv::Mat dst, uint64 frame_no);
-  bool OnPose(rs2_pose pose_data, uint64 frame_no);
+  void CalibrationLeft();
+  void OnImage(cv::Mat dst, uint64 frame_no);
+  void OnPose(rs2_pose pose_data, uint64 frame_no);
+  void OnAcc(rs2_vector acc, uint64 frame_no);
+  void OnGyro(rs2_vector gyro, uint64 frame_no);
+
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
+  std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
+  std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
+
   std::future<void> async_result_;
   rs2::device device_;  // realsense device
   rs2::sensor sensor_;  // sensor include imu and camera;
@@ -46,8 +52,6 @@ class RealsenseComponent : public Component<> {
 
   std::string serial_number_ = "908412111198";  // serial number
 
-  cv::Mat intrinsicsL_;
-  cv::Mat distCoeffsL_;
   cv::Mat map1_;
   cv::Mat map2_;
 };

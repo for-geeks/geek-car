@@ -71,8 +71,7 @@ class RealSense {
     for (int i = 0; i < static_cast<int>(RS2_CAMERA_INFO_COUNT); i++) {
       rs2_camera_info info_type = static_cast<rs2_camera_info>(i);
       // SDK enum types can be streamed to get a string that represents them
-      std::string device_info =
-          std::setw(20) + rs2_camera_info_to_string(info_type) + " : ";
+      std::string device_info = rs2_camera_info_to_string(info_type);
 
       // A device might not support all types of RS2_CAMERA_INFO.
       // To prevent throwing exceptions from the "get_info" method we first
@@ -80,7 +79,7 @@ class RealSense {
       if (dev.supports(info_type))
         device_info += dev.get_info(info_type);
       else
-        device_info += "N/A";
+        device_info += " N/A";
 
       AINFO << device_info;
     }
@@ -156,7 +155,7 @@ class RealSense {
         // Get a human readable description of the option
         const char* description = sensor.get_option_description(option_type);
         std::string field_detail = description;
-        option_item += "       Description   : " + std::to_string(field_detail);
+        option_item += "       Description   : " + field_detail;
 
         // Get the current value of the option
         float current_value = sensor.get_option(option_type);
