@@ -7,7 +7,7 @@
 #include "modules/control/proto/control.pb.h"
 
 namespace apollo {
-namespace chassis {
+namespace control {
 
 using apollo::control::Chassis;
 using apollo::control::Control_Command;
@@ -29,17 +29,17 @@ float BLEndianFloat(float value) {
 }
 
 bool Control_Component::Init() {
-  // Uart arduino("ttyACM0");
+  arduino_.reset(Uart("ttyACM0"));
 
-  arduino.SetOpt(9600, 8, 'N', 1);  //, int bits, char event, int stop);
+  arduino_.SetOpt(9600, 8, 'N', 1);  //, int bits, char event, int stop);
 
   chassis_writer_ = node_->CreateWriter<Chassis>("/chassis");
   control_writer_ = node_->CreateWriter<Control_Command>("/control");
 
   // collect chassis feedback
-  chassis_feedback_ = cyber::Async(&Control_Componenet::Chassis, this);
+  chassis_feedback_ = cyber::Async(&Control_Component::ChassisFeedback, this);
   // chassis_feedback_ = std::aysnc(std::launch::async,
-  // &Control_Componenet::Chassis, this);
+  // &Control_Component::Chassis, this);
   return true;
 }
 
@@ -47,11 +47,11 @@ bool Control_Component::Init() {
  * @brief read arduino and write to chassis channel
  *
  */
-void Control_Componenet::Chassis() {
+void Control_Component::ChassisFeedback() {
   while (!cyber::IsShutdown()) {
     static char buffer[100];
     memset(buffer, 0, 100);
-    int ret = arduino.Read(buffer, 100);
+    int ret = arduino_.Read(buffer, 100);
     if (ret != -1) {
       std::string s = buffer;
       std::cout << s;
@@ -66,11 +66,11 @@ void Control_Componenet::Chassis() {
   }
 }
 
-void Control_Componenet::GenerateCommand() {
+void Control_Component::GenerateCommand() {
   // write to channel
 }
 
-void Control_Componenet::TestCommand() {
+void Control_Component::TestCommand() {
   float t = 0.0;
   auto cmd = Control_Command();
   while (1) {
@@ -83,7 +83,7 @@ void Control_Componenet::TestCommand() {
     memcpy(protoco_buf + 4, &cmd.throttle, 4);
     protoco_buf[8] = 0x0d;
     protoco_buf[9] = 0x0a;
-    arduino.Write(protoco_buf, 10);
+    arduino_.Write(protoco_buf, 10);
 
     std::string log_control = protoco_buf;
     AINFO << protoco_buf;
@@ -93,5 +93,5 @@ void Control_Componenet::TestCommand() {
   }
 }
 
-}  // namespace chassis
+}  // namespace control
 }  // namespace apollo

@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package apollo.chassis;
+package apollo.control;
 
 message Chassis {
   optional float steer_angle = 1;
