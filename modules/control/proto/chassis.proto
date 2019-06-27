@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+package apollo.chassis;
+
+message Chassis {
+  optional float steer_angle = 1;
+  optional float throttle = 2;
+  optional float speed = 3;
+}
+

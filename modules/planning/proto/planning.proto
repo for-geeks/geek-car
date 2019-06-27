@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+package apollo.planning;
+
+message Trajectory {
+  optional uint64 id = 1;
+  optional Point point = 2;
+}
+
+message Point {
+  // meters
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+}

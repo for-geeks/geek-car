@@ -4,7 +4,6 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "librealsense_component.so",
-    #linkopts = ["-shared"],
     linkshared = True,
     linkstatic = False,
     deps = [
@@ -16,8 +15,8 @@ cc_library(
     name = "realsense_component_lib",
     srcs = ["realsense_component.cc"],
     hdrs = [
-        "realsense_component.h",
         "realsense.h",
+        "realsense_component.h",
     ],
     linkopts = [
         "-lopencv_core",
@@ -31,7 +30,7 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/sensors/proto:sensors_cc_proto",
-    ]
+    ],
 )
 
 cc_binary(
