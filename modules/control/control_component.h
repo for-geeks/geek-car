@@ -4,7 +4,7 @@
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
-#include "modules/chassis/proto/chassis.pb.h"
+#include "modules/control/proto/chassis.pb.h"
 
 namespace apollo {
 namespace chassis {

@@ -2,9 +2,9 @@
 
 #include <string>
 #include "cyber/cyber.h"
+#include "modules/control/Uart.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
-#include "moudles/control/Uart.h"
 
 namespace apollo {
 namespace chassis {
