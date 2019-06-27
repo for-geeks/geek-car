@@ -17,17 +17,18 @@
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
-#include "modules/examples/proto/examples.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 
 using apollo::cyber::Component;
 using apollo::cyber::ComponentBase;
-using apollo::examples::proto::Driver;
+using apollo::sensors::Image;
+using apollo::sensors::Pose;
 
-class ExampleComponent : public Component<Driver, Driver> {
+class ExampleComponent : public Component<Pose, Image> {
  public:
   bool Init() override;
-  bool Proc(const std::shared_ptr<Driver>& msg0,
-            const std::shared_ptr<Driver>& msg1) override;
+  bool Proc(const std::shared_ptr<Pose>& msg0,
+            const std::shared_ptr<Image>& msg1) override;
 };
 
 CYBER_REGISTER_COMPONENT(ExampleComponent)

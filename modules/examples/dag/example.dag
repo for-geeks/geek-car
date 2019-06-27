@@ -6,10 +6,10 @@ module_config {
     config {
       name: "example"
       readers {
-        channel : "/apollo/prediction"
+        channel : "/realsense/pose"
       }
       reader {
-        channel: " /apollo/test"
+        channel: " /realsense/raw_image"
       }
     }
   }
