@@ -27,17 +27,21 @@ float BLEndianFloat(float value) {
   d2.c[3] = d1.c[0];
   return d2.f;
 }
-Uart arduino_("ttyACM0");
+
 bool ControlComponent::Init() {
+  Uart arduino_("ttyACM0");
   arduino_.SetOpt(9600, 8, 'N', 1);  //, int bits, char event, int stop);
 
   chassis_writer_ = node_->CreateWriter<Chassis>("/chassis");
   control_writer_ = node_->CreateWriter<Control_Command>("/control");
 
+  TestCommand(arduino_);
+
   // collect chassis feedback
-  chassis_feedback_ = cyber::Async(&ControlComponent::ChassisFeedback, this);
+  chassis_feedback_ =
+      cyber::Async(&ControlComponent::OnChassis, this, arduino_);
   // chassis_feedback_ = std::aysnc(std::launch::async,
-  // &ControlComponent::ChassisFeedback, this);
+  // &ControlComponent::OnChassis, this);
   return true;
 }
 
@@ -45,7 +49,7 @@ bool ControlComponent::Init() {
  * @brief read arduino and write to chassis channel
  *
  */
-void ControlComponent::ChassisFeedback() {
+void ControlComponent::OnChassis(Uart arduino_) {
   while (!cyber::IsShutdown()) {
     static char buffer[100];
     memset(buffer, 0, 100);
@@ -68,12 +72,12 @@ void ControlComponent::GenerateCommand() {
   // write to channel
 }
 
-void ControlComponent::TestCommand() {
+void ControlComponent::TestCommand(Uart arduino_) {
   double t = 0.0;
   while (1) {
     // TODO read from generated control command
-    float steer_angle = (float)(40 * sin(t));
-    float steer_throttle = (float)(20 * cos(t));
+    float steer_angle = static_cast<float>(40 * sin(t));
+    float steer_throttle = static_cast<float>(20 * cos(t));
     char protoco_buf[10];
     // float steer = BLEndianFloat(steer_angle);
     // float throttle = BLEndianFloat(steer_throttle);

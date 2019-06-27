@@ -19,12 +19,9 @@ class ControlComponent : public Component<> {
  public:
   bool Init() override;
 
-  ControlComponent();
-  ~ControlComponent();
-
-  void ChassisFeedback();
+  void OnChassis(Uart arduino_);
   void GenerateCommand();
-  void TestCommand();
+  void TestCommand(Uart arduino_);
 
  private:
   std::shared_ptr<Writer<Chassis>> chassis_writer_ = nullptr;
