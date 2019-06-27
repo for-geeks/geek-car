@@ -36,7 +36,7 @@ message Acc {
   optional Point acc = 1;
 }
 
-message Gryo {
+message Gyro {
   optional Point gyro = 2;
 }
 

@@ -21,7 +21,7 @@ class RealsenseComponent : public Component<> {
   ~RealsenseComponent();
 
  private:
-  void CalibrationLeft();
+  void Calibration();
   void OnImage(cv::Mat dst, uint64 frame_no);
   void OnPose(rs2_pose pose_data, uint64 frame_no);
   void OnAcc(rs2_vector acc, uint64 frame_no);

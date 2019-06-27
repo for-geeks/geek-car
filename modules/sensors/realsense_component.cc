@@ -22,6 +22,8 @@ namespace sensors {
 
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
+using apollo::sensors::Acc;
+using apollo::sensors::Gyro;
 using apollo::sensors::Image;
 using apollo::sensors::Pose;
 
@@ -213,18 +215,18 @@ void RealsenseComponent::OnPose(rs2_pose pose_data, uint64 frame_no) {
 
 void RealsenseComponent::OnAcc(rs2_vector acc, uint64 frame_no) {
   auto proto_accel = std::make_shared<Acc>();
-  proto_accel->set_x(acc.x);
-  proto_accel->set_y(acc.y);
-  proto_accel->set_z(acc.z);
+  proto_accel->mutable_acc()->set_x(acc.x);
+  proto_accel->mutable_acc()->set_y(acc.y);
+  proto_accel->mutable_acc()->set_z(acc.z);
 
   acc_writer_->Write(proto_accel);
 }
 
 void RealsenseComponent::OnGyro(rs2_vector gyro, uint64 frame_no) {
   auto proto_gyro = std::make_shared<Gyro>();
-  proto_gyro->set_x(gyro.x);
-  proto_gyro->set_y(gyro.y);
-  proto_gyro->set_z(gyro.z);
+  proto_gyro->mutable_gyro()->set_x(gyro.x);
+  proto_gyro->mutable_gyro()->set_y(gyro.y);
+  proto_gyro->mutable_gyro()->set_z(gyro.z);
 
   gyro_writer_->Write(proto_gyro);
 }
