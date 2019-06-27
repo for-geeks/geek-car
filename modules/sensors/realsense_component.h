@@ -21,24 +21,17 @@ class RealsenseComponent : public Component<> {
   ~RealsenseComponent();
 
  private:
-  void CalibrationLeft(rs2::frame);
-  bool OnImage(cv::Mat dst, uint64 frame_on);
-  bool OnPose(rs2_pose pose_data, uint64 frame_on);
+  void CalibrationLeft(const rs2::frame& f);
+  bool OnImage(cv::Mat dst, uint64 frame_no);
+  bool OnPose(rs2_pose pose_data, uint64 frame_no);
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
-
-  // realsense device
-  rs2::device device_;
-  // sensor include imu and camera;
-  rs2::sensor sensor_;
-
   std::future<void> async_result_;
+  rs2::device device_;  // realsense device
+  rs2::sensor sensor_;  // sensor include imu and camera;
 
-  // ms
-  uint32_t device_wait_ = 2000;
-
-  // ms
-  uint32_t spin_rate_ = 200;
+  uint32_t device_wait_ = 2000;  // ms
+  uint32_t spin_rate_ = 200;     // ms
 
   // frame queue
   rs2::frame_queue q_;
@@ -49,17 +42,12 @@ class RealsenseComponent : public Component<> {
    * < Number of frames the user is allowed to keep per stream. Trying to
    * hold-on to more frames will cause frame-drops.
    * */
-  int queue_size_ = 16;  // queue size
+  float queue_size_ = 16.0;  // queue size
 
   std::string serial_number_ = "908412111198";  // serial number
 
-  // pipe
-  // rs2::pipeline pipe_;
-  // Create a configuration for configuring the pipeline with a non default
-  // profile
-  rs2::config cfg_;
-  cv::Mat intrinsicsL;
-  cv::Mat distCoeffsL;
+  cv::Mat intrinsicsL_;
+  cv::Mat distCoeffsL_;
   cv::Mat map1_;
   cv::Mat map2_;
 };

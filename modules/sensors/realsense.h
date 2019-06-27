@@ -23,9 +23,6 @@ class RealSense {
     // Using the context we can get all connected devices in a device list
     rs2::device_list devices = ctx.query_devices();
 
-    sleep(1000);
-    devices = ctx.query_devices();
-
     rs2::device selected_device;
     if (devices.size() == 0) {
       AERROR << "No device connected, please connect a RealSense device";
@@ -49,7 +46,6 @@ class RealSense {
       AINFO << index++ << " : " << getDeviceName(device);
     }
 
-    // TODO move to config
     uint32_t selected_device_index = 1;
 
     // The second way is using the subscript ("[]") operator:
@@ -75,8 +71,8 @@ class RealSense {
     for (int i = 0; i < static_cast<int>(RS2_CAMERA_INFO_COUNT); i++) {
       rs2_camera_info info_type = static_cast<rs2_camera_info>(i);
       // SDK enum types can be streamed to get a string that represents them
-      std::string device_info = std::left << std::setw(20) << info_type
-                                          << " : ";
+      std::string device_info =
+          std::setw(20) + rs2_camera_info_to_string(info_type) + " : ";
 
       // A device might not support all types of RS2_CAMERA_INFO.
       // To prevent throwing exceptions from the "get_info" method we first
@@ -128,8 +124,8 @@ class RealSense {
       AINFO << "  " << index++ << " : " << getSensorName(sensor);
     }
 
+    // default sensor id
     uint32_t selected_sensor_index = 1;
-    // get_user_selection("Select a sensor by index: ");
 
     // The second way is using the subscript ("[]") operator:
     if (selected_sensor_index >= sensors.size()) {
@@ -150,7 +146,8 @@ class RealSense {
     for (int i = 0; i < static_cast<int>(RS2_OPTION_COUNT); i++) {
       rs2_option option_type = static_cast<rs2_option>(i);
       // SDK enum types can be streamed to get a string that represents them
-      std::string option_item = "  " << i << ": " << option_type;
+      std::string option_item =
+          "  " + std::to_string(i) + ": " + rs2_option_to_string(option_type);
 
       // To control an option, use the following api:
 
@@ -158,11 +155,13 @@ class RealSense {
       if (sensor.supports(option_type)) {
         // Get a human readable description of the option
         const char* description = sensor.get_option_description(option_type);
-        option_item += "       Description   : " << description;
+        std::string field_detail = description;
+        option_item += "       Description   : " + std::to_string(field_detail);
 
         // Get the current value of the option
         float current_value = sensor.get_option(option_type);
-        option_item += "       Current Value : " << current_value;
+        option_item +=
+            "       Current Value : " + std::to_string(current_value);
 
         // To change the value of an option, please follow the
         // change_sensor_option() function

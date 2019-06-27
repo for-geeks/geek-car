@@ -25,10 +25,10 @@ message Pose {
   optional Point angular_acceleration = 5; //(in radians/sec^2)
   //(pose data confidence 0x0 - Failed,
   // 0x1 - Low, 0x2 - Medium, 0x3 - High)
-  optional bytes tracker_confidence = 6;   
-  optional bytes mapper_confidence = 7; 
+  optional bytes tracker_confidence = 6;
   //(pose data confidence 0x0 - Failed,
   // 0x1 - Low, 0x2 - Medium, 0x3 - High)
+  optional bytes mapper_confidence = 7;
   optional Point translation = 8;
 }
 
