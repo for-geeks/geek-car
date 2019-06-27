@@ -3,21 +3,14 @@ package(default_visibility = ["//visibility:public"])
 cc_proto_library(
     name = "control_cc_proto",
     deps = [
-        ":chassis_proto",
-        ":control_proto",
+        ":control_proto_lib",
     ],
 )
 
 proto_library(
-    name = "chassis_proto",
+    name = "control_proto_lib",
     srcs = [
         "chassis.proto",
-    ],
-)
-
-proto_library(
-    name = "control_proto",
-    srcs = [
         "control.proto",
     ],
 )

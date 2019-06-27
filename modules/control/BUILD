@@ -23,7 +23,7 @@ cc_library(
     ],
     deps = [
         "//cyber",
-        "//modules/control/proto::control_cc_proto",
+        "//modules/control/proto:control_cc_proto",
     ],
 )
 
