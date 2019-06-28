@@ -32,8 +32,8 @@ class ControlComponent : public Component<> {
   std::shared_ptr<Writer<Chassis>> chassis_writer_ = nullptr;
   std::shared_ptr<Writer<Control_Command>> control_writer_ = nullptr;
 
-  std::future<void> action_;
-  std::future<void> chassis_feedback_;
+  std::future<void> async_action_;
+  std::future<void> async_feedback_;
 
   // atomic flag for action
   std::atomic<bool> action_ready_ = {false};

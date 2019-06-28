@@ -36,10 +36,10 @@ bool ControlComponent::Init() {
 
   TestCommand();
   // async method wait for control message
-  // action_ = cyber::Async(&ControlComponent::Action(), this, arduino_);
+  // async_action_ = cyber::Async(&ControlComponent::Action(), this);
 
   // chassis feedback
-  chassis_feedback_ = cyber::Async(&ControlComponent::OnChassis, this);
+  async_feedback_ = cyber::Async(&ControlComponent::OnChassis, this);
   return true;
 }
 
@@ -72,7 +72,7 @@ void ControlComponent::GenerateCommand() {
 
 /**
  * @brief action method for control command
- *
+ * TODO(fengzongbao) async cmd
  * @param cmd
  */
 void ControlComponent::Action(const Control_Command& cmd) {
@@ -121,10 +121,10 @@ void ControlComponent::TestCommand() {
 }
 
 ControlComponent::~ControlComponent() {
-  if (action_ready_.load()) {
+  if (action_ready_.exchange(true)) {
     // close arduino
-    // reback chassis handle
-    chassis_feedback_.wait();
+    // back chassis handle
+    async_feedback_.wait();
   }
 }
 
