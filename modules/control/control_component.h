@@ -22,13 +22,12 @@ class ControlComponent : public Component<> {
 
   void OnChassis(Uart arduino_);
   void GenerateCommand();
+  void Action(Uart arduino_, const Comtrol_Command& cmd);
   void TestCommand(Uart arduino_);
 
  private:
   std::shared_ptr<Writer<Chassis>> chassis_writer_ = nullptr;
   std::shared_ptr<Writer<Control_Command>> control_writer_ = nullptr;
-
-  // Uart arduino_;
 
   std::future<void> chassis_feedback_;
 };

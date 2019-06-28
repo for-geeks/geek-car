@@ -70,14 +70,41 @@ void ControlComponent::GenerateCommand() {
   // write to channel
 }
 
+/**
+ * @brief action method for control command
+ *
+ * @param arduino_
+ * @param cmd
+ */
+void ControlComponent::Action(Uart arduino_, Control_Command& cmd) {
+  while (!cyber::IsShutdown()) {
+    if (!cmd.has_steer_angle() || !cmd.has_throttle()) {
+      continue;
+      cyber::SleepFor(std::chrono::milliseconds());
+    }
+
+    float steer_angle = cmd.steer_angle;
+    float steer_throttle = cmd.throttle;
+    ADEBUG << "control message, times: " << t << " steer_angle:" << steer_angle
+           << " steer_throttle:" << steer_throttle;
+    char protoco_buf[10];
+    memcpy(protoco_buf, &steer_angle, 4);
+    memcpy(protoco_buf + 4, &steer_throttle, 4);
+    protoco_buf[8] = 0x0d;
+    protoco_buf[9] = 0x0a;
+    arduino_.Write(protoco_buf, 10);
+    t += 0.05;
+  }
+}
+
 void ControlComponent::TestCommand(Uart arduino_) {
   double t = 0.0;
   while (1) {
     // TODO read from generated control command
     float steer_angle = static_cast<float>(40 * sin(t));
     float steer_throttle = static_cast<float>(20 * cos(t));
-    AINFO << "control message, times: " << t << "steer_angle:" << steer_angle
-          << " steer_throttle:" << steer_throttle;
+    ADEBUG << "control message, times: " << t << " steer_angle:" << steer_angle
+           << " steer_throttle:" << steer_throttle;
     char protoco_buf[10];
     // float steer = BLEndianFloat(steer_angle);
     // float throttle = BLEndianFloat(steer_throttle);
@@ -87,8 +114,8 @@ void ControlComponent::TestCommand(Uart arduino_) {
     protoco_buf[9] = 0x0a;
     arduino_.Write(protoco_buf, 10);
 
-    std::string log_control = protoco_buf;
-    AINFO << "sent control origin message" << log_control;
+    // std::string log_control = protoco_buf;
+    // ADEBUG << "sent control origin message" << log_control;
 
     t += 0.05;
     // std::this_thread::sleep_for(std::chrono::milliseconds(50000));
