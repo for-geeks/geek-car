@@ -20,16 +20,23 @@ class ControlComponent : public Component<> {
  public:
   bool Init() override;
 
-  void OnChassis(Uart arduino_);
+  void OnChassis());
   void GenerateCommand();
-  void Action(Uart arduino_, const Comtrol_Command& cmd);
-  void TestCommand(Uart arduino_);
+  void Action(const Comtrol_Command& cmd);
+  void TestCommand();
+  ~ControlComponent();
 
  private:
+  Uart arduino_ = Uart(FLAGS_device_name);
+
   std::shared_ptr<Writer<Chassis>> chassis_writer_ = nullptr;
   std::shared_ptr<Writer<Control_Command>> control_writer_ = nullptr;
 
+  std::future<void> action_;
   std::future<void> chassis_feedback_;
+
+  // atomic flag for action
+  std::atomic<bool> action_ready_ = {false};
 };
 
 CYBER_REGISTER_COMPONENT(ControlComponent)

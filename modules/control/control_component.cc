@@ -29,17 +29,17 @@ float BLEndianFloat(float value) {
 }
 
 bool ControlComponent::Init() {
-  Uart arduino_("ttyACM0");
   arduino_.SetOpt(9600, 8, 'N', 1);  //, int bits, char event, int stop);
 
   chassis_writer_ = node_->CreateWriter<Chassis>("/chassis");
   control_writer_ = node_->CreateWriter<Control_Command>("/control");
 
-  TestCommand(arduino_);
+  TestCommand();
+  // async method wait for control message
+  // action_ = cyber::Async(&ControlComponent::Action(), this, arduino_);
 
-  // collect chassis feedback
-  chassis_feedback_ =
-      cyber::Async(&ControlComponent::OnChassis, this, arduino_);
+  // chassis feedback
+  chassis_feedback_ = cyber::Async(&ControlComponent::OnChassis, this);
   return true;
 }
 
@@ -47,8 +47,8 @@ bool ControlComponent::Init() {
  * @brief read arduino and write to chassis channel
  *
  */
-void ControlComponent::OnChassis(Uart arduino_) {
-  while (!cyber::IsShutdown()) {
+void ControlComponent::OnChassis() {
+  while (!cyber::IsShutdown() && action_ready_.load()) {
     static char buffer[100];
     memset(buffer, 0, 100);
     int ret = arduino_.Read(buffer, 100);
@@ -73,15 +73,17 @@ void ControlComponent::GenerateCommand() {
 /**
  * @brief action method for control command
  *
- * @param arduino_
  * @param cmd
  */
-void ControlComponent::Action(Uart arduino_, Control_Command& cmd) {
+void ControlComponent::Action(const Control_Command& cmd) {
   while (!cyber::IsShutdown()) {
     if (!cmd.has_steer_angle() || !cmd.has_throttle()) {
       continue;
       cyber::SleepFor(std::chrono::milliseconds());
     }
+
+    // tell OnChassis() you can receive message now
+    action_ready_ = true;
 
     float steer_angle = cmd.steer_angle;
     float steer_throttle = cmd.throttle;
@@ -97,10 +99,9 @@ void ControlComponent::Action(Uart arduino_, Control_Command& cmd) {
   }
 }
 
-void ControlComponent::TestCommand(Uart arduino_) {
+void ControlComponent::TestCommand() {
   double t = 0.0;
   while (1) {
-    // TODO read from generated control command
     float steer_angle = static_cast<float>(40 * sin(t));
     float steer_throttle = static_cast<float>(20 * cos(t));
     ADEBUG << "control message, times: " << t << " steer_angle:" << steer_angle
@@ -114,11 +115,16 @@ void ControlComponent::TestCommand(Uart arduino_) {
     protoco_buf[9] = 0x0a;
     arduino_.Write(protoco_buf, 10);
 
-    // std::string log_control = protoco_buf;
-    // ADEBUG << "sent control origin message" << log_control;
-
     t += 0.05;
     // std::this_thread::sleep_for(std::chrono::milliseconds(50000));
+  }
+}
+
+ControlComponent::~ControlComponent() {
+  if (action_ready_.load()) {
+    // close arduino
+    // reback chassis handle
+    chassis_feedback_.wait();
   }
 }
 

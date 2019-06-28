@@ -2,6 +2,9 @@
 
 namespace apollo {
 namespace perception {
+
+using apollo::sensors::Image;
+
 bool PerceptionComponent::Init() {
   // maybe some config here
 
@@ -12,7 +15,7 @@ bool PerceptionComponent::Proc(const std::shared<Image>& image) {
   // print image fields like defied in modules/sensors/proto/sensors.proto
 
   //   message Image {
-  //     optional uint64 frame_no = 2;
+  //     optional uint64 frame_id = 2;
   //     optional double measurement_time = 3;
 
   //     optional uint32 height = 4;  // image height, that is, number of rows
@@ -23,6 +26,7 @@ bool PerceptionComponent::Proc(const std::shared<Image>& image) {
   //     optional bytes data = 8;   // actual matrix data, size is (step * rows)
   //   }
   ADEBUG << image->DebugString();
+  return true;
 }
 
 }  // namespace perception

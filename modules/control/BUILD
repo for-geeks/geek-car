@@ -22,8 +22,20 @@ cc_library(
         "control_component.h",
     ],
     deps = [
+        ":control_gflags",
         "//cyber",
         "//modules/control/proto:control_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "control_gflags",
+    srcs = ["control_gflags.cc"],
+    hdrs = [
+        "control_gflags.h",
+    ],
+    deps = [
+        "//external::gflags",
     ],
 )
 
