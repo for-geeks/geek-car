@@ -1,0 +1,37 @@
+# safelist
+branches:
+  only:
+  - master
+
+language: cpp
+sudo: required
+#services:
+#    - docker
+dist: bionic
+os: linux
+cache:
+  directories:
+  - $HOME/.cache/bazel
+install: ./docker/build/cyber/x86_64.sh
+#before_script:
+#    - cp scripts/AGREEMENT.txt ${HOME}/.apollo_agreement.txt
+jobs:
+  include:
+    - stage: stage-01
+      env:
+        - JOB=lint
+      script:
+        - ./apollo.sh ${JOB}
+        - rm -rf "${HOME}/.cache/bazel/_bazel_${USER}/install"
+    - stage: stage-02
+      if: branch = master
+      env:
+        - JOB=cibuild
+      script:
+        - ./apollo.sh ${JOB}
+        - rm -rf "${HOME}/.cache/bazel/_bazel_${USER}/install"
+
+notifications:
+    email:
+        on_success: always
+        on_failure: always

@@ -188,13 +188,10 @@ function cibuild() {
 
   info "Building with $JOB_ARG for $MACHINE_ARCH"
   BUILD_TARGETS="
-    //modules/canbus/...
-    //modules/common/...
     //modules/control/...
     //modules/planning/...
-    //modules/prediction/...
-    //modules/routing/...
-    //modules/transform/..."
+    //modules/localization/...
+    //modules/perception/..."
 
   bazel build $JOB_ARG $DEFINES $@ $BUILD_TARGETS
 
@@ -511,7 +508,7 @@ function citest() {
 }
 
 function run_cpp_lint() {
-  BUILD_TARGETS="`bazel query //modules/... except //modules/tools/visualizer/... union //cyber/...`"
+  BUILD_TARGETS="`bazel query //modules/...  union //cyber/...`"
   bazel test --config=cpplint -c dbg $BUILD_TARGETS
 }
 
@@ -523,7 +520,7 @@ function run_bash_lint() {
 function run_lint() {
   # Add cpplint rule to BUILD files that do not contain it.
   for file in $(find cyber modules -name BUILD |  grep -v gnss/third_party | \
-    xargs grep -l -E 'cc_library|cc_test|cc_binary' | xargs grep -L 'cpplint()')
+    xargs grep -l -E 'cc_library|cc_binary' | xargs grep -L 'cpplint()')
   do
     sed -i '1i\load("//tools:cpplint.bzl", "cpplint")\n' $file
     sed -i -e '$a\\ncpplint()' $file
