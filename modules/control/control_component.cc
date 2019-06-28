@@ -40,8 +40,6 @@ bool ControlComponent::Init() {
   // collect chassis feedback
   chassis_feedback_ =
       cyber::Async(&ControlComponent::OnChassis, this, arduino_);
-  // chassis_feedback_ = std::aysnc(std::launch::async,
-  // &ControlComponent::OnChassis, this);
   return true;
 }
 
@@ -56,7 +54,7 @@ void ControlComponent::OnChassis(Uart arduino_) {
     int ret = arduino_.Read(buffer, 100);
     if (ret != -1) {
       std::string s = buffer;
-      std::cout << s;
+      AINFO << "chassis feedback : " << s;
       // std::cout << "Arduino says: " << std::endl << s << std::endl;
 
       //   auto proto_chassis = make_shared<Chassis>();
@@ -78,6 +76,8 @@ void ControlComponent::TestCommand(Uart arduino_) {
     // TODO read from generated control command
     float steer_angle = static_cast<float>(40 * sin(t));
     float steer_throttle = static_cast<float>(20 * cos(t));
+    AINFO << "control message, times: " << t << "steer_angle:" << steer_angle
+          << " steer_throttle:" << steer_throttle;
     char protoco_buf[10];
     // float steer = BLEndianFloat(steer_angle);
     // float throttle = BLEndianFloat(steer_throttle);
@@ -88,10 +88,10 @@ void ControlComponent::TestCommand(Uart arduino_) {
     arduino_.Write(protoco_buf, 10);
 
     std::string log_control = protoco_buf;
-    AINFO << protoco_buf;
+    AINFO << "sent control origin message" << log_control;
 
     t += 0.05;
-    std::this_thread::sleep_for(std::chrono::milliseconds(50000));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(50000));
   }
 }
 

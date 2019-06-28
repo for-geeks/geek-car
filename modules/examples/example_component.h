@@ -20,7 +20,6 @@
 #include "modules/sensors/proto/sensors.pb.h"
 
 using apollo::cyber::Component;
-using apollo::cyber::ComponentBase;
 using apollo::sensors::Image;
 using apollo::sensors::Pose;
 

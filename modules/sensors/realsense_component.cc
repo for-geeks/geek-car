@@ -74,9 +74,7 @@ bool RealsenseComponent::Init() {
     q_.enqueue(std::move(f));  // enqueue any new frames into q
   });
 
-  // async_result_ = cyber::Async(&RealsenseComponent::run, this);
-  async_result_ =
-      std::async(std::launch::async, &RealsenseComponent::run, this);
+  async_result_ = cyber::Async(&RealsenseComponent::run, this);
   return true;
 }
 
