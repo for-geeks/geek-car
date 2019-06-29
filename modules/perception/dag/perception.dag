@@ -1,0 +1,10 @@
+# Dag all comes in DAG streming.
+module_config {
+  module_library : "../bazel-bin/modules/perception/libperception_component.so"
+  components {
+    class_name : "PerceptionComponent"
+    config {
+      name: "perception_component"
+    }
+  }
+}

@@ -26,6 +26,7 @@ bool PerceptionComponent::Proc(const std::shared<Image>& image) {
   //     optional bytes data = 8;   // actual matrix data, size is (step * rows)
   //   }
   ADEBUG << image->DebugString();
+
   return true;
 }
 

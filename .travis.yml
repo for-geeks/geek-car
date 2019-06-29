@@ -12,9 +12,11 @@ os: linux
 cache:
   directories:
   - $HOME/.cache/bazel
+before_install:
+  ./docker/build/cyber.x86_64.sh
 install: ./docker/build/cyber.x86_64.sh
-#before_script:
-#    - cp scripts/AGREEMENT.txt ${HOME}/.apollo_agreement.txt
+before_script:
+  - chmod +x ./docker/build/cyber.x86_64.sh
 jobs:
   include:
     - stage: stage-01
