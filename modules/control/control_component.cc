@@ -85,9 +85,10 @@ void ControlComponent::Action(const Control_Command& cmd) {
     // tell OnChassis() you can receive message now
     action_ready_ = true;
 
-    float steer_angle = cmd.steer_angle;
-    float steer_throttle = cmd.throttle;
-    ADEBUG << "control message, times: " << t << " steer_angle:" << steer_angle
+    float steer_angle = cmd.steer_angle();
+    float steer_throttle = cmd.throttle();
+    ADEBUG << "control message, times: "
+           << " steer_angle:" << steer_angle
            << " steer_throttle:" << steer_throttle;
     char protoco_buf[10];
     memcpy(protoco_buf, &steer_angle, 4);
@@ -95,7 +96,6 @@ void ControlComponent::Action(const Control_Command& cmd) {
     protoco_buf[8] = 0x0d;
     protoco_buf[9] = 0x0a;
     arduino_.Write(protoco_buf, 10);
-    t += 0.05;
   }
 }
 

@@ -23,6 +23,7 @@ cc_library(
         # ":control_gflags",
         "//cyber",
         "//modules/perception/proto:perception_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
 

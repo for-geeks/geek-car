@@ -11,7 +11,7 @@ bool PerceptionComponent::Init() {
   return true;
 }
 
-bool PerceptionComponent::Proc(const std::shared<Image>& image) {
+bool PerceptionComponent::Proc(const std::shared_ptr<Image>& image) {
   // print image fields like defied in modules/sensors/proto/sensors.proto
 
   //   message Image {
