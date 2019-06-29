@@ -35,7 +35,7 @@ cc_library(
         "control_gflags.h",
     ],
     deps = [
-        "//external::gflags",
+        "//external:gflags",
     ],
 )
 
