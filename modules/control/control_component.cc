@@ -36,7 +36,7 @@ bool ControlComponent::Init() {
 
   TestCommand();
   // async method wait for control message
-  // async_action_ = cyber::Async(&ControlComponent::Action(), this);
+  // async_action_ = cyber::Async(&ControlComponent::Action, this);
 
   // chassis feedback
   async_feedback_ = cyber::Async(&ControlComponent::OnChassis, this);
@@ -79,7 +79,7 @@ void ControlComponent::Action(const Control_Command& cmd) {
   while (!cyber::IsShutdown()) {
     if (!cmd.has_steer_angle() || !cmd.has_throttle()) {
       continue;
-      cyber::SleepFor(std::chrono::milliseconds());
+      // cyber::SleepFor(std::chrono::milliseconds());
     }
 
     // tell OnChassis() you can receive message now

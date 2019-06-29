@@ -1,21 +1,24 @@
 #include <memory>
+
+#include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "modules/planning/proto/planning.pb.h"
+
 namespace apollo {
 namespace planning {
 
+using apollo::cyber::Component;
 using apollo::planning::Tracjectory;
 
-class Planning_Component : public Component<> {
+class PlanningComponent : public Component<> {
  public:
-  Planning_Component();
-  ~Plannning_Component();
-  bool Init();
+  ~PlanningComponent();
+  bool Init() override;
 
  private:
   std::shared_ptr<Writer<Tracjectory>> writer_ = nullptr;
 }
 
-CYBER_REGISTER_COMPONENT(Planning_Component)
+CYBER_REGISTER_COMPONENT(PlanningComponent)
 }  // namespace planning
 }  // namespace apollo

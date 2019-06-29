@@ -2,11 +2,16 @@
 
 namespace apollo {
 namespace planning {
-bool Planning_Component::Init() {
+
+bool PlanningComponent::Init() {
   // init
 
   writer_ = node_->CreateWriter<Trajectory>("/planning");
+
+  return true;
 }
+
+PlanningComponent::~PlanningComponent() {}
 
 }  // namespace planning
 }  // namespace apollo
