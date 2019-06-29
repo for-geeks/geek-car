@@ -5,6 +5,7 @@
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "modules/control/Uart.h"
+#include "modules/control/control_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 
@@ -20,9 +21,9 @@ class ControlComponent : public Component<> {
  public:
   bool Init() override;
 
-  void OnChassis());
+  void OnChassis();
   void GenerateCommand();
-  void Action(const Comtrol_Command& cmd);
+  void Action(const Control_Command& cmd);
   void TestCommand();
   ~ControlComponent();
 
