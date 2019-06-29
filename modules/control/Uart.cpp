@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
+#include "cyber/common/log.h"
 
 Uart::Uart(const char* dev) {
   char tty[32] = "/dev/";
@@ -17,7 +18,7 @@ Uart::Uart(const char* dev) {
   fd = open(tty, O_RDWR | O_NOCTTY);
   // fd = open(tty, O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd > 0) {
-    printf("open %s!\n", tty);
+    AINFO << "opened :" << tty;
   }
 }
 
@@ -28,14 +29,14 @@ Uart::~Uart() {
 int Uart::SetOpt(int speed, int bits, char event, int stop) {
   if (fd < 0) {
     return -1;
-    perror("Uart Init failed");
+    AERROR << "Uart Init failed";
   }
 
   fcntl(fd, F_SETFL, 0);
 
   struct termios newtio, oldtio;
   if (tcgetattr(fd, &oldtio) != 0) {
-    perror("tcgetattr error");
+    AERROR << "tcgetattr error";
     return -1;
   }
 
@@ -113,7 +114,7 @@ int Uart::SetOpt(int speed, int bits, char event, int stop) {
   newtio.c_cc[VMIN] = 0;
 
   if ((tcsetattr(fd, TCSANOW, &newtio)) != 0) {
-    perror("set opt error");
+    AERROR << "Arduino :set opt error";
     return -1;
   }
 
@@ -125,12 +126,12 @@ int Uart::SetOpt(int speed, int bits, char event, int stop) {
 int Uart::Write(char* buf, int size) {
   if (fd < 0) {
     return -1;
-    perror("Uart Init failed");
+    AERROR << "Uart Init failed";
   }
 
   int ret = write(fd, buf, size);
   if (ret < 0) {
-    perror("uart write failed");
+    AERROR << "uart write failed";
   }
   return ret;
 }
@@ -138,7 +139,7 @@ int Uart::Write(char* buf, int size) {
 int Uart::Read(char* buf, int size) {
   if (fd < 0) {
     return -1;
-    perror("Uart Init failed");
+    AERROR << "Uart Init failed";
   }
 
   fd_set set;
@@ -148,7 +149,7 @@ int Uart::Read(char* buf, int size) {
   FD_SET(fd, &set);
 
   timeout.tv_sec = 1;
-  timeout.tv_usec = 200000;
+  timeout.tv_usec = 2000;
 
   int ret = select(fd + 1, &set, NULL, NULL, &timeout);
 

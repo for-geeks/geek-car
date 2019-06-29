@@ -13,20 +13,11 @@ using apollo::control::Chassis;
 using apollo::control::Control_Command;
 using apollo::cyber::Time;
 
-typedef union FLOAT_CONV {
-  float f;
-  char c[4];
-} float_conv;
-
-float BLEndianFloat(float value) {
-  float_conv d1, d2;
-  d1.f = value;
-  d2.c[0] = d1.c[3];
-  d2.c[1] = d1.c[2];
-  d2.c[2] = d1.c[1];
-  d2.c[3] = d1.c[0];
-  return d2.f;
-}
+typedef struct _vehicle_info_s {
+  float steerangle;
+  float throttle;
+  float speed_now;
+} vehicle_info_s;
 
 bool ControlComponent::Init() {
   arduino_.SetOpt(9600, 8, 'N', 1);  //, int bits, char event, int stop);
@@ -48,20 +39,38 @@ bool ControlComponent::Init() {
  *
  */
 void ControlComponent::OnChassis() {
+  int count = 0;
+  static char buffer[100];
+  static char buf;
+  vehicle_info_s vehicle_info;
   while (!cyber::IsShutdown() && action_ready_.load()) {
+    count = 0;
+    memset(buffer, 0, 100);
+    memset(&vehicle_info, 0, sizeof(vehicle_info));
     static char buffer[100];
     memset(buffer, 0, 100);
-    int ret = arduino_.Read(buffer, 100);
-    if (ret != -1) {
-      std::string s = buffer;
-      AINFO << "chassis feedback : " << s;
-      // std::cout << "Arduino says: " << std::endl << s << std::endl;
-
-      //   auto proto_chassis = make_shared<Chassis>();
-      //   proto_chassis->set_steer_angle();
-      //   proto_chassis->set_throttle();
-      //   proto_chassis->set_speed();
-      //   chassis_writer_->Writer(proto_chassis);
+    while (1) {
+      int ret = arduino_.Read(buffer, 100);
+      if (ret > 0) {
+        if (ret == 1) {
+          if (buf == 0x0A) {
+            break;
+          }
+          buffer[count] = buf;
+          count++;
+        }
+      }
+    }
+    if (count == 12) {
+      memcpy(&vehicle_info, buffer, 12);
+      AINFO << "chassis feedback , steer_angle: " << vehicle_info.steerangle
+            << " throttle:" << vehicle_info.throttle
+            << " speed: " << vehicle_info.speed_now;
+      auto proto_chassis = make_shared<Chassis>();
+      proto_chassis->set_steer_angle(vehicle_info.steerangle);
+      proto_chassis->set_throttle(vehicle_info.throttle);
+      proto_chassis->set_speed(vehicle_info.speed_now);
+      chassis_writer_->Writer(proto_chassis);
     }
   }
 }
@@ -106,9 +115,10 @@ void ControlComponent::TestCommand() {
     float steer_throttle = static_cast<float>(20 * cos(t));
     ADEBUG << "control message, times: " << t << " steer_angle:" << steer_angle
            << " steer_throttle:" << steer_throttle;
+
+    // tell OnChassis() you can receive message now
+    action_ready_ = true;
     char protoco_buf[10];
-    // float steer = BLEndianFloat(steer_angle);
-    // float throttle = BLEndianFloat(steer_throttle);
     memcpy(protoco_buf, &steer_angle, 4);
     memcpy(protoco_buf + 4, &steer_throttle, 4);
     protoco_buf[8] = 0x0d;
@@ -116,7 +126,7 @@ void ControlComponent::TestCommand() {
     arduino_.Write(protoco_buf, 10);
 
     t += 0.05;
-    // std::this_thread::sleep_for(std::chrono::milliseconds(50000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 }
 

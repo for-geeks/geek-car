@@ -13,8 +13,8 @@ cache:
   directories:
   - $HOME/.cache/bazel
 before_install:
-  ./docker/build/cyber.x86_64.sh
-install: ./docker/build/cyber.x86_64.sh
+  ./docker/build/ci-build.sh
+install: true
 before_script:
   - chmod +x ./docker/build/cyber.x86_64.sh
 jobs:
