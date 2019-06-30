@@ -24,16 +24,16 @@ cd "${DIR}/.."
 source "${DIR}/apollo_base.sh"
 
 function start() {
-    LOG="${APOLLO_ROOT_DIR}/data/log/sensors.out"
-    CMD="cyber_launch start ${APOLLO_ROOT_DIR}/modules/sensors/launch/realsense.launch"
-    NUM_PROCESSES="$(pgrep -c -f "${APOLLO_ROOT_DIR}/modules/sensors/dag/realsense.dag")"
+    LOG="${APOLLO_ROOT_DIR}/data/log/localization.out"
+    CMD="cyber_launch start ${APOLLO_ROOT_DIR}/modules/localization/launch/localization.launch"
+    NUM_PROCESSES="$(pgrep -c -f "${APOLLO_ROOT_DIR}/modules/localization/dag/localization.dag")"
     if [ "${NUM_PROCESSES}" -eq 0 ]; then
        eval "nohup ${CMD} </dev/null >${LOG} 2>&1 &"
     fi
 }
 
 function stop() {
-    pkill -SIGKILL -f realsense_component
+    pkill -SIGKILL -f localization_component
 }
 
 # run command_name module_name
