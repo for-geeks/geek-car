@@ -166,6 +166,8 @@ void RealsenseComponent::Calibration() {
 void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
   auto image_proto = std::make_shared<Image>();
   image_proto->set_frame_no(frame_no);
+  image_proto->set_height(dst.rows);
+  image_proto->set_width(dst.cols);
   image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
   image_proto->set_measurement_time(Time::Now().ToSecond());
   auto m_size = dst.rows * dst.cols * dst.elemSize();
