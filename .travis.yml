@@ -13,7 +13,7 @@ cache:
   directories:
   - $HOME/.cache/bazel
 before_install:
-  sudo ./docker/build/ci_bebore_install.sh
+  sudo ./docker/build/ci_before_install.sh
 install: true
 #before_script:
 #  - chmod +x ./docker/build/cyber.x86_64.sh
