@@ -26,12 +26,12 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
-#include <librealsense2/rs.hpp>
-#include <mutex>
-#include <opencv2/calib3d.hpp>
-#include <opencv2/opencv.hpp>
 #include <thread>
 #include <utility>
+#include <mutex>
+#include <librealsense2/rs.hpp>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
@@ -147,7 +147,8 @@ void RealsenseComponent::run() {
 
       cv::Mat image(
           cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
-          CV_8U, (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
+          CV_8U, reinterpret_cast<void*>(fisheye_frame.get_data()),
+          cv::Mat::AUTO_STEP);
       cv::Mat dst;
       cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
       OnImage(dst, fisheye_frame.get_frame_number());

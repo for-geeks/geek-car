@@ -23,11 +23,11 @@
 ******************************************************************************/
 #include <iomanip>
 #include <iostream>
-#include <librealsense2/rs.hpp>
 #include <map>
+#include <string>
 #include <utility>
 #include <vector>
-
+#include <librealsense2/rs.hpp>
 #include "cyber/common/log.h"
 
 /**
@@ -210,8 +210,9 @@ class RealSense {
       float scale = dpt_sensor.get_depth_scale();
       AINFO << "Scale factor for depth sensor is: " << scale;
       return scale;
-    } else
+    } else {
       throw std::runtime_error("Given sensor is not a depth sensor");
+    }
   }
 #if 0
   static void get_field_of_view(const rs2::stream_profile& stream) {
@@ -428,10 +429,7 @@ class RealSense {
       // As noted, a stream is an abstraction.
       // In order to get additional data for the specific type of a
       //  stream, a mechanism of "Is" and "As" is provided:
-      if (stream_profile
-              .is<rs2::video_stream_profile>())  //"Is" will test if the type
-                                                 // tested is of the type given
-      {
+      if (stream_profile.is<rs2::video_stream_profile>()) {
         // "As" will try to convert the instance to the given type
         rs2::video_stream_profile video_stream_profile =
             stream_profile.as<rs2::video_stream_profile>();
