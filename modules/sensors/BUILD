@@ -53,7 +53,7 @@ cc_binary(
     ],
     deps = [
         "//cyber",
-        "//modules/sensors/proto::sensors_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
 
