@@ -177,9 +177,9 @@ function cibuild_extended() {
 }
 function cibuild() {
   info "Building framework ..."
-  cd /apollo
 
   info "Building modules ..."
+  generate_build_targets
 
   JOB_ARG="--jobs=${NPROCS}"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
@@ -187,11 +187,6 @@ function cibuild() {
   fi
 
   info "Building with $JOB_ARG for $MACHINE_ARCH"
-  BUILD_TARGETS="
-    //modules/control/...
-    //modules/planning/...
-    //modules/localization/...
-    //modules/perception/..."
 
   bazel build $JOB_ARG $DEFINES $@ $BUILD_TARGETS
 
