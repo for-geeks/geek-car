@@ -107,4 +107,4 @@ ln -s /usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.54.0 /usr/lib/x86_64-linux-
 ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.x86_64-linux-gnu.so /usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so
 
 bash ${BUILD_PATH}/docker/build/installers/install_fast-rtps.sh
-bash ${BUILD_PATH}/docker/build/installers/install_pcl.sh
+#bash ${BUILD_PATH}/docker/build/installers/install_pcl.sh
