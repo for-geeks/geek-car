@@ -2,19 +2,22 @@
 #include "cyber/cyber.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
-using apollo::cyber;
-
 void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {
-  ADEBUG << "image height :" << image.height() << " width:" << image.width();
+  ADEBUG << "image, height :" << image->height() << " width:" << image->width();
 
-  Mat image = Mat(image.height(), image.width(), CV_8U, image.data()).clone();
+  cv::Mat new_image =
+      (static_cast<int>(image->height()), static_cast<int>(image->width()),
+       CV_8U, (void*)image->mutable_data());
 
-  std::string image_name =
-      "/home/raosiyue/" + image.frame_no() + "Gray_Image.jpg";
+  std::string image_name = "/home/raosiyue/out_test/Gray_Image_" +
+                           std::to_string(image->frame_no()) + ".jpg ";
 
-  cv::imshow("callback", image);
-  imwrite(image_name, image);
+  cv::imshow("callback", new_image);
+  cv::imwrite(image_name, new_image);
 
+  ADEBUG << "Saved image :" << image_name;
+
+  // Origin reference : conversion from bytes to MAT
   //   Mat bytesToMat(byte * bytes, int width, int height) {
   //     Mat image = Mat(height, width, CV_8UC3, bytes).clone();  // make a copy
   //     return image;

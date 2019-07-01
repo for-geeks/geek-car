@@ -28,7 +28,7 @@ class ControlComponent : public Component<> {
   ~ControlComponent();
 
  private:
-  Uart arduino_ = Uart(FLAGS_device_name);
+  Uart arduino_ = Uart(FLAGS_device_name.c_str());
 
   std::shared_ptr<Writer<Chassis>> chassis_writer_ = nullptr;
   std::shared_ptr<Writer<Control_Command>> control_writer_ = nullptr;

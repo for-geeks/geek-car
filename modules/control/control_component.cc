@@ -76,16 +76,17 @@ void ControlComponent::OnChassis() {
 
 // write to channel
 void ControlComponent::GenerateCommand() {
-  Control_Command cmd;
+  auto cmd = std::make_shared<Control_Command>();
   double t = 0.0;
   while (true) {
-    cmd->set_steer_angle(40 * sin(t));
-    cmd->set_throttle(12 * cos(t));
+    cmd->set_steer_angle(static_cast<float>(40 * sin(t)));
+    cmd->set_throttle(static_cast<float>(12 * cos(t)));
 
-    chassis_writer_->Write(cmd);
+    // atomic operation, when action failed
+    control_writer_->Write(cmd);
     // yield cmd;
     // send and action
-    Action(cmd);
+    // Action(cmd);
 
     t += 0.5;
     cyber::SleepFor(std::chrono::microseconds(50));
