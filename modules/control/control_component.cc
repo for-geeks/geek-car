@@ -25,9 +25,9 @@ bool ControlComponent::Init() {
   chassis_writer_ = node_->CreateWriter<Chassis>("/chassis");
   control_writer_ = node_->CreateWriter<Control_Command>("/control");
 
-  TestCommand();
-  // async method wait for control message
-  // async_action_ = cyber::Async(&ControlComponent::Action, this);
+  GenerateCommand();
+
+  // async_action_ = cyber::Async(&ControlComponent::TestCommand, this);
 
   // chassis feedback
   async_feedback_ = cyber::Async(&ControlComponent::OnChassis, this);
@@ -50,33 +50,46 @@ void ControlComponent::OnChassis() {
     static char buffer[100];
     memset(buffer, 0, 100);
     while (1) {
-      int ret = arduino_.Read(buffer, 100);
-      if (ret > 0) {
-        if (ret == 1) {
-          if (buf == 0x0A) {
-            break;
-          }
-          buffer[count] = buf;
-          count++;
+      int ret = arduino_.Read(&buf, 1);
+      if (ret == 1) {
+        ADEBUG << "Arduino return state:" << ret;
+        if (buf == 0x0A) {
+          break;
         }
+        buffer[count] = buf;
+        count++;
       }
     }
     if (count == 12) {
       memcpy(&vehicle_info, buffer, 12);
-      AINFO << "chassis feedback , steer_angle: " << vehicle_info.steerangle
-            << " throttle:" << vehicle_info.throttle
-            << " speed: " << vehicle_info.speed_now;
-      auto proto_chassis = make_shared<Chassis>();
+      ADEBUG << "chassis feedback , steer_angle: " << vehicle_info.steerangle
+             << " throttle:" << vehicle_info.throttle
+             << " speed: " << vehicle_info.speed_now;
+      auto proto_chassis = std::make_shared<Chassis>();
       proto_chassis->set_steer_angle(vehicle_info.steerangle);
       proto_chassis->set_throttle(vehicle_info.throttle);
       proto_chassis->set_speed(vehicle_info.speed_now);
-      chassis_writer_->Writer(proto_chassis);
+      chassis_writer_->Write(proto_chassis);
     }
   }
 }
 
+// write to channel
 void ControlComponent::GenerateCommand() {
-  // write to channel
+  Control_Command cmd;
+  double t = 0.0;
+  while (true) {
+    cmd->set_steer_angle(40 * sin(t));
+    cmd->set_throttle(12 * cos(t));
+
+    chassis_writer_->Write(cmd);
+    // yield cmd;
+    // send and action
+    Action(cmd);
+
+    t += 0.5;
+    cyber::SleepFor(std::chrono::microseconds(50));
+  }
 }
 
 /**
@@ -104,7 +117,8 @@ void ControlComponent::Action(const Control_Command& cmd) {
     memcpy(protoco_buf + 4, &steer_throttle, 4);
     protoco_buf[8] = 0x0d;
     protoco_buf[9] = 0x0a;
-    arduino_.Write(protoco_buf, 10);
+    int result = arduino_.Write(protoco_buf, 10);
+    ADEBUG << "Arduino action result is :" << result;
   }
 }
 
