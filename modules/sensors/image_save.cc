@@ -7,7 +7,7 @@ using apollo::cyber;
 void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {
   ADEBUG << "image height :" << image.height() << " width:" << image.width();
 
-  Mat image = Mat(image.height(), image.width(), CV_8UC3, image.data()).clone();
+  Mat image = Mat(image.height(), image.width(), CV_8U, image.data()).clone();
 
   std::string image_name =
       "/home/raosiyue/" + image.frame_no() + "Gray_Image.jpg";
