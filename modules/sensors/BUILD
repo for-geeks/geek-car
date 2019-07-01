@@ -41,4 +41,12 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "image_save",
+    srcs = ["image_save.cc"],
+    deps = [
+        "-lopencv_core",
+    ],
+)
+
 cpplint()
