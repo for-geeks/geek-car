@@ -35,7 +35,7 @@ using apollo::control::Chassis;
 using apollo::control::Control_Command;
 using apollo::sensors::Pose;
 
-bool CalibrationComponent::Init() {}
+bool CalibrationComponent::Init() { return true; }
 
 bool CalibrationComponent::Proc(const std::shared_ptr<Pose>& pose,
                                 const std::shared_ptr<Chassis>& chassis,
@@ -49,6 +49,12 @@ bool CalibrationComponent::Proc(const std::shared_ptr<Pose>& pose,
 
   ADEBUG << control_speed << chassis_speed << sensor_speed
          << chssis_speed / sensor_speed;
+
+  std::string calibration_name =
+      "/home/raosiyue/apollo_lite/data/calibration.csv";
+
+  if (cyber::common::EnsureDirectory(calibration_name)) {
+  }
 }
 }  // namespace control
 }  // namespace apollo

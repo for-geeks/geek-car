@@ -21,27 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include <memory>
-
-#include "cyber/class_loader/class_loader.h"
-#include "cyber/component/component.h"
-#include "modules/planning/proto/planning.pb.h"
+#include <iostream>
 
 namespace apollo {
 namespace planning {
+namespace common {
 
-using apollo::cyber::Component;
-using apollo::planning::Tracjectory;
+const double LaneWidth = 30;  // cm
+const double NextStep = 10;   // cm
 
-class PlanningComponent : public Component<> {
- public:
-  bool Init() override;
-  // bool Proc() override;
+struct Point {
+  int x, y;
+};
+struct Graph {
+  std::vector<double> left;
+  std::vector<double> right;
 
- private:
-  std::shared_ptr<Writer<Tracjectory>> writer_ = nullptr;
-}
+  Graph(std::vector<double> left, std::vector<double> right)
+      : left(left), right(right) {}
 
-CYBER_REGISTER_COMPONENT(PlanningComponent)
+  bool in_lane(Point p){return 0 <= p.x < LaneWidth}
+
+  std::vector<Point> neighbors(Point p) {
+    std::vector<Point> result;
+    Point next{p.x + NextStep, p.y};
+    if (in_lane(next)) {
+      return result;
+    }
+  }
+
+  int cost(Point p) { return p.x ? 5 : 1; }
+};
+
+}  // namespace common
 }  // namespace planning
 }  // namespace apollo

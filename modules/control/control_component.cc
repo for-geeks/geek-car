@@ -68,10 +68,10 @@ void ControlComponent::OnChassis() {
   vehicle_info_s vehicle_info;
   while (!cyber::IsShutdown() && action_ready_.load()) {
     count = 0;
-    memset(buffer, 0, 100);
-    memset(&vehicle_info, 0, sizeof(vehicle_info));
+    std::memset(buffer, 0, 100);
+    std::memset(&vehicle_info, 0, sizeof(vehicle_info));
     static char buffer[100];
-    memset(buffer, 0, 100);
+    std::memset(buffer, 0, 100);
     while (1) {
       int ret = arduino_.Read(&buf, 1);
       if (ret == 1) {
@@ -84,7 +84,7 @@ void ControlComponent::OnChassis() {
       }
     }
     if (count == 12) {
-      memcpy(&vehicle_info, buffer, 12);
+      std::memcpy(&vehicle_info, buffer, 12);
       ADEBUG << "chassis feedback , steer_angle: " << vehicle_info.steerangle
              << " throttle:" << vehicle_info.throttle
              << " speed: " << vehicle_info.speed_now;
@@ -137,8 +137,8 @@ void ControlComponent::Action(const Control_Command& cmd) {
            << " steer_angle:" << steer_angle
            << " steer_throttle:" << steer_throttle;
     char protoco_buf[10];
-    memcpy(protoco_buf, &steer_angle, 4);
-    memcpy(protoco_buf + 4, &steer_throttle, 4);
+    std::memcpy(protoco_buf, &steer_angle, 4);
+    std::memcpy(protoco_buf + 4, &steer_throttle, 4);
     protoco_buf[8] = 0x0d;
     protoco_buf[9] = 0x0a;
     int result = arduino_.Write(protoco_buf, 10);
@@ -157,8 +157,8 @@ void ControlComponent::TestCommand() {
     // tell OnChassis() you can receive message now
     action_ready_ = true;
     char protoco_buf[10];
-    memcpy(protoco_buf, &steer_angle, 4);
-    memcpy(protoco_buf + 4, &steer_throttle, 4);
+    std::memcpy(protoco_buf, &steer_angle, 4);
+    std::memcpy(protoco_buf + 4, &steer_throttle, 4);
     protoco_buf[8] = 0x0d;
     protoco_buf[9] = 0x0a;
     arduino_.Write(protoco_buf, 10);
