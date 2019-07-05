@@ -12,4 +12,17 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "control_calibration",
+    srcs = [
+        "control_calibration.cc",
+    ],
+    hdrs = [
+        "control_calibration.h",
+    ],
+    deps = [
+        "//cyber",
+    ],
+)
+
 cpplint()

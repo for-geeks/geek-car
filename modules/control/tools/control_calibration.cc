@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "modules/control/control_calibration.h"
+#include "modules/control/tools/control_calibration.h"
 #include <string>
 
 #include "cyber/cyber.h"

@@ -24,9 +24,9 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <librealsense2/rs.hpp>
 #include <string>
 #include <thread>
-#include <librealsense2/rs.hpp>
 
 rs2::device get_device(const std::string& serial_number = "") {
   rs2::context ctx;
