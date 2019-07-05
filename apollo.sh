@@ -181,7 +181,7 @@ function cibuild() {
   info "Building modules ..."
   generate_build_targets
 
-  JOB_ARG="--jobs=${NPROCS}"
+  JOB_ARG="--jobs=${nproc}"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
     JOB_ARG="--jobs=3"
   fi
