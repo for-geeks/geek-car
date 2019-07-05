@@ -118,7 +118,7 @@ function build() {
   portable_nproc
 
   MACHINE_ARCH=$(uname -m)
-  JOB_ARG="--jobs=${NPROCS} --ram_utilization_factor 80"
+  JOB_ARG="--jobs=${nproc} --ram_utilization_factor 80"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
     JOB_ARG="--jobs=3"
   fi
