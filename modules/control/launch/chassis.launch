@@ -1,0 +1,7 @@
+<cyber>
+  <module>
+    <name>chassis_component</name>
+    <dag_conf>../modules/control/dag/chassis.dag</dag_conf>
+    <process_name>chassis_component</process_name>
+  </module>
+</cyber>

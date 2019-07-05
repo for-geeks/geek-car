@@ -51,16 +51,13 @@ class ControlComponent : public Component<> {
   ~ControlComponent();
 
  private:
-  Uart arduino_ = Uart(FLAGS_device_name.c_str());
-
-  std::shared_ptr<Writer<Chassis>> chassis_writer_ = nullptr;
+  std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
   std::shared_ptr<Writer<Control_Command>> control_writer_ = nullptr;
 
   std::future<void> async_action_;
   std::future<void> async_feedback_;
 
-  // atomic flag for action
-  std::atomic<bool> action_ready_ = {false};
+  Chassis chassis_;
 };
 
 CYBER_REGISTER_COMPONENT(ControlComponent)

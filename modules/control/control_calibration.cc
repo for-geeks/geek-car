@@ -22,6 +22,7 @@
  * SOFTWARE.
 ******************************************************************************/
 #include "modules/control/control_calibration.h"
+#include <string>
 
 #include "cyber/cyber.h"
 #include "modules/control/proto/chassis.pb.h"

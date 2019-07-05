@@ -11,15 +11,39 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "libchassis_component.so",
+    linkshared = True,
+    linkstatic = False,
+    deps = [
+        ":chassis_lib",
+    ],
+)
+
 cc_library(
     name = "control_lib",
     srcs = [
-        "Uart.cpp",
         "control_component.cc",
     ],
     hdrs = [
-        "Uart.h",
         "control_component.h",
+    ],
+    deps = [
+        ":control_gflags",
+        "//cyber",
+        "//modules/control/proto:control_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "chassis_lib",
+    srcs = [
+        "Uart.cpp",
+        "chassis_component.cc",
+    ],
+    hdrs = [
+        "Uart.h",
+        "chassis_component.h",
     ],
     deps = [
         ":control_gflags",

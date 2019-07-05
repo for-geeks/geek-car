@@ -26,3 +26,5 @@
 #include "gflags/gflags.h"
 
 DECLARE_string(device_name);
+DECLARE_string(control_channel);
+DECLARE_string(chassis_channel);

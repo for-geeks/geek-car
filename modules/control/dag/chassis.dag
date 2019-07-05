@@ -1,0 +1,11 @@
+# Dag all comes in DAG streming.
+module_config {
+  module_library : "../bazel-bin/modules/control/libchassis_component.so"
+  components {
+    class_name : "ChassisComponent"
+    config {
+      name: "chassis_component"
+      flag_file_path:"../modules/control/conf/control.conf"
+    }
+  }
+}
