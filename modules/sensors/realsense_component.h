@@ -23,12 +23,13 @@
 ******************************************************************************/
 #pragma once
 
-#include <librealsense2/rs.hpp>
 #include <memory>
-#include <opencv2/opencv.hpp>
 #include <string>
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
+#include "librealsense2/rs.hpp"
+#include "opencv2/opencv.hpp"
+
 #include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {

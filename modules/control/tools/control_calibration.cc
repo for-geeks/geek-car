@@ -55,6 +55,7 @@ bool CalibrationComponent::Proc(const std::shared_ptr<Pose>& pose,
       "/home/raosiyue/apollo_lite/data/calibration.csv";
 
   if (cyber::common::EnsureDirectory(calibration_name)) {
+    // record file
   }
 }
 }  // namespace control

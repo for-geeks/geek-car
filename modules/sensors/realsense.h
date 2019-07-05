@@ -27,8 +27,8 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <librealsense2/rs.hpp>
 #include "cyber/common/log.h"
+#include "librealsense2/rs.hpp"
 
 /**
  * https://github.com/IntelRealSense/librealsense/blob/master/examples/sensor-control/api_how_to.h
