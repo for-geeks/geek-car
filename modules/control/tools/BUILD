@@ -14,6 +14,13 @@ cc_binary(
 
 cc_binary(
     name = "control_calibration",
+    deps = [
+        ":lib_control_calibration",
+    ],
+)
+
+cc_library(
+    name = "lib_control_calibration",
     srcs = [
         "control_calibration.cc",
     ],
