@@ -37,7 +37,8 @@
 Uart::Uart(const char* dev) {
   char tty[32] = "/dev/";
 
-  strcat(tty, dev);
+  // std::strcat(tty, dev);
+  int ret = snprintf(tty, sizeof(tty), "%s%s", tty, dev);
 
   fd = open(tty, O_RDWR | O_NOCTTY);
   // fd = open(tty, O_RDWR | O_NOCTTY | O_NDELAY);

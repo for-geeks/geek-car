@@ -32,7 +32,7 @@ usage:
 
 class Uart {
  public:
-  Uart(const char* dev);
+  explicit Uart(const char* dev);
   ~Uart();
 
   int SetOpt(int speed, int bits, char event, int stop);
