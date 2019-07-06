@@ -44,7 +44,8 @@ bool CalibrationComponent::Proc(const std::shared_ptr<Pose>& pose,
   ADEBUG << "Pose msg: " << pose->DebugString();
   ADEBUG << "Chassis msg: " << chassis->DebugString();
 
-  auto chassis_speed = chassis->speed_now();
+#if 0
+  auto chassis_speed = chassis->speed();
   auto sensor_speed = pose->angular_velocity();
   auto control_speed = cmd->throttle();
 
@@ -54,9 +55,8 @@ bool CalibrationComponent::Proc(const std::shared_ptr<Pose>& pose,
   std::string calibration_name =
       "/home/raosiyue/apollo_lite/data/calibration.csv";
 
-  if (cyber::common::EnsureDirectory(calibration_name)) {
-    // record file
-  }
+#endif
+  return true;
 }
 }  // namespace control
 }  // namespace apollo

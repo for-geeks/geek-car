@@ -28,9 +28,9 @@
 void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {
   ADEBUG << "image, height :" << image->height() << " width:" << image->width();
 
-  cv::Mat new_image =
-      (static_cast<int>(image->height()), static_cast<int>(image->width()),
-       CV_8U, reinterpret_cast<void*>(image->mutable_data()));
+  cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
+                              static_cast<int>(image->width()), CV_8U,
+                              reinterpret_cast<void*>(image->mutable_data()));
 
   std::string image_name = "/home/raosiyue/out_test/Gray_Image_" +
                            std::to_string(image->frame_no()) + ".jpg ";

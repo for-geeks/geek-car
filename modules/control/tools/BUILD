@@ -12,12 +12,12 @@ cc_binary(
     ],
 )
 
-cc_binary(
-    name = "control_calibration",
-    deps = [
-        ":lib_control_calibration",
-    ],
-)
+# cc_binary(
+#     name = "control_calibration",
+#     deps = [
+#         ":lib_control_calibration",
+#     ],
+# )
 
 cc_library(
     name = "lib_control_calibration",
@@ -29,6 +29,8 @@ cc_library(
     ],
     deps = [
         "//cyber",
+        "//modules/control/proto:control_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
 

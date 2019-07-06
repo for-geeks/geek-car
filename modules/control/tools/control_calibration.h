@@ -23,6 +23,7 @@
 ******************************************************************************/
 #include <memory>
 
+#include "cyber/component/component.h"
 #include "cyber/cyber.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
@@ -44,6 +45,6 @@ class CalibrationComponent : public Component<Pose, Chassis, Control_Command> {
             const std::shared_ptr<Control_Command>& cmd) override;
 };
 
-CYBER_REGISTER_COMPONENET(CalibrationComponent)
+CYBER_REGISTER_COMPONENT(CalibrationComponent)
 }  // namespace control
 }  // namespace apollo

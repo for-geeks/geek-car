@@ -25,7 +25,6 @@
 
 #include <string>
 #include "cyber/cyber.h"
-#include "modules/control/Uart.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 
@@ -64,34 +63,9 @@ void ControlComponent::GenerateCommand() {
   }
 }
 
-void ControlComponent::TestCommand() {
-  double t = 0.0;
-  while (1) {
-    float steer_angle = static_cast<float>(40 * sin(t));
-    float steer_throttle = static_cast<float>(20 * cos(t));
-    ADEBUG << "control message, times: " << t << " steer_angle:" << steer_angle
-           << " steer_throttle:" << steer_throttle;
-
-    // tell OnChassis() you can receive message now
-    action_ready_ = true;
-    char protoco_buf[10];
-    std::memcpy(protoco_buf, &steer_angle, 4);
-    std::memcpy(protoco_buf + 4, &steer_throttle, 4);
-    protoco_buf[8] = 0x0d;
-    protoco_buf[9] = 0x0a;
-    arduino_.Write(protoco_buf, 10);
-
-    t += 0.05;
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  }
-}
-
 ControlComponent::~ControlComponent() {
-  if (action_ready_.exchange(true)) {
-    // close arduino
-    // back chassis handle
-    async_feedback_.wait();
-  }
+  // close arduino
+  // back chassis handle
 }
 
 }  // namespace control

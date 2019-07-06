@@ -28,17 +28,19 @@
 #include "cyber/component/component.h"
 #include "modules/control/Uart.h"
 #include "modules/control/control_gflags.h"
+#include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 
 namespace apollo {
 namespace control {
 
+using apollo::control::Chassis;
 using apollo::control::Control_Command;
 using apollo::cyber::Component;
 using apollo::cyber::Reader;
 using apollo::cyber::Writer;
 
-class ChassisComponent : public Component<Control_Command> {
+class ChassisComponent : public Component<> {
  public:
   bool Init() override;
   void Action();

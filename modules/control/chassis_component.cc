@@ -56,9 +56,9 @@ bool ChassisComponent::Init() {
  *
  * @param cmd
  */
-void ControlComponent::Action() {
+void ChassisComponent::Action() {
   while (!cyber::IsShutdown()) {
-    if (!cmd.has_steer_angle() || !cmd.has_throttle()) {
+    if (!cmd_.has_steer_angle() || !cmd_.has_throttle()) {
       cyber::SleepFor(std::chrono::milliseconds(message_wait_));
       continue;
     }
@@ -66,8 +66,8 @@ void ControlComponent::Action() {
     // tell OnChassis() you can receive message now
     action_ready_ = true;
 
-    float steer_angle = cmd.steer_angle();
-    float steer_throttle = cmd.throttle();
+    float steer_angle = cmd_.steer_angle();
+    float steer_throttle = cmd_.throttle();
     ADEBUG << "control message, times: "
            << " steer_angle:" << steer_angle
            << " steer_throttle:" << steer_throttle;
@@ -81,7 +81,7 @@ void ControlComponent::Action() {
   }
 }
 
-void ControlComponent::OnChassis() {
+void ChassisComponent::OnChassis() {
   int count = 0;
   static char buffer[100];
   static char buf;

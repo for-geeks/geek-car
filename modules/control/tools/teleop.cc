@@ -38,7 +38,7 @@ DEFINE_double(steer_inc_delta, 1.0, "steer delta percentage");
 namespace {
 
 using apollo::control::Chassis;
-using apollo::control::ControlCommand;
+using apollo::control::Control_Command;
 using apollo::cyber::CreateNode;
 using apollo::cyber::Reader;
 using apollo::cyber::Writer;
@@ -84,8 +84,8 @@ class Teleop {
     printf("\n-----------------------------------------------------------\n");
     printf("Throttle/Speed up:  [%c]     |  Set Throttle:       [%c]+Num\n",
            KEYCODE_UP1, KEYCODE_SETT1);
-    printf("Brake/Speed down:   [%c]     |  Set Brake:          [%c]+Num\n",
-           KEYCODE_DN1, KEYCODE_SETB1);
+    printf("Brake/Speed down:   [%c]     |  Set Brake:          []+Num\n",
+           KEYCODE_DN1);
     printf("Steer LEFT:         [%c]     |  Steer RIGHT:        [%c]\n",
            KEYCODE_LF1, KEYCODE_RT1);
     printf("Parking Brake:     [%c]     |  Emergency Stop      [%c]\n",
@@ -98,13 +98,12 @@ class Teleop {
   void KeyboardLoopThreadFunc() {
     char c = 0;
     int32_t level = 0;
-    double throttle = 0;
-    double acc = 0;
-    double steering = 0;
+    float throttle = 0;
+    float steering = 0;
     struct termios cooked_;
     struct termios raw_;
     int32_t kfd_ = 0;
-    ControlCommand &control_command_ = control_command();
+    Control_Command &control_command_ = control_command();
 
     // get the console in raw mode
     tcgetattr(kfd_, &cooked_);
@@ -128,10 +127,8 @@ class Teleop {
       switch (c) {
         case KEYCODE_UP1:  // accelerate
         case KEYCODE_UP2:
-          if (!FLAGS_use_acceleration) {
-            throttle = control_command_.throttle();
-          }
-          throttle = GetCommand(throttle, FLAGS_throttle_inc_delta);
+          throttle = control_command_.throttle();
+          throttle = GetCommand(throttle, (float)FLAGS_throttle_inc_delta);
           control_command_.set_throttle(throttle);
 
           AINFO << "Throttle = " << control_command_.throttle();
@@ -142,7 +139,7 @@ class Teleop {
             throttle = control_command_.throttle();
           }
           if (throttle > 1e-6) {
-            throttle = GetCommand(throttle, -FLAGS_throttle_inc_delta);
+            throttle = GetCommand(throttle, (float)-FLAGS_throttle_inc_delta);
             control_command_.set_throttle(throttle);
           }
           AINFO << "Throttle = " << control_command_.throttle();
@@ -150,21 +147,16 @@ class Teleop {
         case KEYCODE_LF1:  // left
         case KEYCODE_LF2:
           steering = control_command_.steer_angle();
-          steering = GetCommand(steering, FLAGS_steer_inc_delta);
-          control_command_.steer_angle(steering);
+          steering = GetCommand(steering, (float)FLAGS_steer_inc_delta);
+          control_command_.set_steer_angle(steering);
           AINFO << "Steering Target = " << steering;
           break;
         case KEYCODE_RT1:  // right
         case KEYCODE_RT2:
           steering = control_command_.steer_angle();
-          steering = GetCommand(steering, -FLAGS_steer_inc_delta);
-          control_command_.steer_angle(steering);
+          steering = GetCommand(steering, (float)-FLAGS_steer_inc_delta);
+          control_command_.set_steer_angle(steering);
           AINFO << "Steering Target = " << steering;
-          break;
-        case KEYCODE_PKBK:  // hand brake
-          parking_brake = !control_command_.parking_brake();
-          control_command_.set_parking_brake(parking_brake);
-          AINFO << "Parking Brake Toggled: " << parking_brake;
           break;
         case KEYCODE_ESTOP:
           control_command_.set_throttle(0);
@@ -177,8 +169,9 @@ class Teleop {
             exit(-1);
           }
           level = c - KEYCODE_ZERO;
-          control_command_.set_throttle(level * 10.0);
-          AINFO << "Throttle = " << control_command_.throttle();
+          AINFO << level;
+          // control_command_.set_throttle(level * 10.0);
+          // AINFO << "Throttle = " << control_command_.throttle();
           break;
         case KEYCODE_HELP:
         case KEYCODE_HELP2:
@@ -196,9 +189,9 @@ class Teleop {
     return;
   }  // end of keyboard loop thread
 
-  ControlCommand &control_command() { return control_command_; }
+  Control_Command &control_command() { return control_command_; }
 
-  double GetCommand(double val, double inc) {
+  float GetCommand(float val, float inc) {
     val += inc;
     if (val > 100.0) {
       val = 100.0;
@@ -210,7 +203,7 @@ class Teleop {
 
   void Send() {
     control_command_writer_->Write(
-        std::make_shared<ControlCommand>(control_command_));
+        std::make_shared<Control_Command>(control_command_));
     ADEBUG << "Control Command send OK:" << control_command_.ShortDebugString();
   }
 
@@ -232,7 +225,7 @@ class Teleop {
         "/chassis", [this](const std::shared_ptr<Chassis> &chassis) {
           OnChassis(*chassis);
         });
-    control_command_writer_ = node_->CreateWriter<ControlCommand>("/control");
+    control_command_writer_ = node_->CreateWriter<Control_Command>("/control");
     keyboard_thread_.reset(
         new std::thread([this] { KeyboardLoopThreadFunc(); }));
     if (keyboard_thread_ == nullptr) {
@@ -258,8 +251,8 @@ class Teleop {
  private:
   std::unique_ptr<std::thread> keyboard_thread_;
   std::shared_ptr<Reader<Chassis>> chassis_reader_;
-  std::shared_ptr<Writer<ControlCommand>> control_command_writer_;
-  ControlCommand control_command_;
+  std::shared_ptr<Writer<Control_Command>> control_command_writer_;
+  Control_Command control_command_;
   bool is_running_ = false;
   std::shared_ptr<apollo::cyber::Node> node_;
 };
