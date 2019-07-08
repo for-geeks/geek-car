@@ -17,7 +17,7 @@ cc_binary(
     srcs = ["pose_listener.cc"],
     deps = [
         "//cyber",
-        "//modules/common/global_gflags",
+        "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
