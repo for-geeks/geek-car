@@ -25,23 +25,35 @@
 
 #include <string>
 #include "cyber/cyber.h"
+#include "cyber/time/rate.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
-
+#include "modules/sensors/proto/sensors.pb.h"
+#include "math.h"
 namespace apollo {
 namespace control {
 
 using apollo::control::Chassis;
 using apollo::control::Control_Command;
 using apollo::cyber::Time;
-
+using apollo::cyber::Rate;
+using apollo::control::Control_Reference;
+using apollo::sensors::Pose;
 bool ControlComponent::Init() {
   chassis_reader_ = node_->CreateReader<Chassis>(
       FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis>& chassis) {
         chassis_.CopyFrom(*chassis);
       });
-  control_writer_ = node_->CreateWriter<Control_Command>(FLAGS_control_channel);
-
+  pose_reader_ = node_->CreateReader<Pose>(
+      "/realsense/Pose", [this](const std::shared_ptr<Pose>& Pose) {
+        pose_.CopyFrom(*Pose);
+      });
+  control_writer_ = node_->CreateWriter<Control_Command>("/control");
+  control_refs_reader_ = node_->CreateReader<Control_Reference>(
+      "/control_reference", [this](const std::shared_ptr<Control_Reference>& refs) {
+        refs_.Clear();
+        refs_.CopyFrom(*refs);
+      });
   GenerateCommand();
 
   // async_action_ = cyber::Async(&ControlComponent::TestCommand, this);
@@ -52,14 +64,26 @@ bool ControlComponent::Init() {
 void ControlComponent::GenerateCommand() {
   auto cmd = std::make_shared<Control_Command>();
   double t = 0.0;
+  Rate rate(20.0);
+  float error_sum = 0;
+  float error_yawrate_sum = 0;
   while (true) {
-    cmd->set_steer_angle(static_cast<float>(40 * sin(t)));
-    cmd->set_throttle(static_cast<float>(12 * cos(t)));
+    /*PID core*/
+    float speed_ref = refs_.vehicle_speed();//static_cast<float>(1 * sin(t / 5));
+    float angular_speed_ref = refs_.angular_speed();
+    float speed_now = chassis_.speed();
+    float error = speed_ref - speed_now;
+    error_sum += (float)(error * 0.05);
+    cmd->set_throttle(static_cast<float>(speed_ref * 10 + error * 12 + error_sum * 0.5));
+    float error_yawrate = angular_speed_ref - (float)pose_.angular_velocity().y();
+    error_yawrate_sum += (float)(error_yawrate * 0.05);
+    cmd->set_steer_angle(static_cast<float>(10 * error_yawrate + error_yawrate_sum * 1 + 0.9 * tanh(error_yawrate / speed_now)));
+    //cmd->set_throttle(static_cast<float>(12 * cos(t)));
 
     control_writer_->Write(cmd);
 
-    t += 0.5;
-    cyber::SleepFor(std::chrono::microseconds(50));
+    t += 0.05;
+    rate.Sleep();
   }
 }
 

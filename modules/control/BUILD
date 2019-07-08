@@ -12,6 +12,19 @@ cc_binary(
 )
 
 cc_binary(
+    name = "control_reference_gen",
+    #linkshared = True,
+    #linkstatic = False,
+    srcs = [
+        "control_reference_gen.cc",
+    ],
+    deps = [
+        "//cyber",
+        "//modules/control/proto:control_cc_proto",
+    ],
+)
+
+cc_binary(
     name = "libchassis_component.so",
     linkshared = True,
     linkstatic = False,
@@ -32,6 +45,7 @@ cc_library(
         ":control_gflags",
         "//cyber",
         "//modules/control/proto:control_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
 

@@ -6,3 +6,8 @@ message Control_Command {
   optional float steer_angle = 1;
   optional float throttle = 2;
 }
+
+message Control_Reference {
+  optional float angular_speed = 1;
+  optional float vehicle_speed = 2;
+}

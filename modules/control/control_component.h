@@ -30,7 +30,7 @@
 #include "modules/control/control_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
-
+#include "modules/sensors/proto/sensors.pb.h"
 namespace apollo {
 namespace control {
 
@@ -38,6 +38,7 @@ using apollo::control::Chassis;
 using apollo::control::Control_Command;
 using apollo::cyber::Component;
 using apollo::cyber::Writer;
+using apollo::sensors::Pose;
 
 class ControlComponent : public Component<> {
  public:
@@ -52,11 +53,13 @@ class ControlComponent : public Component<> {
  private:
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
   std::shared_ptr<Writer<Control_Command>> control_writer_ = nullptr;
-
+  std::shared_ptr<Reader<Control_Reference>> control_refs_reader_ = nullptr;
+  std::shared_ptr<Reader<Pose>> pose_reader_ = nullptr;
   std::future<void> async_action_;
   std::future<void> async_feedback_;
-
+  Control_Reference refs_;
   Chassis chassis_;
+  Pose pose_;
 };
 
 CYBER_REGISTER_COMPONENT(ControlComponent)

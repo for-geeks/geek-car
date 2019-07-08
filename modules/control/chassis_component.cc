@@ -31,7 +31,7 @@ typedef struct _vehicle_info_s {
   float throttle;
   float speed_now;
 } vehicle_info_s;
-
+bool chassis_flag = false;
 bool ChassisComponent::Init() {
   arduino_.SetOpt(9600, 8, 'N', 1);
 
@@ -40,14 +40,17 @@ bool ChassisComponent::Init() {
       FLAGS_control_channel,
       [this](const std::shared_ptr<Control_Command>& cmd) {
         ADEBUG << "Received Control message. run callback.";
+	cmd_.Clear();
         cmd_.CopyFrom(*cmd);
+	chassis_flag = true;
       });
 
   chassis_writer_ = node_->CreateWriter<Chassis>(FLAGS_chassis_channel);
 
   async_action_ = cyber::Async(&ChassisComponent::Action, this);
   // chassis feedback
-  async_feedback_ = cyber::Async(&ChassisComponent::OnChassis, this);
+  // async_feedback_ = cyber::Async(&ChassisComponent::OnChassis, this);
+  OnChassis();
   return true;
 }
 
@@ -59,15 +62,19 @@ bool ChassisComponent::Init() {
 void ChassisComponent::Action() {
   while (!cyber::IsShutdown()) {
     if (!cmd_.has_steer_angle() || !cmd_.has_throttle()) {
-      cyber::SleepFor(std::chrono::milliseconds(message_wait_));
+      AINFO << "control message is not ready";
+      //cyber::SleepFor(std::chrono::milliseconds(message_wait_));
       continue;
-    }
+    } else {
+    ADEBUG << "Message Origin: " << cmd_.DebugString();
 
     // tell OnChassis() you can receive message now
     action_ready_ = true;
 
     float steer_angle = cmd_.steer_angle();
     float steer_throttle = cmd_.throttle();
+
+    cmd_.Clear();
     ADEBUG << "control message, times: "
            << " steer_angle:" << steer_angle
            << " steer_throttle:" << steer_throttle;
@@ -78,20 +85,22 @@ void ChassisComponent::Action() {
     protoco_buf[9] = 0x0a;
     int result = arduino_.Write(protoco_buf, 10);
     ADEBUG << "Arduino action result is :" << result;
+    chassis_flag = false;
+    }
   }
 }
 
 void ChassisComponent::OnChassis() {
+  ADEBUG << "Enter OnChassisi top";
   int count = 0;
   static char buffer[100];
   static char buf;
   vehicle_info_s vehicle_info;
-  while (!cyber::IsShutdown() && action_ready_.load()) {
+  while (!cyber::IsShutdown()) {
+    ADEBUG << "Enter OnChassis";
     count = 0;
     std::memset(buffer, 0, 100);
     std::memset(&vehicle_info, 0, sizeof(vehicle_info));
-    static char buffer[100];
-    std::memset(buffer, 0, 100);
     while (1) {
       int ret = arduino_.Read(&buf, 1);
       if (ret == 1) {
@@ -111,7 +120,7 @@ void ChassisComponent::OnChassis() {
       auto proto_chassis = std::make_shared<Chassis>();
       proto_chassis->set_steer_angle(vehicle_info.steerangle);
       proto_chassis->set_throttle(vehicle_info.throttle);
-      proto_chassis->set_speed(vehicle_info.speed_now);
+      proto_chassis->set_speed(vehicle_info.speed_now / 5544);
       chassis_writer_->Write(proto_chassis);
     }
   }

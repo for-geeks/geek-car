@@ -37,13 +37,15 @@
 Uart::Uart(const char* dev) {
   char tty[32] = "/dev/";
 
-  // std::strcat(tty, dev);
-  snprintf(tty, sizeof(tty), "%s%s", tty, dev);
+  strcat(tty, dev);
+  // snprintf(tty, sizeof(tty), "%s%s", tty, dev);
 
   fd = open(tty, O_RDWR | O_NOCTTY);
   // fd = open(tty, O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd > 0) {
     AINFO << "opened :" << tty;
+  } else {
+    AERROR << "opened error:" << tty;
   }
 }
 

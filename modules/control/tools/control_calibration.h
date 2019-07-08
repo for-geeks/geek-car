@@ -21,10 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
+#pragma once
 #include <memory>
+#include <fstream>
+#include <iostream>
 
 #include "cyber/component/component.h"
 #include "cyber/cyber.h"
+#include "cyber/class_loader/class_loader.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
@@ -43,6 +47,9 @@ class CalibrationComponent : public Component<Pose, Chassis, Control_Command> {
   bool Proc(const std::shared_ptr<Pose>& pose,
             const std::shared_ptr<Chassis>& chassis,
             const std::shared_ptr<Control_Command>& cmd) override;
+ private:
+  std::ofstream file;
+  std::ofstream out_put;
 };
 
 CYBER_REGISTER_COMPONENT(CalibrationComponent)

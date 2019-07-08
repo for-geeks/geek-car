@@ -109,7 +109,6 @@ void RealsenseComponent::run() {
   int times = 1;
   while (!cyber::IsShutdown()) {
     std::cout << times << std::endl;
-    // TODO(fengzongbao) VERIFY
     // wait for device is ready. in case of device is busy
     if (!device_) {
       device_ = get_device();
@@ -125,17 +124,19 @@ void RealsenseComponent::run() {
       auto pose_frame = f.as<rs2::pose_frame>();
       auto pose_data = pose_frame.get_pose_data();
       AINFO << "pose " << pose_data.translation;
-      OnPose(pose_data, pose_frame.get_frame_number());
+      if(pose_frame.get_frame_number() % 5 == 0){
+        OnPose(pose_data, pose_frame.get_frame_number());
+      }
     } else if (f.get_profile().stream_type() == RS2_STREAM_GYRO) {
       auto gyro_frame = f.as<rs2::motion_frame>();
       rs2_vector gyro = gyro_frame.get_motion_data();
       AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
-      OnGyro(gyro, gyro_frame.get_frame_number());
+      //OnGyro(gyro, gyro_frame.get_frame_number());
     } else if (f.get_profile().stream_type() == RS2_STREAM_ACCEL) {
       auto accel_frame = f.as<rs2::motion_frame>();
       rs2_vector accel = accel_frame.get_motion_data();
       AINFO << "Accel:" << accel.x << ", " << accel.y << ", " << accel.z;
-      OnAcc(accel, accel_frame.get_frame_number());
+      //OnAcc(accel, accel_frame.get_frame_number());
     } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
                f.get_profile().stream_index() == 1) {
       // left fisheye
@@ -147,11 +148,16 @@ void RealsenseComponent::run() {
 
       cv::Mat image(
           cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
-          CV_8U, reinterpret_cast<void*>(fisheye_frame.get_data()),
+          CV_8U, (void*)fisheye_frame.get_data(),
           cv::Mat::AUTO_STEP);
       cv::Mat dst;
       cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
-      OnImage(dst, fisheye_frame.get_frame_number());
+      cv::Size dsize = cv::Size(static_cast<int>(dst.cols*0.5), static_cast<int>(dst.rows*0.5));
+      cv::Mat new_size_img(dsize, CV_8U);
+      cv::resize(dst, new_size_img, dsize);
+      if (fisheye_frame.get_frame_number() % 2 == 0){
+        OnImage(new_size_img, fisheye_frame.get_frame_number());
+      }
     }
     times++;
     // cyber::SleepFor(std::chrono::milliseconds(spin_rate_));
@@ -188,6 +194,7 @@ void RealsenseComponent::Calibration() {
  * @return false
  */
 void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
+  //Rate rate(20.0);
   auto image_proto = std::make_shared<Image>();
   image_proto->set_frame_no(frame_no);
   image_proto->set_height(dst.rows);
@@ -197,6 +204,7 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
   auto m_size = dst.rows * dst.cols * dst.elemSize();
   image_proto->set_data(dst.data, m_size);
   image_writer_->Write(image_proto);
+  //rate.Sleep();
 }
 
 /**

@@ -135,9 +135,7 @@ class Teleop {
           break;
         case KEYCODE_DN1:  // decelerate
         case KEYCODE_DN2:
-          if (!FLAGS_use_acceleration) {
-            throttle = control_command_.throttle();
-          }
+          throttle = control_command_.throttle();
           if (throttle > 1e-6) {
             throttle = GetCommand(throttle, (float)-FLAGS_throttle_inc_delta);
             control_command_.set_throttle(throttle);

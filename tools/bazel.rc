@@ -62,12 +62,12 @@ build --proto_toolchain_for_cc="@com_google_protobuf//:cc_toolchain"
 # build with profiling
 build:cpu_prof --linkopt=-lprofiler
 
-build --copt="-Werror=sign-compare"
-build --copt="-Werror=return-type"
-build --copt="-Werror=reorder"
-build --copt="-Werror=unused-variable"
-build --copt="-Werror=unused-but-set-variable"
-build --copt="-Werror=switch"
+#build --copt="-Werror=sign-compare"
+#build --copt="-Werror=return-type"
+#build --copt="-Werror=reorder"
+#build --copt="-Werror=unused-variable"
+#build --copt="-Werror=unused-but-set-variable"
+#build --copt="-Werror=switch"
 
 # Strict check on type conversion.
 build --per_file_copt=^modules/.*\.cc,^cyber/.*\.cc@-Werror=conversion

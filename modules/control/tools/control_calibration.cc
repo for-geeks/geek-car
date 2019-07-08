@@ -23,6 +23,7 @@
 ******************************************************************************/
 #include "modules/control/tools/control_calibration.h"
 #include <string>
+#include <fstream>
 
 #include "cyber/cyber.h"
 #include "modules/control/proto/chassis.pb.h"
@@ -35,8 +36,17 @@ namespace control {
 using apollo::control::Chassis;
 using apollo::control::Control_Command;
 using apollo::sensors::Pose;
+using namespace std;
 
-bool CalibrationComponent::Init() { return true; }
+ofstream file;
+
+bool CalibrationComponent::Init() {
+
+  std::string file_name = "/home/raosiyue/calibration.csv";
+  file.open(file_name, ofstream::out | ofstream::app);
+  file << "steer_angle" << ", " <<  "angular_y " << ", " << "chassis_speed"<< std::endl;
+  return true;
+}
 
 bool CalibrationComponent::Proc(const std::shared_ptr<Pose>& pose,
                                 const std::shared_ptr<Chassis>& chassis,
@@ -44,18 +54,16 @@ bool CalibrationComponent::Proc(const std::shared_ptr<Pose>& pose,
   ADEBUG << "Pose msg: " << pose->DebugString();
   ADEBUG << "Chassis msg: " << chassis->DebugString();
 
-#if 0
+  auto control_angle = cmd->steer_angle();
   auto chassis_speed = chassis->speed();
-  auto sensor_speed = pose->angular_velocity();
-  auto control_speed = cmd->throttle();
+  auto angular_speed = pose->angular_velocity().y();
 
-  ADEBUG << control_speed << chassis_speed << sensor_speed
-         << chssis_speed / sensor_speed;
+  ADEBUG << "calibration record, steer_angle:" << control_angle
+	 << " angular_y:" << angular_speed
+	 << " chassis_speed:" << chassis_speed;
 
-  std::string calibration_name =
-      "/home/raosiyue/apollo_lite/data/calibration.csv";
+  file << control_angle << "," << angular_speed << "," <<chassis_speed << std::endl;
 
-#endif
   return true;
 }
 }  // namespace control
