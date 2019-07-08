@@ -118,7 +118,7 @@ function build() {
   portable_nproc
 
   MACHINE_ARCH=$(uname -m)
-  JOB_ARG="--jobs=${nproc} --ram_utilization_factor 80"
+  JOB_ARG="--jobs=$(nproc) --ram_utilization_factor 80"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
     JOB_ARG="--jobs=3"
   fi
@@ -145,7 +145,7 @@ function cibuild_extended() {
   cd /apollo
   info "Building modules ..."
 
-  JOB_ARG="--jobs=${NPROCS}"
+  JOB_ARG="--jobs=$(nproc)"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
     JOB_ARG="--jobs=3"
   fi
@@ -181,7 +181,7 @@ function cibuild() {
   info "Building modules ..."
   generate_build_targets
 
-  JOB_ARG="--jobs=${nproc}"
+  JOB_ARG="--jobs=$(nproc)"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
     JOB_ARG="--jobs=3"
   fi
@@ -434,7 +434,7 @@ function citest_basic() {
     `bazel query //modules/... union //cyber/...`
   "
 
-  JOB_ARG="--jobs=${NPROCS} --ram_utilization_factor 80"
+  JOB_ARG="--jobs=$(nproc) --ram_utilization_factor 80"
 
   BUILD_TARGETS="`echo "$BUILD_TARGETS" | grep "modules\/" | grep "test" \
           | grep -v "modules\/planning" \
@@ -471,7 +471,7 @@ function citest_extended() {
     `bazel query //modules/prediction/... union //modules/control/...`
   "
 
-  JOB_ARG="--jobs=${NPROCS} --ram_utilization_factor 80"
+  JOB_ARG="--jobs=$(nproc) --ram_utilization_factor 80"
 
   BUILD_TARGETS="`echo "$BUILD_TARGETS" | grep "test"`"
 

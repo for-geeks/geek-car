@@ -71,8 +71,7 @@ void ControlComponent::GenerateCommand() {
   float error_yawrate_sum = 0;
   while (true) {
     /*PID core*/
-    float speed_ref =
-        refs_.vehicle_speed();  // static_cast<float>(1 * sin(t / 5));
+    float speed_ref = refs_.vehicle_speed();
     float angular_speed_ref = refs_.angular_speed();
     float speed_now = chassis_.speed();
     float error = speed_ref - speed_now;
