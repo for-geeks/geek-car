@@ -22,13 +22,13 @@
  * SOFTWARE.
 ******************************************************************************/
 #pragma once
-#include <memory>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
+#include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "cyber/cyber.h"
-#include "cyber/class_loader/class_loader.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
@@ -41,12 +41,17 @@ using apollo::control::Control_Command;
 using apollo::cyber::Component;
 using apollo::sensors::Pose;
 
+/**
+ * @brief record prefused data from pose chassis and control command
+ *
+ */
 class CalibrationComponent : public Component<Pose, Chassis, Control_Command> {
  public:
   bool Init() override;
   bool Proc(const std::shared_ptr<Pose>& pose,
             const std::shared_ptr<Chassis>& chassis,
             const std::shared_ptr<Control_Command>& cmd) override;
+
  private:
   std::ofstream file;
   std::ofstream out_put;

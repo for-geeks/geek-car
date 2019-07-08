@@ -21,51 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include <queue>
 #include <opencv2/opencv.hpp>
+#include <queue>
 #include "cyber/cyber.h"
 #include "cyber/task/task.h"
 #include "modules/sensors/proto/sensors.pb.h"
-std::queue<std::shared_ptr<apollo::sensors::Image>> image_queue;
-
-void Action() {
-  const std::shared_ptr<apollo::sensors::Image> image = image_queue.front();
-  image_queue.pop();
-
-  cv::Mat new_image = cv::Mat(816, 848, CV_8U, (void*)(image->mutable_data()));
-  std::string image_name = "/home/raosiyue/out_test/G_" +
-                           std::to_string(image->frame_no()) + ".jpg";
-
-  //cv::imshow("callback", new_image);
-  cv::imwrite(image_name, new_image);
-
-  ADEBUG << "Saved image :" << image_name;
-  //int key = cv::waitKey(1);
-  //if (key == 'q') {
-  //  exit(0);
-  //}
-}
 
 void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {
   ADEBUG << "image, height :" << image->height() << " width:" << image->width();
-#if 1
   cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
                               static_cast<int>(image->width()), CV_8U,
                               (void*)image->data().c_str());
-#endif
-  //image_queue.push(image);
-  //std::async(std::launch::async, Action);
-#if 1
   std::string image_name = "/home/raosiyue/out_test/Gray_Image_" +
                            std::to_string(image->frame_no()) + ".jpg";
 
-  //cv::imshow("callback", new_image);
   cv::imwrite(image_name, new_image);
 
   ADEBUG << "Saved image :" << image_name;
-#endif
 }
-
 
 int main() {
   apollo::cyber::Init("image_save");

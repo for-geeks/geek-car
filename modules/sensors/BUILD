@@ -29,6 +29,7 @@ cc_library(
     ],
     deps = [
         "//cyber",
+        "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
     ],
 )

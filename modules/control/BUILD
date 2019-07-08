@@ -42,8 +42,8 @@ cc_library(
         "control_component.h",
     ],
     deps = [
-        ":control_gflags",
         "//cyber",
+        "//modules/common:global_glags",
         "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
     ],
@@ -60,20 +60,9 @@ cc_library(
         "chassis_component.h",
     ],
     deps = [
-        ":control_gflags",
         "//cyber",
+        "//modules/common:global_glags",
         "//modules/control/proto:control_cc_proto",
-    ],
-)
-
-cc_library(
-    name = "control_gflags",
-    srcs = ["control_gflags.cc"],
-    hdrs = [
-        "control_gflags.h",
-    ],
-    deps = [
-        "//external:gflags",
     ],
 )
 

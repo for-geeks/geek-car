@@ -30,6 +30,7 @@
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 
+#include "modules/common/global_gflags.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {
@@ -73,8 +74,6 @@ class RealsenseComponent : public Component<> {
    * hold-on to more frames will cause frame-drops.
    * */
   float queue_size_ = 16.0;  // queue size
-
-  std::string serial_number_ = "908412111198";  // serial number
 
   cv::Mat map1_;
   cv::Mat map2_;

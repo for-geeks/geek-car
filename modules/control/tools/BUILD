@@ -5,24 +5,20 @@ package(default_visibility = ["//visibility:public"])
 cc_binary(
     name = "pose_reader",
     srcs = [
-	"reader_pose.cc",
-	],
-    deps = [
-	"//cyber",
-	":io",
+        "pose_reader.cc",
     ],
-)
-cc_library(
-    name = "io",
-    srcs = ["io.h"],
+    deps = [
+        "//cyber",
+    ],
 )
 
 cc_binary(
     name = "pose_listener",
     srcs = ["pose_listener.cc"],
     deps = [
-	"//cyber",
-	"//modules/sensors/proto:sensors_cc_proto",
+        "//cyber",
+        "//modules/common/global_gflags",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
 

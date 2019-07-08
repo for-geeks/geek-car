@@ -21,47 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#pragma once
-
+#include <malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <iterator>
 #include <memory>
+#include <string>
+#include <vector>
 
-#include "cyber/class_loader/class_loader.h"
-#include "cyber/component/component.h"
-#include "modules/common/global_gflags.h"
-#include "modules/control/proto/chassis.pb.h"
-#include "modules/control/proto/control.pb.h"
-#include "modules/sensors/proto/sensors.pb.h"
-namespace apollo {
-namespace control {
-
-using apollo::control::Chassis;
-using apollo::control::Control_Command;
-using apollo::cyber::Component;
-using apollo::cyber::Writer;
-using apollo::sensors::Pose;
-
-class ControlComponent : public Component<> {
- public:
-  bool Init() override;
-
-  void OnChassis();
-  void GenerateCommand();
-  void Action(const Control_Command& cmd);
-  void TestCommand();
-  ~ControlComponent();
-
- private:
-  std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
-  std::shared_ptr<Writer<Control_Command>> control_writer_ = nullptr;
-  std::shared_ptr<Reader<Control_Reference>> control_refs_reader_ = nullptr;
-  std::shared_ptr<Reader<Pose>> pose_reader_ = nullptr;
-  std::future<void> async_action_;
-  std::future<void> async_feedback_;
-  Control_Reference refs_;
-  Chassis chassis_;
-  Pose pose_;
+struct Point {
+  double x, z, y;
 };
 
-CYBER_REGISTER_COMPONENT(ControlComponent)
-}  // namespace control
-}  // namespace apollo
+int main(int argc, char* argv[]) {
+  std::vector<Point> new_vector;
+
+  std::string file_name = "/home/raosiyue/pose.dat";
+
+  std::ifstream input_file(file_name, std::ios::in | std::ios::binary);
+  input_file.seekg(0, std::ios_base::end);
+  auto size_v = input_file.tellg();
+  input_file.seekg(0, std::ios_base::beg);
+  Point temp_vec;
+  char buffer[100000];
+  // buffer = (char*)malloc(size_v);
+  std::cout << "length is " << size_v << std::endl;
+  input_file.read(buffer, size_v);
+  // std::cout << "read result:" << result << std::endl;
+  input_file.close();
+  for (int i = 0; i < size_v; i += 24) {
+    double test_double = 0;
+    std::memcpy(&test_double, buffer, 8);
+    std::memcpy(&temp_vec, buffer + i, 24);
+    new_vector.push_back(temp_vec);
+  }
+
+  for (const auto& v : new_vector) {
+    std::cout << v.x << ", " << v.z << " , " << v.y << std::endl;
+  }
+  return 0;
+}

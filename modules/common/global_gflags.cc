@@ -21,12 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#pragma once
+#include "modules/common/global_gflags.h"
 
-#include "gflags/gflags.h"
+// Arduino
+DEFINE_string(device_name, "ttyACM0", "Arduino device name ");
 
-DECLARE_string(device_name);
-DECLARE_string(control_channel);
-DECLARE_string(chassis_channel);
-DECLARE_string(pose_channel);
-DECLARE_string(control_ref_channel);
+// Realsense
+DEFIND_string(device_model, "T265", "T265 model");
+DEFIND_string(serial_number, "908412111198", "T265 serial no");
+DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
+DEFINE_string(raw_image_channel, "/realsense/raw_image",
+              "raw image Y8 data from T265");
+DEFINE_string(acc_channel, "/realsense/acc", "acc data from T265");
+DEFINE_string(gyro_channel, "/realsense/gyro", "gyro data from T265");
+
+// Module Channel
+DEFINE_string(control_channel, "/control", "control message channel");
+DEFINE_string(chassis_channel, "/chassis", "chassis message channel");
+DEFINE_string(control_ref_channel, "/control_reference", "control message ref");
+
+// switch
+DEFINE_bool(publish_acc, false, "publish acc data");
+DEFINE_bool(publish_gyro, false, "publish gyro data");
+DEFINE_bool(publish_pose, true, "publish pose data");
+DEFINE_bool(publish_raw_image, true, "publish raw gray image data");

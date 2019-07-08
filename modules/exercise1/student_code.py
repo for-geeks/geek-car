@@ -32,12 +32,6 @@ def image_router():
     """
     Test talker.
     """
-
-    #msg.content = "py:talker:send Alex!"
-    #msg.stamp = 9999
-    #msg.seq = 0
-    # print msg
-
     g_count = 1
     test_node = cyber.Node("image_router_py_out")
     writer = test_node.create_writer("/realsense/compressed_image",

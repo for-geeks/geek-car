@@ -19,7 +19,7 @@ jobs:
   include:
     - stage: stage-01
       env:
-        - JOB=lint
+        - JOB=build
       script:
         - ./apollo.sh ${JOB}
         - rm -rf "${HOME}/.cache/bazel/_bazel_${USER}/install"
