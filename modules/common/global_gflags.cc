@@ -27,8 +27,8 @@
 DEFINE_string(device_name, "ttyACM0", "Arduino device name ");
 
 // Realsense
-DEFIND_string(device_model, "T265", "T265 model");
-DEFIND_string(serial_number, "908412111198", "T265 serial no");
+DEFINE_string(device_model, "T265", "T265 model");
+DEFINE_string(serial_number, "908412111198", "T265 serial no");
 DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
 DEFINE_string(raw_image_channel, "/realsense/raw_image",
               "raw image Y8 data from T265");
