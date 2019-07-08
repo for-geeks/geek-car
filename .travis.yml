@@ -23,13 +23,6 @@ jobs:
       script:
         - ./apollo.sh ${JOB}
         - rm -rf "${HOME}/.cache/bazel/_bazel_${USER}/install"
-    - stage: stage-02
-      if: branch = master
-      env:
-        - JOB=cibuild
-      script:
-        - ./apollo.sh ${JOB}
-        - rm -rf "${HOME}/.cache/bazel/_bazel_${USER}/install"
 
 notifications:
     email:
