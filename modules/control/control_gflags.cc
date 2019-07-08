@@ -26,3 +26,5 @@
 DEFINE_string(device_name, "ttyACM0", "Arduino device name ");
 DEFINE_string(control_channel, "/control", "control message channel");
 DEFINE_string(chassis_channel, "/chassis", "chassis message channel");
+DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
+DEFINE_string(control_ref_channel, "/control_reference", "control message ref");

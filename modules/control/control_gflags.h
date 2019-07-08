@@ -28,3 +28,5 @@
 DECLARE_string(device_name);
 DECLARE_string(control_channel);
 DECLARE_string(chassis_channel);
+DECLARE_string(pose_channel);
+DECLARE_string(control_ref_channel);

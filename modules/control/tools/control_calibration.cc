@@ -22,8 +22,8 @@
  * SOFTWARE.
 ******************************************************************************/
 #include "modules/control/tools/control_calibration.h"
-#include <string>
 #include <fstream>
+#include <string>
 
 #include "cyber/cyber.h"
 #include "modules/control/proto/chassis.pb.h"
@@ -41,10 +41,13 @@ using namespace std;
 ofstream file;
 
 bool CalibrationComponent::Init() {
-
   std::string file_name = "/home/raosiyue/calibration.csv";
   file.open(file_name, ofstream::out | ofstream::app);
-  file << "steer_angle" << ", " <<  "angular_y " << ", " << "chassis_speed"<< std::endl;
+  file << "steer_angle"
+       << ", "
+       << "angular_y "
+       << ", "
+       << "chassis_speed" << std::endl;
   return true;
 }
 
@@ -59,10 +62,11 @@ bool CalibrationComponent::Proc(const std::shared_ptr<Pose>& pose,
   auto angular_speed = pose->angular_velocity().y();
 
   ADEBUG << "calibration record, steer_angle:" << control_angle
-	 << " angular_y:" << angular_speed
-	 << " chassis_speed:" << chassis_speed;
+         << " angular_y:" << angular_speed
+         << " chassis_speed:" << chassis_speed;
 
-  file << control_angle << "," << angular_speed << "," <<chassis_speed << std::endl;
+  file << control_angle << "," << angular_speed << "," << chassis_speed
+       << std::endl;
 
   return true;
 }

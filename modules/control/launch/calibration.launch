@@ -1,0 +1,7 @@
+<cyber>
+  <module>
+    <name>calibration_component</name>
+    <dag_conf>../modules/control/dag/calibration.dag</dag_conf>
+    <process_name>calibration_component</process_name>
+  </module>
+</cyber>
