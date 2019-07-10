@@ -10,11 +10,11 @@ from modules.sensors.proto.sensors_pb2 import Image
 
 def reshape(data):
     """
-    Reader message callback.
+    Reshape Image from T265.
     """
     new_image = np.frombuffer(data.data, dtype=np.uint8)
     img_param = [int(cv2.IMWRITE_JPEG_QUALITY), 30]
-    new_image = new_image.reshape(816/2, 848/2)
+    new_image = new_image.reshape(data.height * 0.5, data.width * 0.5)
     img_encode = cv2.imencode('.jpeg', new_image, img_param)[1]
     data_encode = np.array(img_encode)
     str_encode = data_encode.tostring()

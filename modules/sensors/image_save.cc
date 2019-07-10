@@ -21,11 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include <opencv2/opencv.hpp>
 #include <queue>
 #include "cyber/cyber.h"
 #include "cyber/task/task.h"
+#include "modules/common/global_gflags.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "opencv2/opencv.hpp"
 
 void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {
   ADEBUG << "image, height :" << image->height() << " width:" << image->width();
@@ -44,7 +45,7 @@ int main() {
   apollo::cyber::Init("image_save");
   auto node = apollo::cyber::CreateNode("image_save");
   auto reader = node->CreateReader<apollo::sensors::Image>(
-      "/realsense/raw_image", ImageCallback);
+      FLAGS_raw_image_channel, ImageCallback);
 
   apollo::cyber::WaitForShutdown();
 

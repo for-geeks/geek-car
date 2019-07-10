@@ -29,6 +29,7 @@
 #include <mutex>
 #include <thread>
 #include <utility>
+
 #include "librealsense2/rs.hpp"
 #include "opencv2/calib3d.hpp"
 #include "opencv2/opencv.hpp"
