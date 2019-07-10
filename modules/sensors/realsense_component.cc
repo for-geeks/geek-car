@@ -56,7 +56,7 @@ rs2::device get_device(const std::string& serial_number = "") {
     for (auto&& dev : ctx.query_devices()) {
       if (((serial_number.empty() &&
             std::strstr(dev.get_info(RS2_CAMERA_INFO_NAME),
-                        FLAGS_device_model)) ||
+                        FLAGS_device_model.c_str())) ||
            std::strcmp(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER),
                        serial_number.c_str()) == 0))
         return dev;
