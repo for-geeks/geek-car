@@ -16,7 +16,12 @@
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
-#if 0
+using apollo::control::Chassis;
+using apollo::control::Control_Command;
+using apollo::control::Control_Reference;
+using apollo::cyber::Rate;
+using apollo::cyber::Time;
+using apollo::sensors::Pose;
 struct Point {
   double x, z, y;
 };
@@ -37,10 +42,10 @@ int trajectory_reader(void) {
   input_file.read(buffer, size_v);
   // std::cout << "read result:" << result << std::endl;
   input_file.close();
-  for (int i = 0; i < size_v; i += 24) {
+  for (unsigned int i = 0; i < size_v; i += 24) {
     double test_double = 0;
     memcpy(&test_double, buffer, 8);
-    if ((buffer + i) > 100000) {
+    if ((*buffer + i) > 100000) {
       break;
     }
     std::memcpy(&temp_vec, buffer + i, 24);
@@ -53,11 +58,11 @@ int trajectory_reader(void) {
   return 0;
 }
 
-int near_pt_find(float x, float y) {
+int near_pt_find(double x, double y) {
   int ret = -1;
-  float min_dist = 100;
-  for (int i = 0; i < new_vector.size(); i++) {
-    float dist = abs(new_vector.at(i).x - x) + abs(new_vector.at(i).z - y);
+  double min_dist = 100;
+  for (unsigned int i = 0; i < new_vector.size(); i++) {
+    double dist = std::fabs(new_vector.at(i).x - x) + std::fabs(new_vector.at(i).z - y);
     if ((dist < min_dist) && (dist < 1.5)) {
       min_dist = dist;
       ret = i;
@@ -66,26 +71,18 @@ int near_pt_find(float x, float y) {
   return ret;
 }
 
-using apollo::control::Chassis;
-using apollo::control::Control_Command;
-using apollo::control::Control_Reference;
-using apollo::cyber::Rate;
-using apollo::cyber::Time;
-using apollo::sensors::Pose;
-#endif
 int main(int argc, char* argv[]) {
-#if 0
   Pose pose_;
   trajectory_reader();
   apollo::cyber::Init("control ref gen");
   // create talker node
-  auto talker_node = apollo::cyber::CreateNode("control ref gen");
+  auto node_ = apollo::cyber::CreateNode("control ref gen");
   // create talker
   auto control_refs_writer_ =
-      talker_node->CreateWriter<Control_Reference>(FLAGS_control_ref_channel);
+      node_->CreateWriter<Control_Reference>(FLAGS_control_ref_channel);
   auto pose_reader_ = node_->CreateReader<Pose>(
       FLAGS_pose_channel,
-      [this](const std::shared_ptr<Pose>& Pose) { pose_.CopyFrom(*Pose); });
+      [&](const std::shared_ptr<Pose>& pose) { pose_.CopyFrom(*pose); });
   Rate rate(20.0);
   double t = 0;
   auto cmd = std::make_shared<Control_Reference>();
@@ -96,6 +93,5 @@ int main(int argc, char* argv[]) {
     control_refs_writer_->Write(cmd);
     rate.Sleep();
   }
-#endif
   return 0;
 }
