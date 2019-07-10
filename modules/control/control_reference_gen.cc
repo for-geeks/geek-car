@@ -1,5 +1,3 @@
-#include <memory>
-
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +12,7 @@
 #include "cyber/component/component.h"
 #include "cyber/cyber.h"
 #include "cyber/time/rate.h"
+#include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
@@ -41,9 +40,9 @@ int trajectory_reader(void) {
   for (int i = 0; i < size_v; i += 24) {
     double test_double = 0;
     memcpy(&test_double, buffer, 8);
-    if ((buffer + i) > 100000) {
-      break;
-    }
+    // if ((buffer + i) > 100000) {
+    //   break;
+    // }
     std::memcpy(&temp_vec, buffer + i, 24);
     new_vector.push_back(temp_vec);
   }
@@ -81,11 +80,10 @@ int main(int argc, char* argv[]) {
   // create talker node
   auto talker_node = apollo::cyber::CreateNode("control ref gen");
   // create talker
-  // auto talker = talker_node->CreateWriter<Chatter>("channel/chatter");
   auto control_refs_writer_ =
-      talker_node->CreateWriter<Control_Reference>("/control_reference");
+      talker_node->CreateWriter<Control_Reference>(FLAGS_control_ref_channel);
   auto pose_reader_ = node_->CreateReader<Pose>(
-      "/realsense/pose",
+      FLAGS_pose_channel,
       [this](const std::shared_ptr<Pose>& Pose) { pose_.CopyFrom(*Pose); });
   Rate rate(20.0);
   double t = 0;
@@ -97,7 +95,5 @@ int main(int argc, char* argv[]) {
     control_refs_writer_->Write(cmd);
     rate.Sleep();
   }
-
-  // async_action_ = cyber::Async(&ControlComponent::TestCommand, this);
   return 0;
 }

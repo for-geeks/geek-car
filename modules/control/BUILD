@@ -13,13 +13,12 @@ cc_binary(
 
 cc_binary(
     name = "control_reference_gen",
-    #linkshared = True,
-    #linkstatic = False,
     srcs = [
         "control_reference_gen.cc",
     ],
     deps = [
         "//cyber",
+        "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
     ],
 )
