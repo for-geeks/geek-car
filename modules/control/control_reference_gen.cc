@@ -16,7 +16,7 @@
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
-
+#if 0
 struct Point {
   double x, z, y;
 };
@@ -40,9 +40,9 @@ int trajectory_reader(void) {
   for (int i = 0; i < size_v; i += 24) {
     double test_double = 0;
     memcpy(&test_double, buffer, 8);
-    // if ((buffer + i) > 100000) {
-    //   break;
-    // }
+    if ((buffer + i) > 100000) {
+      break;
+    }
     std::memcpy(&temp_vec, buffer + i, 24);
     new_vector.push_back(temp_vec);
   }
@@ -72,8 +72,9 @@ using apollo::control::Control_Reference;
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::sensors::Pose;
-
+#endif
 int main(int argc, char* argv[]) {
+#if 0
   Pose pose_;
   trajectory_reader();
   apollo::cyber::Init("control ref gen");
@@ -95,5 +96,6 @@ int main(int argc, char* argv[]) {
     control_refs_writer_->Write(cmd);
     rate.Sleep();
   }
+#endif
   return 0;
 }

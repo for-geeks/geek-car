@@ -41,9 +41,6 @@ def image_router():
         global send_flag
         if (send_flag):
             g_count = g_count + 1
-            #msg.seq = g_count
-            #msg.content = "I am python talker."
-            # print "=" * 80
             print "write msg"
             global msg
             # print msg
