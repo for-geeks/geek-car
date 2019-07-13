@@ -17,7 +17,7 @@
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
-using apolli::control::Coefficient;
+using apollo::control::Coefficient;
 using apollo::control::Control_Reference;
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
@@ -110,16 +110,16 @@ std::vector<Point> points_select(int index) {
 
   return selected;
 }
-
-double* fitting(std::vector<Point>& selected) {
+#if 1
+void fitting(std::vector<Point>& selected, double coefficient[]) {
   if (selected.empty()) {
     ADEBUG << "selected points is empty.";
-    return;
+    return ;
   }
   auto selectedPointSize = selected.size();
   // double target_line = selected[selectedPointSize - 1] - selected[0];
 
-  double coefficient[5];
+  //double coefficient[5];
   std::memset(coefficient, 0, sizeof(double) * 5);
   std::vector<double> vx, vy;
   for (unsigned int i = 0; i < selectedPointSize; i++) {
@@ -130,13 +130,10 @@ double* fitting(std::vector<Point>& selected) {
   apollo::common::EMatrix(vx, vy, 20, 3, coefficient);
   printf("拟合方程为：y = %lf + %lfx + %lfx^2 \n", coefficient[1],
          coefficient[2], coefficient[3]);
-
-  return coefficient;
 }
-
+#endif
 int main(int argc, char* argv[]) {
-  Pose pose_;
-  trajectory_reader();
+  Pose pose_; trajectory_reader();
   apollo::cyber::Init("control ref gen");
   auto node_ = apollo::cyber::CreateNode("control_ref_gen");
   auto control_refs_writer_ =
@@ -155,14 +152,16 @@ int main(int argc, char* argv[]) {
   while (apollo::cyber::OK()) {
     int index = near_pt_find(pose_.translation().x(), pose_.translation().z());
     auto selected = points_select(index);
-    auto coefficient_ = fitting(selected);
-
+    double coefficient_[5];
+#if 1
+    fitting(selected, coefficient_);
+    
     coefficient->set_a(coefficient_[3]);
     coefficient->set_b(coefficient_[2]);
     coefficient->set_c(coefficient_[1]);
 
     control_coefficient_writer_->Write(coefficient);
-
+#endif
     cmd->set_angular_speed(static_cast<float>(sin(t / 2.0)));
     cmd->set_vehicle_speed(static_cast<float>(0.4));
     t += 0.05;
