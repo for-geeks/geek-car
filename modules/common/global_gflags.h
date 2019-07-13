@@ -48,3 +48,6 @@ DECLARE_bool(publish_acc);
 DECLARE_bool(publish_gyro);
 DECLARE_bool(publish_pose);
 DECLARE_bool(publish_raw_image);
+
+// CONST
+DECLARE_double(cruise_speed);
