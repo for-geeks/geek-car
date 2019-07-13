@@ -50,7 +50,7 @@ int trajectory_reader() {
   input_file.close();
   for (unsigned int i = 0; i < size_v; i += 24) {
     double test_double = 0;
-    std::clockmemcpy(&test_double, buffer, 8);
+    std::memcpy(&test_double, buffer, 8);
     if ((*buffer + i) > 100000) {
       break;
     }
@@ -81,45 +81,49 @@ int near_pt_find(double x, double y) {
 std::vector<Point> points_select(int index) {
   // 1、差分去掉变化为0的值；2、距离大于20cm 3、20个点；
   std::vector<Point> selected;
-  int point_num = Points.size();
-  for (int i = index, j = index + 1; i < point_num, j < point_num; i++) {
-    int kSelectedPointNum = 20;
-    if (selected.size() >= kSelectedPointNum ||
-        point_num - index > kSelectedPointNum) {
+  auto point_num = static_cast<int>(Points.size());
+  for (auto i = index, j = index + 1;j < point_num; i++) {
+    signed int kSelectedPointNum = 20;
+    auto left = point_num - index;
+    auto selected_size = static_cast<int>(selected.size());
+    if (selected_size >= kSelectedPointNum ||
+        left > kSelectedPointNum) {
       break;
     }
     // point distance diff
     double kMaxDiff = 0.05;
-    if (Points[j] - Points[i] >= kMaxDiff) {
+    if (((Points[j].x - Points[i].x) + (Points[j].z - Points[i].z)) >= kMaxDiff) {
       selected.push_back(Points[i]);
     }
   }
 
-  int selectedPointSize = selected.size();
-  double total_length = selected[selectedPointSize - 1] - selected[0];
+  auto selectedPointSize = selected.size();
+  auto lastPoint = selected[selectedPointSize - 1];
+  // TODO distance
+  double total_length = lastPoint.x - selected[0].x;
   if (total_length < 0.2) {
-    return std::vector<Point>;
+    return std::vector<Point>();
   }
 
   return selected;
 }
 
 double fitting(std::vector<Point>& selected) {
-  int selectedPointSize = selected.size();
-  double target_line = selected[selectedPointSize - 1] - selected[0];
+  auto selectedPointSize = selected.size();
+  //double target_line = selected[selectedPointSize - 1] - selected[0];
 
   double coefficient[5];
   std::memset(coefficient, 0, sizeof(double) * 5);
-  vector<double> vx, vy;
-  for (int i = 0; i < selectedPointSize; i++) {
+  std::vector<double> vx, vy;
+  for (unsigned int i = 0; i < selectedPointSize; i++) {
     vx.push_back(selected[i].x);
     vy.push_back(selected[i].z);
   }
-  EMatrix(vx, vy, selectedPointSize, 3, coefficient);
+  apollo::common::EMatrix(vx, vy, static_cast<int>(selectedPointSize), 3, coefficient);
   ADEBUG << "拟合方程为：y = " << coefficient[1] << " + " << coefficient[2]
          << "x + " << coefficient[3] << "x^2";
 
-  return coefficient;
+  return *coefficient;
 }
 
 int main(int argc, char* argv[]) {
@@ -138,12 +142,12 @@ int main(int argc, char* argv[]) {
   double t = 0;
   auto cmd = std::make_shared<Control_Reference>();
   while (apollo::cyber::OK()) {
-    int index_ = near_pt_find(pose_.x, pose_.z);
+    int index = near_pt_find(pose_.translation().x(), pose_.translation().z());
     auto selected = points_select(index);
-    auto coefficient = fitting(selected);
-    double c = coefficient[1];
-    double theta = atan(coefficient[2]);
-
+    // auto coefficient = fitting(selected);
+    //double c = coefficient[1];
+    //double theta = atan(coefficient[2]);
+    
     cmd->set_angular_speed(static_cast<float>(sin(t / 2.0)));
     cmd->set_vehicle_speed(static_cast<float>(0.4));
     t += 0.05;

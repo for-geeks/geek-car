@@ -21,6 +21,7 @@ cc_binary(
         "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
+	"//modules/common:curve_fitting",
     ],
 )
 
