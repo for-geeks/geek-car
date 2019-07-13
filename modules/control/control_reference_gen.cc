@@ -1,4 +1,5 @@
 #include <malloc.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
@@ -8,27 +9,33 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "cyber/class_loader/class_loader.h"
-#include "cyber/component/component.h"
+
 #include "cyber/cyber.h"
 #include "cyber/time/rate.h"
+#include "modules/common/curve_fitting.h"
 #include "modules/common/global_gflags.h"
-#include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
-using apollo::control::Chassis;
-using apollo::control::Control_Command;
+
 using apollo::control::Control_Reference;
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
+using apollo::cyber::common::GetAbsolutePath;
 using apollo::sensors::Pose;
+
 struct Point {
   double x, z, y;
 };
 
-std::vector<Point> new_vector;
-int trajectory_reader(void) {
+std::vector<Point> Points;
+
+int trajectory_reader() {
   char buffer[100000];
+
+  // std::string work_root = GetCyberWorkRoot();
+  // std::string config_file =
+  //     GetAbsolutePath(options.root_dir, options.conf_file);
+  // config_file = GetAbsolutePath(work_root, config_file);
   std::string file_name = "/home/raosiyue/pose.dat";
 
   std::ifstream input_file(file_name, std::ios::in | std::ios::binary);
@@ -40,19 +47,18 @@ int trajectory_reader(void) {
   // buffer = (char*)malloc(size_v);
   std::cout << "length is " << size_v << std::endl;
   input_file.read(buffer, size_v);
-  // std::cout << "read result:" << result << std::endl;
   input_file.close();
   for (unsigned int i = 0; i < size_v; i += 24) {
     double test_double = 0;
-    memcpy(&test_double, buffer, 8);
+    std::clockmemcpy(&test_double, buffer, 8);
     if ((*buffer + i) > 100000) {
       break;
     }
     std::memcpy(&temp_vec, buffer + i, 24);
-    new_vector.push_back(temp_vec);
+    Points.push_back(temp_vec);
   }
 
-  for (const auto& v : new_vector) {
+  for (const auto& v : Points) {
     std::cout << v.x << ", " << v.z << " , " << v.y << std::endl;
   }
   return 0;
@@ -61,14 +67,59 @@ int trajectory_reader(void) {
 int near_pt_find(double x, double y) {
   int ret = -1;
   double min_dist = 100;
-  for (unsigned int i = 0; i < new_vector.size(); i++) {
-    double dist = std::fabs(new_vector.at(i).x - x) + std::fabs(new_vector.at(i).z - y);
+
+  for (unsigned int i = 0; i < Points.size(); i++) {
+    double dist = std::fabs(Points.at(i).x - x) + std::fabs(Points.at(i).z - y);
     if ((dist < min_dist) && (dist < 1.5)) {
       min_dist = dist;
       ret = i;
     }
   }
   return ret;
+}
+
+std::vector<Point> points_select(int index) {
+  // 1、差分去掉变化为0的值；2、距离大于20cm 3、20个点；
+  std::vector<Point> selected;
+  int point_num = Points.size();
+  for (int i = index, j = index + 1; i < point_num, j < point_num; i++) {
+    int kSelectedPointNum = 20;
+    if (selected.size() >= kSelectedPointNum ||
+        point_num - index > kSelectedPointNum) {
+      break;
+    }
+    // point distance diff
+    double kMaxDiff = 0.05;
+    if (Points[j] - Points[i] >= kMaxDiff) {
+      selected.push_back(Points[i]);
+    }
+  }
+
+  int selectedPointSize = selected.size();
+  double total_length = selected[selectedPointSize - 1] - selected[0];
+  if (total_length < 0.2) {
+    return std::vector<Point>;
+  }
+
+  return selected;
+}
+
+double fitting(std::vector<Point>& selected) {
+  int selectedPointSize = selected.size();
+  double target_line = selected[selectedPointSize - 1] - selected[0];
+
+  double coefficient[5];
+  std::memset(coefficient, 0, sizeof(double) * 5);
+  vector<double> vx, vy;
+  for (int i = 0; i < selectedPointSize; i++) {
+    vx.push_back(selected[i].x);
+    vy.push_back(selected[i].z);
+  }
+  EMatrix(vx, vy, selectedPointSize, 3, coefficient);
+  ADEBUG << "拟合方程为：y = " << coefficient[1] << " + " << coefficient[2]
+         << "x + " << coefficient[3] << "x^2";
+
+  return coefficient;
 }
 
 int main(int argc, char* argv[]) {
@@ -87,6 +138,12 @@ int main(int argc, char* argv[]) {
   double t = 0;
   auto cmd = std::make_shared<Control_Reference>();
   while (apollo::cyber::OK()) {
+    int index_ = near_pt_find(pose_.x, pose_.z);
+    auto selected = points_select(index);
+    auto coefficient = fitting(selected);
+    double c = coefficient[1];
+    double theta = atan(coefficient[2]);
+
     cmd->set_angular_speed(static_cast<float>(sin(t / 2.0)));
     cmd->set_vehicle_speed(static_cast<float>(0.4));
     t += 0.05;

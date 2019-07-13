@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include <opencv2/opencv.hpp>
+#include "opencv2/opencv.hpp"
 
 #include "cyber/cyber.h"
 #include "cyber/time/rate.h"
