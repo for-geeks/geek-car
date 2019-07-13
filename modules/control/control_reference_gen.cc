@@ -86,8 +86,7 @@ std::vector<Point> points_select(int index) {
     signed int kSelectedPointNum = 20;
     auto left = point_num - index;
     auto selected_size = static_cast<int>(selected.size());
-    if (selected_size >= kSelectedPointNum ||
-        left > kSelectedPointNum) {
+    if (selected_size >= 20) {
       break;
     }
     // point distance diff
@@ -100,15 +99,19 @@ std::vector<Point> points_select(int index) {
   auto selectedPointSize = selected.size();
   auto lastPoint = selected[selectedPointSize - 1];
   // TODO distance
-  double total_length = lastPoint.x - selected[0].x;
-  if (total_length < 0.2) {
-    return std::vector<Point>();
-  }
+  //double total_length = lastPoint.x - selected[0].x;
+  //if (total_length < 0.2) {
+  //  return std::vector<Point>();
+  //}
 
   return selected;
 }
 
-double fitting(std::vector<Point>& selected) {
+void fitting(std::vector<Point>& selected) {
+  if(selected.empty()) {
+    ADEBUG << "selected points is empty.";
+    return;
+  }
   auto selectedPointSize = selected.size();
   //double target_line = selected[selectedPointSize - 1] - selected[0];
 
@@ -119,11 +122,12 @@ double fitting(std::vector<Point>& selected) {
     vx.push_back(selected[i].x);
     vy.push_back(selected[i].z);
   }
-  apollo::common::EMatrix(vx, vy, static_cast<int>(selectedPointSize), 3, coefficient);
-  ADEBUG << "拟合方程为：y = " << coefficient[1] << " + " << coefficient[2]
-         << "x + " << coefficient[3] << "x^2";
+  ADEBUG << "selected point vector size:" << selectedPointSize;
+  apollo::common::EMatrix(vx, vy, 20, 3, coefficient);
+  printf("拟合方程为：y = %lf + %lfx + %lfx^2 \n", coefficient[1],
+         coefficient[2], coefficient[3]);
 
-  return *coefficient;
+  //return coefficient;
 }
 
 int main(int argc, char* argv[]) {
@@ -139,12 +143,13 @@ int main(int argc, char* argv[]) {
       FLAGS_pose_channel,
       [&](const std::shared_ptr<Pose>& pose) { pose_.CopyFrom(*pose); });
   Rate rate(20.0);
+  //apollo::common::main(1, *sss);
   double t = 0;
   auto cmd = std::make_shared<Control_Reference>();
   while (apollo::cyber::OK()) {
     int index = near_pt_find(pose_.translation().x(), pose_.translation().z());
     auto selected = points_select(index);
-    // auto coefficient = fitting(selected);
+    fitting(selected);
     //double c = coefficient[1];
     //double theta = atan(coefficient[2]);
     
