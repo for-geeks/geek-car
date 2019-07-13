@@ -41,6 +41,7 @@ DECLARE_string(gyro_channel);
 DECLARE_string(control_channel);
 DECLARE_string(chassis_channel);
 DECLARE_string(control_ref_channel);
+DECLARE_string(control_coefficient);
 
 // switch
 DECLARE_bool(publish_acc);

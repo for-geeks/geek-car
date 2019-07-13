@@ -39,6 +39,8 @@ DEFINE_string(gyro_channel, "/realsense/gyro", "gyro data from T265");
 DEFINE_string(control_channel, "/control", "control message channel");
 DEFINE_string(chassis_channel, "/chassis", "chassis message channel");
 DEFINE_string(control_ref_channel, "/control_reference", "control message ref");
+DEFINE_string(control_coefficient, "/control_coefficient",
+              "control coefficient");
 
 // switch
 DEFINE_bool(publish_acc, false, "publish acc data");

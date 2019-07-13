@@ -11,3 +11,9 @@ message Control_Reference {
   optional float angular_speed = 1;
   optional float vehicle_speed = 2;
 }
+
+message Coefficient {
+  optional double a = 1;
+  optional double b = 2;
+  optional double c = 3;
+}

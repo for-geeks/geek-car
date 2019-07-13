@@ -17,6 +17,7 @@
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
+using apolli::control::Coefficient;
 using apollo::control::Control_Reference;
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
@@ -58,9 +59,11 @@ int trajectory_reader() {
     Points.push_back(temp_vec);
   }
 
-  for (const auto& v : Points) {
-    std::cout << v.x << ", " << v.z << " , " << v.y << std::endl;
-  }
+  ADEBUG << "Read Points size from Pose:" << Points.size();
+
+  // for (const auto& v : Points) {
+  //   std::cout << v.x << ", " << v.z << " , " << v.y << std::endl;
+  // }
   return 0;
 }
 
@@ -82,7 +85,7 @@ std::vector<Point> points_select(int index) {
   // 1、差分去掉变化为0的值；2、距离大于20cm 3、20个点；
   std::vector<Point> selected;
   auto point_num = static_cast<int>(Points.size());
-  for (auto i = index, j = index + 1;j < point_num; i++) {
+  for (auto i = index, j = index + 1; j < point_num; i++) {
     signed int kSelectedPointNum = 20;
     auto left = point_num - index;
     auto selected_size = static_cast<int>(selected.size());
@@ -91,7 +94,8 @@ std::vector<Point> points_select(int index) {
     }
     // point distance diff
     double kMaxDiff = 0.05;
-    if (((Points[j].x - Points[i].x) + (Points[j].z - Points[i].z)) >= kMaxDiff) {
+    if (((Points[j].x - Points[i].x) + (Points[j].z - Points[i].z)) >=
+        kMaxDiff) {
       selected.push_back(Points[i]);
     }
   }
@@ -99,21 +103,21 @@ std::vector<Point> points_select(int index) {
   auto selectedPointSize = selected.size();
   auto lastPoint = selected[selectedPointSize - 1];
   // TODO distance
-  //double total_length = lastPoint.x - selected[0].x;
-  //if (total_length < 0.2) {
+  // double total_length = lastPoint.x - selected[0].x;
+  // if (total_length < 0.2) {
   //  return std::vector<Point>();
   //}
 
   return selected;
 }
 
-void fitting(std::vector<Point>& selected) {
-  if(selected.empty()) {
+double* fitting(std::vector<Point>& selected) {
+  if (selected.empty()) {
     ADEBUG << "selected points is empty.";
     return;
   }
   auto selectedPointSize = selected.size();
-  //double target_line = selected[selectedPointSize - 1] - selected[0];
+  // double target_line = selected[selectedPointSize - 1] - selected[0];
 
   double coefficient[5];
   std::memset(coefficient, 0, sizeof(double) * 5);
@@ -127,32 +131,38 @@ void fitting(std::vector<Point>& selected) {
   printf("拟合方程为：y = %lf + %lfx + %lfx^2 \n", coefficient[1],
          coefficient[2], coefficient[3]);
 
-  //return coefficient;
+  return coefficient;
 }
 
 int main(int argc, char* argv[]) {
   Pose pose_;
   trajectory_reader();
   apollo::cyber::Init("control ref gen");
-  // create talker node
-  auto node_ = apollo::cyber::CreateNode("control ref gen");
-  // create talker
+  auto node_ = apollo::cyber::CreateNode("control_ref_gen");
   auto control_refs_writer_ =
       node_->CreateWriter<Control_Reference>(FLAGS_control_ref_channel);
+  auto control_coefficient_writer_ =
+      node_->CreateWriter<Coefficient>(FLAGS_control_coefficient);
+
   auto pose_reader_ = node_->CreateReader<Pose>(
       FLAGS_pose_channel,
       [&](const std::shared_ptr<Pose>& pose) { pose_.CopyFrom(*pose); });
+
   Rate rate(20.0);
-  //apollo::common::main(1, *sss);
   double t = 0;
   auto cmd = std::make_shared<Control_Reference>();
+  auto coefficient = std::make_shared<Coefficient>();
   while (apollo::cyber::OK()) {
     int index = near_pt_find(pose_.translation().x(), pose_.translation().z());
     auto selected = points_select(index);
-    fitting(selected);
-    //double c = coefficient[1];
-    //double theta = atan(coefficient[2]);
-    
+    auto coefficient_ = fitting(selected);
+
+    coefficient->set_a(coefficient_[3]);
+    coefficient->set_b(coefficient_[2]);
+    coefficient->set_c(coefficient_[1]);
+
+    control_coefficient_writer_->Write(coefficient);
+
     cmd->set_angular_speed(static_cast<float>(sin(t / 2.0)));
     cmd->set_vehicle_speed(static_cast<float>(0.4));
     t += 0.05;
