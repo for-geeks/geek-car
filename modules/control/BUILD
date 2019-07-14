@@ -11,31 +11,59 @@ cc_binary(
     ],
 )
 
-cc_library(
-    name = "control_lib",
+cc_binary(
+    name = "control_reference_gen",
     srcs = [
-        "Uart.cpp",
-        "control_component.cc",
-    ],
-    hdrs = [
-        "Uart.h",
-        "control_component.h",
+        "control_reference_gen.cc",
     ],
     deps = [
-        ":control_gflags",
         "//cyber",
+        "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
+	"//modules/common:curve_fitting",
+    ],
+)
+
+cc_binary(
+    name = "libchassis_component.so",
+    linkshared = True,
+    linkstatic = False,
+    deps = [
+        ":chassis_lib",
     ],
 )
 
 cc_library(
-    name = "control_gflags",
-    srcs = ["control_gflags.cc"],
+    name = "control_lib",
+    srcs = [
+        "control_component.cc",
+    ],
     hdrs = [
-        "control_gflags.h",
+        "control_component.h",
     ],
     deps = [
-        "//external::gflags",
+        "//cyber",
+        "//modules/common:global_gflags",
+        "//modules/control/proto:control_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "chassis_lib",
+    srcs = [
+        "Uart.cpp",
+        "chassis_component.cc",
+    ],
+    hdrs = [
+        "Uart.h",
+        "chassis_component.h",
+    ],
+    deps = [
+        "//cyber",
+        "//modules/common:global_gflags",
+        "//modules/control/proto:control_cc_proto",
     ],
 )
 

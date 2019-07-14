@@ -1,0 +1,15 @@
+# Dag all comes in DAG streming.
+module_config {
+  module_library : "../bazel-bin/modules/control/tools/libcalibration_component.so"
+  components {
+    class_name : "CalibrationComponent"
+    config {
+      name: "calibration_component"
+      readers: [
+      {channel:"/realsense/pose"},
+      {channel:"/chassis"},
+      {channel:"/control"}
+     ]
+    }
+  }
+}

@@ -20,9 +20,9 @@ export LD_LIBRARY_PATH=${qt_path}/lib:$LD_LIBRARY_PATH
 export QT_QPA_PLATFORM_PLUGIN_PATH=${qt_path}/plugins
 export PATH=${binary_path}:${recorder_path}:${monitor_path}:${launch_path}:${channel_path}:${node_path}:${service_path}:${qt_path}/bin:${visualizer_path}:${rosbag_to_record_path}:$PATH
 export PYTHONPATH=${PYTHON_LD_PATH}:${CYBER_PATH}/python:$PYTHONPATH
-
+export PYTHONPATH=/home/raosiyue/apollo_lite/py_proto:$PYTHONPATH
 export CYBER_DOMAIN_ID=80
-export CYBER_IP=127.0.0.1
+export CYBER_IP=10.42.0.1
 
 export GLOG_log_dir=${ROOT_PATH}/data/log
 export GLOG_alsologtostderr=0

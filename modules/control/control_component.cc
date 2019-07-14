@@ -1,131 +1,99 @@
+/******************************************************************************
+ * MIT License
+
+ * Copyright (c) 2019 Geekstyle
+
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+******************************************************************************/
 #include "modules/control/control_component.h"
 
 #include <string>
 #include "cyber/cyber.h"
-#include "modules/control/Uart.h"
+#include "cyber/time/rate.h"
+#include "math.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
-
+#include "modules/sensors/proto/sensors.pb.h"
 namespace apollo {
 namespace control {
 
 using apollo::control::Chassis;
 using apollo::control::Control_Command;
+using apollo::control::Control_Reference;
+using apollo::cyber::Rate;
 using apollo::cyber::Time;
-
-typedef union FLOAT_CONV {
-  float f;
-  char c[4];
-} float_conv;
-
-float BLEndianFloat(float value) {
-  float_conv d1, d2;
-  d1.f = value;
-  d2.c[0] = d1.c[3];
-  d2.c[1] = d1.c[2];
-  d2.c[2] = d1.c[1];
-  d2.c[3] = d1.c[0];
-  return d2.f;
-}
-
+using apollo::sensors::Pose;
 bool ControlComponent::Init() {
-  arduino_.SetOpt(9600, 8, 'N', 1);  //, int bits, char event, int stop);
+  // Reader
+  chassis_reader_ = node_->CreateReader<Chassis>(
+      FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis>& chassis) {
+        chassis_.CopyFrom(*chassis);
+      });
+  pose_reader_ = node_->CreateReader<Pose>(
+      FLAGS_pose_channel,
+      [this](const std::shared_ptr<Pose>& Pose) { pose_.CopyFrom(*Pose); });
+  control_refs_reader_ = node_->CreateReader<Control_Reference>(
+      FLAGS_control_ref_channel,
+      [this](const std::shared_ptr<Control_Reference>& refs) {
+        refs_.Clear();
+        refs_.CopyFrom(*refs);
+      });
 
-  chassis_writer_ = node_->CreateWriter<Chassis>("/chassis");
-  control_writer_ = node_->CreateWriter<Control_Command>("/control");
+  // Writer
+  control_writer_ = node_->CreateWriter<Control_Command>(FLAGS_control_channel);
+  GenerateCommand();
 
-  TestCommand();
-  // async method wait for control message
-  // async_action_ = cyber::Async(&ControlComponent::Action(), this);
-
-  // chassis feedback
-  async_feedback_ = cyber::Async(&ControlComponent::OnChassis, this);
   return true;
 }
 
-/**
- * @brief read arduino and write to chassis channel
- *
- */
-void ControlComponent::OnChassis() {
-  while (!cyber::IsShutdown() && action_ready_.load()) {
-    static char buffer[100];
-    memset(buffer, 0, 100);
-    int ret = arduino_.Read(buffer, 100);
-    if (ret != -1) {
-      std::string s = buffer;
-      AINFO << "chassis feedback : " << s;
-      // std::cout << "Arduino says: " << std::endl << s << std::endl;
-
-      //   auto proto_chassis = make_shared<Chassis>();
-      //   proto_chassis->set_steer_angle();
-      //   proto_chassis->set_throttle();
-      //   proto_chassis->set_speed();
-      //   chassis_writer_->Writer(proto_chassis);
-    }
-  }
-}
-
+// write to channel
 void ControlComponent::GenerateCommand() {
-  // write to channel
-}
-
-/**
- * @brief action method for control command
- * TODO(fengzongbao) async cmd
- * @param cmd
- */
-void ControlComponent::Action(const Control_Command& cmd) {
-  while (!cyber::IsShutdown()) {
-    if (!cmd.has_steer_angle() || !cmd.has_throttle()) {
-      continue;
-      cyber::SleepFor(std::chrono::milliseconds());
-    }
-
-    // tell OnChassis() you can receive message now
-    action_ready_ = true;
-
-    float steer_angle = cmd.steer_angle;
-    float steer_throttle = cmd.throttle;
-    ADEBUG << "control message, times: " << t << " steer_angle:" << steer_angle
-           << " steer_throttle:" << steer_throttle;
-    char protoco_buf[10];
-    memcpy(protoco_buf, &steer_angle, 4);
-    memcpy(protoco_buf + 4, &steer_throttle, 4);
-    protoco_buf[8] = 0x0d;
-    protoco_buf[9] = 0x0a;
-    arduino_.Write(protoco_buf, 10);
-    t += 0.05;
-  }
-}
-
-void ControlComponent::TestCommand() {
+  auto cmd = std::make_shared<Control_Command>();
   double t = 0.0;
-  while (1) {
-    float steer_angle = static_cast<float>(40 * sin(t));
-    float steer_throttle = static_cast<float>(20 * cos(t));
-    ADEBUG << "control message, times: " << t << " steer_angle:" << steer_angle
-           << " steer_throttle:" << steer_throttle;
-    char protoco_buf[10];
-    // float steer = BLEndianFloat(steer_angle);
-    // float throttle = BLEndianFloat(steer_throttle);
-    memcpy(protoco_buf, &steer_angle, 4);
-    memcpy(protoco_buf + 4, &steer_throttle, 4);
-    protoco_buf[8] = 0x0d;
-    protoco_buf[9] = 0x0a;
-    arduino_.Write(protoco_buf, 10);
+  Rate rate(20.0);
+  float error_sum = 0;
+  float error_yawrate_sum = 0;
+  while (true) {
+    /*PID core*/
+    float speed_ref = refs_.vehicle_speed();
+    float angular_speed_ref = refs_.angular_speed();
+    float speed_now = chassis_.speed();
+    float error = speed_ref - speed_now;
+    error_sum += static_cast<float>(error * 0.05);
+    cmd->set_throttle(
+        static_cast<float>(speed_ref * 10 + error * 12 + error_sum * 0.5));
+    float error_yawrate =
+        angular_speed_ref - static_cast<float>(pose_.angular_velocity().y());
+    error_yawrate_sum += static_cast<float>(error_yawrate * 0.05);
+    cmd->set_steer_angle(
+        static_cast<float>(10 * error_yawrate + error_yawrate_sum * 1 +
+                           0.9 * tanh(error_yawrate / speed_now)));
+
+    control_writer_->Write(cmd);
 
     t += 0.05;
-    // std::this_thread::sleep_for(std::chrono::milliseconds(50000));
+    rate.Sleep();
   }
 }
 
 ControlComponent::~ControlComponent() {
-  if (action_ready_.exchange(true)) {
-    // close arduino
-    // back chassis handle
-    async_feedback_.wait();
-  }
+  // back chassis handle
 }
 
 }  // namespace control

@@ -1,11 +1,34 @@
+/******************************************************************************
+ * MIT License
+
+ * Copyright (c) 2019 Geekstyle
+
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+******************************************************************************/
 #include <iomanip>
 #include <iostream>
-#include <librealsense2/rs.hpp>
 #include <map>
+#include <string>
 #include <utility>
 #include <vector>
-
 #include "cyber/common/log.h"
+#include "librealsense2/rs.hpp"
 
 /**
  * https://github.com/IntelRealSense/librealsense/blob/master/examples/sensor-control/api_how_to.h
@@ -187,8 +210,9 @@ class RealSense {
       float scale = dpt_sensor.get_depth_scale();
       AINFO << "Scale factor for depth sensor is: " << scale;
       return scale;
-    } else
+    } else {
       throw std::runtime_error("Given sensor is not a depth sensor");
+    }
   }
 #if 0
   static void get_field_of_view(const rs2::stream_profile& stream) {
@@ -405,10 +429,7 @@ class RealSense {
       // As noted, a stream is an abstraction.
       // In order to get additional data for the specific type of a
       //  stream, a mechanism of "Is" and "As" is provided:
-      if (stream_profile
-              .is<rs2::video_stream_profile>())  //"Is" will test if the type
-                                                 // tested is of the type given
-      {
+      if (stream_profile.is<rs2::video_stream_profile>()) {
         // "As" will try to convert the instance to the given type
         rs2::video_stream_profile video_stream_profile =
             stream_profile.as<rs2::video_stream_profile>();

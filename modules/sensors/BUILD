@@ -29,6 +29,7 @@ cc_library(
     ],
     deps = [
         "//cyber",
+        "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
@@ -38,6 +39,23 @@ cc_binary(
     srcs = ["connect_check.cc"],
     linkopts = [
         "-lrealsense2",
+    ],
+)
+
+cc_binary(
+    name = "image_save",
+    srcs = ["image_save.cc"],
+    linkopts = [
+        "-lopencv_core",
+        "-lopencv_highgui",
+        "-lopencv_videoio",
+        "-lopencv_imgproc",
+        "-lopencv_imgcodecs",
+    ],
+    deps = [
+        "//cyber",
+        "//modules/common:global_gflags",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
 

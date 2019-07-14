@@ -1,0 +1,20 @@
+syntax = "proto2";
+
+package apollo.planning;
+
+message Lane {
+  optional Left left = 1;
+  optional Right right = 2;
+}
+
+message Left {
+  optional double l1 = 1;
+  optional double l2 = 2;
+  optional double l3 = 3;
+}
+
+message Right {
+  optional double r1 = 1;
+  optional double r2 = 2;
+  optional double r3 = 3;
+}

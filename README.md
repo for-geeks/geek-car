@@ -1,5 +1,8 @@
 # A Sample Framework Based On Cyber RT
 
+
+**CI State**: [![Build Status](https://api.travis-ci.com/mickeyouyou/geek_lite.svg?token=5Xm6xz9PbZpWnqkHqUPj&branch=master)](https://travis-ci.com/mickeyouyou/geek_lite)
+
 As the basic layer of the Apollo autonomous platform, Cyber provides data reliability and timeliness for the application (perception, planning, control, etc.), based on which you can create your own application layer according to your own situation.
 
 Key benefits of using Apollo Cyber RT:

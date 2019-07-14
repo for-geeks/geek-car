@@ -20,21 +20,10 @@ cc_library(
         "perception_component.h",
     ],
     deps = [
-        # ":control_gflags",
         "//cyber",
         "//modules/perception/proto:perception_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
-
-# cc_library(
-#     name = "control_gflags",
-#     srcs = ["control_gflags.cc"],
-#     hdrs = [
-#         "control_gflags.h",
-#     ],
-#     deps = [
-#         "//external::gflags",
-#     ],
-# )
 
 cpplint()

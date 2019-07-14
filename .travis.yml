@@ -13,22 +13,13 @@ cache:
   directories:
   - $HOME/.cache/bazel
 before_install:
-  ./docker/build/cyber.x86_64.sh
-install: ./docker/build/cyber.x86_64.sh
-before_script:
-  - chmod +x ./docker/build/cyber.x86_64.sh
+  sudo ./docker/build/ci_install.sh
+install: true
 jobs:
   include:
     - stage: stage-01
       env:
-        - JOB=lint
-      script:
-        - ./apollo.sh ${JOB}
-        - rm -rf "${HOME}/.cache/bazel/_bazel_${USER}/install"
-    - stage: stage-02
-      if: branch = master
-      env:
-        - JOB=cibuild
+        - JOB=build
       script:
         - ./apollo.sh ${JOB}
         - rm -rf "${HOME}/.cache/bazel/_bazel_${USER}/install"
