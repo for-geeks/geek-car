@@ -67,7 +67,7 @@ ln -s /usr/bin/g++-5 /etc/alternatives/g++
 ln -s /etc/alternatives/g++ /usr/bin/g++
 
 # Run installer [build|download]
-cp -r installers /tmp/installers
+cp -r docker/build/installers /tmp/installers
 bash /tmp/installers/install_bazel.sh download
 bash /tmp/installers/install_gflags_glog.sh
 bash /tmp/installers/install_protobuf.sh
@@ -108,6 +108,12 @@ ln -s /usr/lib/aarch64-linux-gnu/libboost_thread.so.1.54.0 /usr/lib/aarch64-linu
 ln -s /usr/lib/aarch64-linux-gnu/libboost_wserialization.so.1.65.1 /usr/lib/aarch64-linux-gnu/libboost_wserialization.so
 ln -s /usr/lib/aarch64-linux-gnu/libboost_chrono.so.1.54.0 /usr/lib/aarch64-linux-gnu/libboost_chrono.so
 ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.aarch64-linux-gnu.so /usr/lib/aarch64-linux-gnu/libvtkRenderingPythonTkWidgets.so
+
+# intel realsense
+apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
+add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
+apt-get install librealsense2-dkms
+apt-get install librealsense2-utils
 
 bash /tmp/installers/install_fast-rtps.sh
 bash /tmp/installers/install_pcl.sh download
