@@ -51,3 +51,6 @@ DECLARE_bool(publish_raw_image);
 
 // CONST
 DECLARE_double(cruise_speed);
+DECLARE_double(longitude_kp);
+DECLARE_double(longitude_ki);
+DECLARE_double(longitude_ff);

@@ -46,7 +46,7 @@ using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::cyber::common::GetAbsolutePath;
 using apollo::sensors::Pose;
-
+#if 0
 struct Point {
   double x, z, y;
 };
@@ -163,7 +163,9 @@ double distance2Points(Point a, Point b) {
   return sqrt(pow((a.x - b.x), 2) + pow((a.z - b.z), 2));
 }
 
+#endif
 int main(int argc, char* argv[]) {
+  #if 0 
   trajectory_reader();
   apollo::cyber::Init("control ref gen");
   auto node_ = apollo::cyber::CreateNode("control_ref_gen");
@@ -217,5 +219,6 @@ int main(int argc, char* argv[]) {
     control_refs_writer_->Write(cmd);
     rate.Sleep();
   }
+#endif
   return 0;
 }
