@@ -53,3 +53,4 @@ DEFINE_double(cruise_speed, 0.5, "cruise speed ");
 DEFINE_double(longitude_kp, 5.0, "kp");
 DEFINE_double(longitude_ki, 5.0, "ki");
 DEFINE_double(longitude_ff, 5.0, "ff");
+DEFINE_double(offset, 5.3, "ff");
