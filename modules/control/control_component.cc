@@ -76,13 +76,13 @@ void ControlComponent::GenerateCommand() {
     float speed_now = chassis_.speed();
     float error = speed_ref - speed_now;
     error_sum += static_cast<float>(error * 0.05);
-    cmd->set_throttle(
-       static_cast<float>(speed_ref * FLAGS_longitude_ff + error * FLAGS_longitude_kp + error_sum * FLAGS_longitude_ki + FLAGS_offset));
+    cmd->set_throttle(static_cast<float>(
+        speed_ref * FLAGS_longitude_ff + error * FLAGS_longitude_kp +
+        error_sum * FLAGS_longitude_ki + FLAGS_offset));
     float error_yawrate =
         angular_speed_ref - static_cast<float>(pose_.angular_velocity().y());
     error_yawrate_sum += static_cast<float>(error_yawrate * 0.05);
-    cmd->set_steer_angle(
-        static_cast<float>(0));
+    cmd->set_steer_angle(static_cast<float>(0));
 
     control_writer_->Write(cmd);
 
