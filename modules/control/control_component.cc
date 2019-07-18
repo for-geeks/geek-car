@@ -30,6 +30,7 @@
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+
 namespace apollo {
 namespace control {
 
@@ -39,6 +40,7 @@ using apollo::control::Control_Reference;
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::sensors::Pose;
+
 bool ControlComponent::Init() {
   // Reader
   chassis_reader_ = node_->CreateReader<Chassis>(
@@ -55,9 +57,12 @@ bool ControlComponent::Init() {
         refs_.CopyFrom(*refs);
       });
 
-  // Writer
+  // create Writer
   control_writer_ = node_->CreateWriter<Control_Command>(FLAGS_control_channel);
-  GenerateCommand();
+
+  // compute control message in aysnc
+  async_action_ = cyber::Async(&ControlComponent::GenerateCommand, this);
+  // async_action_.get();
 
   return true;
 }
@@ -93,6 +98,7 @@ void ControlComponent::GenerateCommand() {
 
 ControlComponent::~ControlComponent() {
   // back chassis handle
+  async_action_.wait();
 }
 
 }  // namespace control

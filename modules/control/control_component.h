@@ -56,7 +56,6 @@ class ControlComponent : public Component<> {
   std::shared_ptr<Reader<Control_Reference>> control_refs_reader_ = nullptr;
   std::shared_ptr<Reader<Pose>> pose_reader_ = nullptr;
   std::future<void> async_action_;
-  std::future<void> async_feedback_;
   Control_Reference refs_;
   Chassis chassis_;
   Pose pose_;
