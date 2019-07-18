@@ -54,3 +54,7 @@ DEFINE_double(longitude_kp, 5.0, "kp");
 DEFINE_double(longitude_ki, 5.0, "ki");
 DEFINE_double(longitude_ff, 5.0, "ff");
 DEFINE_double(offset, 5.3, "ff");
+
+// TOOLS
+DEFINE_string(image_export_dir, "/home/raosiyue/out_test/",
+              "tools image saver dir");

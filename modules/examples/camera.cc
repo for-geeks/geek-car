@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "opencv2/opencv.hpp"
+// #include "opencv2/opencv.hpp"
 
 #include "cyber/cyber.h"
 #include "cyber/time/rate.h"
@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
   //  return -1;
   //}
 
+#if 0
   cv::Mat origin_image = cv::imread("/home/nvidia/Pictures/2019-06-19.png");
 
   apollo::cyber::Init(argv[0]);
@@ -90,4 +91,6 @@ int main(int argc, char *argv[]) {
       image_writer->Write(image);
     }
   }
+#endif
+  return 0;
 }

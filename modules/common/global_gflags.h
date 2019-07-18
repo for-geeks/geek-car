@@ -55,3 +55,6 @@ DECLARE_double(longitude_kp);
 DECLARE_double(longitude_ki);
 DECLARE_double(longitude_ff);
 DECLARE_double(offset);
+
+// TOOLS
+DECLARE_string(image_export_dir);

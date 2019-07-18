@@ -111,12 +111,12 @@ bool RealsenseComponent::Init() {
   // use quality of service to up raw image channel reliability
   RoleAttributes image_attr;
   image_attr.set_channel_name(FLAGS_raw_image_channel);
-  auto qos = image_attr.mutable_qos_profile();
-  qos->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
-  qos->set_depth(10);
-  qos->set_mps(30);
-  qos->set_reliability(QosReliabilityPolicy::RELIABILITY_RELIABLE);
-  qos->set_durability(QosDurabilityPolicy::DURABILITY_VOLATILE);
+  auto qos_image = image_attr.mutable_qos_profile();
+  qos_image->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
+  qos_image->set_depth(10);
+  qos_image->set_mps(30);
+  qos_image->set_reliability(QosReliabilityPolicy::RELIABILITY_RELIABLE);
+  qos_image->set_durability(QosDurabilityPolicy::DURABILITY_VOLATILE);
 
   image_writer_ = node_->CreateWriter<Image>(image_attr);
 
