@@ -36,6 +36,8 @@
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
+#include "cyber/proto/qos_profile.pb.h"
+#include "cyber/proto/role_attributes.pb.h"
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
 #include "modules/sensors/proto/sensors.pb.h"
@@ -46,6 +48,10 @@ namespace sensors {
 
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
+using apollo::cyber::proto::QosDurabilityPolicy;
+using apollo::cyber::proto::QosHistoryPolicy;
+using apollo::cyber::proto::QosReliabilityPolicy;
+using apollo::cyber::proto::RoleAttributes;
 using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
 using apollo::sensors::Image;
@@ -90,10 +96,37 @@ bool RealsenseComponent::Init() {
 
   Calibration();
 
-  pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
-  image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
-  acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
-  gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  // use quality of service to up pose channel reliability
+  RoleAttributes pose_attr;
+  pose_attr.set_channel_name(FLAGS_pose_channel);
+  auto qos = pose_attr.mutable_qos_profile();
+  qos->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
+  qos->set_depth(10);
+  qos->set_mps(30);
+  qos->set_reliability(QosReliabilityPolicy::RELIABILITY_RELIABLE);
+  qos->set_durability(QosDurabilityPolicy::DURABILITY_VOLATILE);
+
+  pose_writer_ = node_->CreateWriter<Pose>(pose_attr);
+
+  // use quality of service to up raw image channel reliability
+  RoleAttributes image_attr;
+  image_attr.set_channel_name(FLAGS_raw_image_channel);
+  auto qos = image_attr.mutable_qos_profile();
+  qos->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
+  qos->set_depth(10);
+  qos->set_mps(30);
+  qos->set_reliability(QosReliabilityPolicy::RELIABILITY_RELIABLE);
+  qos->set_durability(QosDurabilityPolicy::DURABILITY_VOLATILE);
+
+  image_writer_ = node_->CreateWriter<Image>(image_attr);
+
+  if (FLAGS_publish_acc) {
+    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
+  }
+
+  if (FLAGS_publish_gyro) {
+    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  }
 
   sensor_.start([this](rs2::frame f) {
     q_.enqueue(std::move(f));  // enqueue any new frames into q
@@ -218,6 +251,9 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
 void RealsenseComponent::OnPose(rs2_pose pose_data, uint64 frame_no) {
   auto pose_proto = std::make_shared<Pose>();
   pose_proto->set_frame_no(frame_no);
+  pose_proto->set_tracker_confidence(pose_data.tracker_confidence);
+  pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
+
   auto translation = pose_proto->mutable_translation();
   translation->set_x(pose_data.translation.x);
   translation->set_y(pose_data.translation.y);
