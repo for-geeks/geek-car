@@ -268,6 +268,7 @@ void RealsenseComponent::OnPose(rs2_pose pose_data, uint64 frame_no) {
   rotation->set_x(pose_data.rotation.x);
   rotation->set_y(pose_data.rotation.y);
   rotation->set_z(pose_data.rotation.z);
+  rotation->set_w(pose_data.rotation.w);
 
   auto angular_velocity = pose_proto->mutable_angular_velocity();
   angular_velocity->set_x(pose_data.angular_velocity.x);
