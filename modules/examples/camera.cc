@@ -32,6 +32,7 @@ using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::examples::proto::Image;
 
+#if 0
 std::string get_tegra_pipeline(int width, int height, int fps) {
   return "nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1024, height=768, "
          "framerate=120/1, format=NV12' ! nvvidconv ! nvegltransform ! "
@@ -43,8 +44,9 @@ std::string get_tegra_pipeline(int width, int height, int fps) {
   //        "/1 ! nvvidconv flip-method=2 ! video/x-raw, format=(string)BGRx ! "
   //        "videoconvert ! video/x-raw, format=(string)BGR ! appsink";
 }
-
+#endif
 int main(int argc, char *argv[]) {
+#if 0
   // Options
   const uint32_t WIDTH = 1024;
   const uint32_t HEIGHT = 768;
@@ -61,7 +63,6 @@ int main(int argc, char *argv[]) {
   //  return -1;
   //}
 
-#if 0
   cv::Mat origin_image = cv::imread("/home/nvidia/Pictures/2019-06-19.png");
 
   apollo::cyber::Init(argv[0]);
