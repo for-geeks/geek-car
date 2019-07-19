@@ -132,7 +132,7 @@ bool RealsenseComponent::Init() {
   if (FLAGS_publish_compressed_image) {
     // use quality of service to up raw image channel reliability
     RoleAttributes compressed_image_attr;
-    compressed_image_attr.set_channel_name(FLAGS_raw_image_channel);
+    compressed_image_attr.set_channel_name(FLAGS_compressed_image_channel);
     auto qos_image = compressed_image_attr.mutable_qos_profile();
     qos_image->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
     qos_image->set_depth(10);

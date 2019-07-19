@@ -34,6 +34,7 @@ DECLARE_string(device_model);
 DECLARE_string(serial_number);
 DECLARE_string(pose_channel);
 DECLARE_string(raw_image_channel);
+DECLARE_string(compressed_image_channel);
 DECLARE_string(acc_channel);
 DECLARE_string(gyro_channel);
 
