@@ -56,6 +56,7 @@ bash ${BUILD_PATH}/docker/build/installers/install_protobuf.sh
 bash ${BUILD_PATH}/docker/build/installers/install_bazel_packages.sh
 bash ${BUILD_PATH}/docker/build/installers/install_google_styleguide.sh
 bash ${BUILD_PATH}/docker/build/installers/install_osqp.sh
+bash ${BUILD_PATH}/docker/build/installers/install_conda.sh
 
 # Add Bionic source
 echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic main restricted" > /etc/apt/sources.list
