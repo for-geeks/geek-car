@@ -115,6 +115,8 @@ apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || apt-key ad
 add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
 apt-get install librealsense2-dkms
 apt-get install librealsense2-utils
+apt-get install librealsense2-dev
+apt-get install librealsense2-dbg
 
 bash /tmp/installers/install_fast-rtps.sh
 bash /tmp/installers/install_pcl.sh download
