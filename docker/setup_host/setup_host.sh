@@ -40,7 +40,7 @@ if [ $? -ne 0 ]; then
   echo "uvcvideo clock=realtime" | sudo tee -a /etc/modules
 fi
 
-
+# Add Realsense udev rules
 echo "Setting-up permissions for RealSense devices"
 
 exec 3>&2

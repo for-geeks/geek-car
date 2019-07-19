@@ -28,7 +28,7 @@ git clone https://github.com/AprilRobotics/apriltag
 
 # sudo works
 pushd apriltag
-cmake .
-make install
+  make
+  make install
 popd
 rm -fr apriltag
