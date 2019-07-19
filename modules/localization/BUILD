@@ -31,6 +31,7 @@ cc_library(
     ],
     linkopts = [
         "-lrealsense2",
+        "-lapriltag",
     ],
     deps = [
         "//cyber",

@@ -29,6 +29,6 @@ git clone https://github.com/AprilRobotics/apriltag
 # sudo works
 pushd apriltag
 cmake .
-sudo make install           # install lib and include/ColPack to destination
-
-sudo rm -fr apriltag
+make install
+popd
+rm -fr apriltag
