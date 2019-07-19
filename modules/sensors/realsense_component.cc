@@ -29,6 +29,7 @@
 #include <mutex>
 #include <thread>
 #include <utility>
+#include <vector>
 
 #include "librealsense2/rs.hpp"
 #include "opencv2/calib3d.hpp"
@@ -126,6 +127,21 @@ bool RealsenseComponent::Init() {
 
   if (FLAGS_publish_gyro) {
     gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  }
+
+  if (FLAGS_publish_compressed_image) {
+    // use quality of service to up raw image channel reliability
+    RoleAttributes compressed_image_attr;
+    compressed_image_attr.set_channel_name(FLAGS_raw_image_channel);
+    auto qos_image = compressed_image_attr.mutable_qos_profile();
+    qos_image->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
+    qos_image->set_depth(10);
+    qos_image->set_mps(30);
+    qos_image->set_reliability(QosReliabilityPolicy::RELIABILITY_RELIABLE);
+    qos_image->set_durability(QosDurabilityPolicy::DURABILITY_VOLATILE);
+
+    compressed_image_writer_ =
+        node_->CreateWriter<Image>(compressed_image_attr);
   }
 
   sensor_.start([this](rs2::frame f) {
@@ -239,6 +255,10 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
   auto m_size = dst.rows * dst.cols * dst.elemSize();
   image_proto->set_data(dst.data, m_size);
   image_writer_->Write(image_proto);
+
+  if (FLAGS_publish_compressed_image) {
+    CompressedImage(dst, frame_no);
+  }
 }
 
 /**
@@ -294,6 +314,21 @@ void RealsenseComponent::OnGyro(rs2_vector gyro, uint64 frame_no) {
   proto_gyro->mutable_gyro()->set_z(gyro.z);
 
   gyro_writer_->Write(proto_gyro);
+}
+
+void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
+  std::vector<uchar> data_encode;
+  cv::imencode(".jpeg", raw_image, data_encode);
+  std::string str_encode(data_encode.begin(), data_encode.end());
+
+  auto compressedimage = std::make_shared<Image>();
+  compressedimage->set_frame_no(frame_no);
+  compressedimage->set_height(dst.rows);
+  compressedimage->set_width(dst.cols);
+  compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+  compressedimage->set_measurement_time(Time::Now().ToSecond());
+  compressedimage->set_data(str_encode);
+  compressed_image_writer_->Write(compressedimage);
 }
 
 RealsenseComponent::~RealsenseComponent() {

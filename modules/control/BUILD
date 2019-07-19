@@ -18,10 +18,10 @@ cc_binary(
     ],
     deps = [
         "//cyber",
+        "//modules/common:curve_fitting",
         "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
-	"//modules/common:curve_fitting",
     ],
 )
 
