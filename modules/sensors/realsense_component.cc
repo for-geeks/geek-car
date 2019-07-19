@@ -130,16 +130,10 @@ bool RealsenseComponent::Init() {
   }
 
   if (FLAGS_publish_compressed_image) {
-    // use quality of service to up raw image channel reliability
+    // use quality of service to up image channel reliability
     RoleAttributes compressed_image_attr;
     compressed_image_attr.set_channel_name(FLAGS_compressed_image_channel);
-    auto qos_image = compressed_image_attr.mutable_qos_profile();
-    qos_image->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
-    qos_image->set_depth(10);
-    qos_image->set_mps(30);
-    qos_image->set_reliability(QosReliabilityPolicy::RELIABILITY_RELIABLE);
-    qos_image->set_durability(QosDurabilityPolicy::DURABILITY_VOLATILE);
-
+    compressed_image_attr.mutable_qos_profile()->CopyFrom(qos_image);
     compressed_image_writer_ =
         node_->CreateWriter<Image>(compressed_image_attr);
   }

@@ -43,6 +43,7 @@ DECLARE_string(control_channel);
 DECLARE_string(chassis_channel);
 DECLARE_string(control_ref_channel);
 DECLARE_string(control_coefficient);
+DECLARE_string(tags_channel);
 
 // switch
 DECLARE_bool(publish_acc);

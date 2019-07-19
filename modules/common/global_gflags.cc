@@ -36,6 +36,7 @@ DEFINE_string(compressed_image_channel, "/realsense/compressed_image",
               "raw image Y8 data from T265");
 DEFINE_string(acc_channel, "/realsense/acc", "acc data from T265");
 DEFINE_string(gyro_channel, "/realsense/gyro", "gyro data from T265");
+DEFINE_string(tags_channel, "/tag", "localization tag result");
 
 // Module Channel
 DEFINE_string(control_channel, "/control", "control message channel");

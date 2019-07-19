@@ -23,13 +23,18 @@
 ******************************************************************************/
 #include "modules/localization/localization_component.h"
 
-#include "librealsense2/rs.hpp"
-
 #include <float.h>
 #include <math.h>
+#include "apriltag.h"
+#include "librealsense2/rs.hpp"
+#include "tag36h11.h"
+
+#include "modules/common/global_gflags.h"
 
 namespace apollo {
 namespace localization {
+
+using apollo::localization::Tags;
 
 inline rs2_quaternion quaternion_exp(rs2_vector v) {
   float x = v.x / 2, y = v.y / 2, z = v.z / 2, th2,
@@ -68,12 +73,79 @@ rs2_pose predict_pose(rs2_pose& pose, float dt_s) {
 }
 
 bool LocalizationComponent::Init() {
-  pose_reader_ = node_->CreateReader<Pose>(
-      FLAGS_pose_channel, [this](const std::shared_ptr<Pose>& pose) {
-        predicted_pose_ = predict_pose(pose);
+  // pose_reader_ = node_->CreateReader<Pose>(
+  //     FLAGS_pose_channel, [this](const std::shared_ptr<Pose>& pose) {
+  //       predicted_pose_ = predict_pose(pose);
+  //     });
+
+  image_reader_ = node_->CreateReader<Image>(
+      FLAGS_raw_image_channel, [this](const std::shared_ptr<Image>& image) {
+        image_ = image;
+        // tell tag detection you can work now
+        image_ready_.exchange(true);
       });
 
+  tags_writer_ = node_->CreateWriter<Tags>(FLAGS_tags_channel);
+
+  tag_async_ = std::async(std::launch::async,
+                          &LocalizationComponent::ApriltagDetection, this);
+
   return true;
+}
+
+void LocalizationComponent::ApriltagDetection() {
+  // if image not ready, exit directly
+  if (!image_ready_.load()) {
+    return;
+  }
+  apriltag_detector_t* td = apriltag_detector_create();
+  apriltag_family_t* tf = tag36h11_create();
+  apriltag_detector_add_family(td, tf);
+
+  td->quad_decimate = 2.0;
+  td->quad_sigma = 0.0;
+  td->refine_edges = 1;
+  td->decode_sharpening = 0.25;
+
+  zarray_t* detections = apriltag_detector_detect(td, image_);
+
+  if (!zarray_size(detections)) {
+    return;
+  }
+
+  auto tags = std::make_ptr<Tags>();
+
+  for (int i = 0; i < zarray_size(detections); i++) {
+    apriltag_detection_t* det;
+    zarray_get(detections, i, &det);
+
+    // Do something with det here
+    printf("detection %3d: id (%2dx%2d)-%-4d, hamming %d, margin %8.3f\n", i,
+           det->family->nbits, det->family->h, det->id, det->hamming,
+           det->decision_margin);
+    auto tag = tags->mutable_tag();
+
+    tag->set_id(det->id);
+    tag->set_hamming(det->hamming);
+    tag->set_margin(det->decision_margin);
+
+    auto family = tag->mutable_family();
+    family->set_nbits(det->family->nbits);
+    family->set_h(det->family->h);
+  }
+
+  tag_writer_->Write(tags);
+
+  apriltag_detections_destroy(detections);
+
+  apriltag_detector_destroy(td);
+  tag36h11_destroy(tf);
+}
+
+LocalizationComponent::~LocalizationComponent() {
+  if (image_ready_.load()) {
+    // close
+  }
 }
 
 }  // namespace localization

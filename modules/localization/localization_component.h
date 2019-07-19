@@ -27,19 +27,31 @@
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
+#include "modules/localization/proto/localization.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {
 namespace localization {
 
 using apollo::cyber::Component;
+using apollo::localization::Tags;
+using apollo::sensors::Image;
 using apollo::sensors::Pose;
 
 class LocalizationComponent : public Component<> {
  public:
   bool Init() override;
+  void ApriltagDetection();
+  ~LocalizationComponent() override;
+
   std::shared_ptr<Reader<Pose>> pose_reader_ = nullptr;
+  std::shared_ptr<Reader<Image>> image_reader_ = nullptr;
+  std::shared_ptr<Writer<Tags>> tags_writer_ = nullptr;
   rs2_pose predicted_pose_;
+  Image image_;
+
+  std::future<void> tag_async_;
+  std::atomic<bool> image_ready_ = {false};
 };
 
 CYBER_REGISTER_COMPONENT(LocalizationComponent);

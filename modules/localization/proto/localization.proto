@@ -1,3 +1,19 @@
 syntax = "proto2";
 
 package apollo.localization;
+
+message Family {
+  optional uint32 nbits = 1;
+  optional uint32 h = 2;
+}
+
+message Tag {
+  optional uint32 id = 1;
+  optional uint32 hamming = 2;
+  optional uint32 margin = 3;
+  optional Family family = 4;
+}
+
+message Tags {
+  repeated Tag tag = 1;
+}
