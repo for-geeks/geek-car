@@ -27,11 +27,11 @@ INSTALLER="Miniconda3-latest-Linux-x86_64.sh"
 wget "https://repo.continuum.io/miniconda/${INSTALLER}"
 bash "${INSTALLER}" -b -p "${CONDA_PATH}"
 # Update conda base to the latest.
-"${CONDA_PATH}/bin/conda" update -n base -c defaults conda
+"${CONDA_PATH}/bin/conda" update -n -y base -c defaults conda
 
 # Init python envs.
-"${CONDA_PATH}/bin/conda" env update -f py27_conda.yaml
-"${CONDA_PATH}/bin/conda" env update -f py37_conda.yaml
+"${CONDA_PATH}/bin/conda" env update -y -f py27_conda.yaml
+"${CONDA_PATH}/bin/conda" env update -y -f py37_conda.yaml
 
 # Clean up.
 rm -f "${INSTALLER}"
