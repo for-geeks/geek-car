@@ -74,6 +74,7 @@ bash /tmp/installers/install_protobuf.sh
 bash /tmp/installers/install_bazel_packages.sh
 bash /tmp/installers/install_google_styleguide.sh
 bash /tmp/installers/install_osqp.sh download
+bash /tmp/installers/install_apriltag.sh
 
 apt update -y
 apt install -y --allow-downgrades \
