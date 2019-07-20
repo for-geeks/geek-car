@@ -55,7 +55,7 @@ bash ${BUILD_PATH}/docker/build/installers/install_gflags_glog.sh
 bash ${BUILD_PATH}/docker/build/installers/install_protobuf.sh
 bash ${BUILD_PATH}/docker/build/installers/install_bazel_packages.sh
 bash ${BUILD_PATH}/docker/build/installers/install_google_styleguide.sh
-bash ${BUILD_PATH}/docker/build/installers/install_osqp.sh
+#bash ${BUILD_PATH}/docker/build/installers/install_osqp.sh
 bash ${BUILD_PATH}/docker/build/installers/install_conda.sh
 
 # Add Bionic source
