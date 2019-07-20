@@ -133,7 +133,7 @@ bool RealsenseComponent::Init() {
     // use quality of service to up image channel reliability
     RoleAttributes compressed_image_attr;
     compressed_image_attr.set_channel_name(FLAGS_compressed_image_channel);
-    compressed_image_attr.mutable_qos_profile()->CopyFrom(qos_image);
+    compressed_image_attr.mutable_qos_profile()->CopyFrom(*qos_image);
     compressed_image_writer_ =
         node_->CreateWriter<Image>(compressed_image_attr);
   }
@@ -317,8 +317,8 @@ void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
 
   auto compressedimage = std::make_shared<Image>();
   compressedimage->set_frame_no(frame_no);
-  compressedimage->set_height(dst.rows);
-  compressedimage->set_width(dst.cols);
+  compressedimage->set_height(raw_image.rows);
+  compressedimage->set_width(raw_image.cols);
   compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
   compressedimage->set_measurement_time(Time::Now().ToSecond());
   compressedimage->set_data(str_encode);
