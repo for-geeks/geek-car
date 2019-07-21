@@ -59,5 +59,12 @@ DECLARE_double(longitude_ki);
 DECLARE_double(longitude_ff);
 DECLARE_double(offset);
 
+DECLARE_double(tagsize);
+DECLARE_double(left_fx);
+DECLARE_double(left_fy);
+DECLARE_double(left_cx);
+DECLARE_double(left_cy);
+
+
 // TOOLS
 DECLARE_string(image_export_dir);

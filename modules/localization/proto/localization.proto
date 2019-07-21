@@ -12,6 +12,18 @@ message Tag {
   optional uint32 hamming = 2;
   optional float margin = 3;
   optional Family family = 4;
+  optional Pose pose = 5;
+}
+
+message Matrix {
+  optional uint32 rows = 1;
+  optional uint32 cols = 2;
+  repeated double element = 3;
+}
+
+message Pose {
+  optional Matrix R = 1;
+  optional Matrix t = 2;
 }
 
 message Tags {

@@ -25,6 +25,7 @@
 
 #include <memory>
 #include "librealsense2/rs.hpp"
+#include "apriltag.h"
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
@@ -37,8 +38,8 @@ namespace localization {
 using apollo::cyber::Component;
 using apollo::localization::Tags;
 using apollo::sensors::Image;
-using apollo::sensors::Pose;
 using apollo::cyber::Writer;
+using apollo::cyber::Reader;
 
 class LocalizationComponent : public Component<> {
  public:
@@ -54,6 +55,8 @@ class LocalizationComponent : public Component<> {
 
   std::future<void> tag_async_;
   std::atomic<bool> image_ready_ = {false};
+  apriltag_detector_t* td_ = nullptr;
+  apriltag_family_t* tf_ = nullptr;
 };
 
 CYBER_REGISTER_COMPONENT(LocalizationComponent);

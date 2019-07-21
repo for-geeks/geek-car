@@ -5,6 +5,8 @@ package apollo.perception;
 message LaneInfo {
   optional Coefficient left_lane = 1;
   optional Coefficient right_lane = 2;
+  optional Coefficient left_lane_view = 3;
+  optional Coefficient right_lane_view = 4;
 }
 
 message Coefficient {

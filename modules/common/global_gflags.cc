@@ -59,6 +59,12 @@ DEFINE_double(longitude_ki, 5.0, "ki");
 DEFINE_double(longitude_ff, 5.0, "ff");
 DEFINE_double(offset, 5.3, "ff");
 
+DEFINE_double(tagsize, 0.07, "tag size in meters");
+DEFINE_double(left_fx, 285.253, "ff");
+DEFINE_double(left_fy, 286.26, "ff");
+DEFINE_double(left_cx, 211.345, "ff");
+DEFINE_double(left_cy, 200.011, "ff");
+
 // TOOLS
 DEFINE_string(image_export_dir, "/home/raosiyue/out_test/",
               "tools image saver dir");
