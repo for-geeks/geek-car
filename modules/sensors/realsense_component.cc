@@ -119,17 +119,10 @@ bool RealsenseComponent::Init() {
     q_.enqueue(std::move(f));  // enqueue any new frames into q
   });
 
-  auto wo_snr = device_.first<rs2::wheel_odometer>();
-  std::ifstream calibrationFile(
-      "/home/raosiyue/apollo_lite/modules/sensors/conf/"
-      "calibration_odometry.json");
-  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
-                             std::istreambuf_iterator<char>());
-  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
+  // send vehicle speed to wheel odometry
+  WheelOdometry();
 
-  wo_snr.load_wheel_odometery_config(wo_calib);
-  wo_snr.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0});
-
+  // thread to handle frames
   async_result_ = cyber::Async(&RealsenseComponent::run, this);
   return true;
 }
@@ -215,6 +208,23 @@ void RealsenseComponent::Calibration() {
   cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
                                        cv::Size(848, 816), CV_16SC2, map1_,
                                        map2_);
+}
+
+void RealsenseComponent::WheelOdometry() {
+  auto wo_snr = device_.first<rs2::wheel_odometer>();
+  std::ifstream calibrationFile(
+      "/home/raosiyue/apollo_lite/modules/sensors/conf/"
+      "calibration_odometry.json");
+  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
+                             std::istreambuf_iterator<char>());
+  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
+
+  if (!wo_snr.load_wheel_odometery_config(wo_calib)) {
+    AERROR << "Failed to load wheel odometry config file.";
+  }
+  if (!wo_snr.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0})) {
+    AERROR << "Failed to send wheel odometry";
+  }
 }
 
 /**
