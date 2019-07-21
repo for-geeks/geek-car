@@ -24,6 +24,7 @@
 #pragma once
 
 #include <memory>
+#include "librealsense2/rs.hpp"
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
@@ -37,6 +38,7 @@ using apollo::cyber::Component;
 using apollo::localization::Tags;
 using apollo::sensors::Image;
 using apollo::sensors::Pose;
+using apollo::cyber::Writer;
 
 class LocalizationComponent : public Component<> {
  public:

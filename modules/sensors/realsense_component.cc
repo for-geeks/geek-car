@@ -37,8 +37,6 @@
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
-#include "cyber/proto/qos_profile.pb.h"
-#include "cyber/proto/role_attributes.pb.h"
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
 #include "modules/sensors/proto/sensors.pb.h"
@@ -49,10 +47,6 @@ namespace sensors {
 
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
-using apollo::cyber::proto::QosDurabilityPolicy;
-using apollo::cyber::proto::QosHistoryPolicy;
-using apollo::cyber::proto::QosReliabilityPolicy;
-using apollo::cyber::proto::RoleAttributes;
 using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
 using apollo::sensors::Image;
@@ -97,29 +91,10 @@ bool RealsenseComponent::Init() {
 
   Calibration();
 
-  // use quality of service to up pose channel reliability
-  RoleAttributes pose_attr;
-  pose_attr.set_channel_name(FLAGS_pose_channel);
-  auto qos = pose_attr.mutable_qos_profile();
-  qos->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
-  qos->set_depth(10);
-  qos->set_mps(30);
-  qos->set_reliability(QosReliabilityPolicy::RELIABILITY_RELIABLE);
-  qos->set_durability(QosDurabilityPolicy::DURABILITY_VOLATILE);
-
-  pose_writer_ = node_->CreateWriter<Pose>(pose_attr);
-
-  // use quality of service to up raw image channel reliability
-  RoleAttributes image_attr;
-  image_attr.set_channel_name(FLAGS_raw_image_channel);
-  auto qos_image = image_attr.mutable_qos_profile();
-  qos_image->set_history(QosHistoryPolicy::HISTORY_KEEP_LAST);
-  qos_image->set_depth(10);
-  qos_image->set_mps(30);
-  qos_image->set_reliability(QosReliabilityPolicy::RELIABILITY_RELIABLE);
-  qos_image->set_durability(QosDurabilityPolicy::DURABILITY_VOLATILE);
-
-  image_writer_ = node_->CreateWriter<Image>(image_attr);
+  pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
+  if (FLAGS_publish_raw_image) {
+    image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
+  }
 
   if (FLAGS_publish_acc) {
     acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
@@ -130,17 +105,28 @@ bool RealsenseComponent::Init() {
   }
 
   if (FLAGS_publish_compressed_image) {
-    // use quality of service to up image channel reliability
-    RoleAttributes compressed_image_attr;
-    compressed_image_attr.set_channel_name(FLAGS_compressed_image_channel);
-    compressed_image_attr.mutable_qos_profile()->CopyFrom(*qos_image);
     compressed_image_writer_ =
-        node_->CreateWriter<Image>(compressed_image_attr);
+        node_->CreateWriter<Image>(FLAGS_compressed_image_channel);
   }
+
+  chassis_reader_ = node_->CreateReader<Chassis>(
+		  FLAGS_chassis_channel,
+      [this](const std::shared_ptr<Chassis>& chassis) {
+        chassis_.Clear();
+        chassis_.CopyFrom(*chassis);
+      });
 
   sensor_.start([this](rs2::frame f) {
     q_.enqueue(std::move(f));  // enqueue any new frames into q
   });
+
+  auto wo_snr = device_.first<rs2::wheel_odometer>();
+  std::ifstream calibrationFile("/home/raosiyue/apollo_lite/modules/sensors/conf/calibration_odometry.json");
+  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),std::istreambuf_iterator<char>());
+  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
+
+  wo_snr.load_wheel_odometery_config(wo_calib);
+  wo_snr.send_wheel_odometry(0, 0, { chassis_.speed(),0,0 });
 
   async_result_ = cyber::Async(&RealsenseComponent::run, this);
   return true;
@@ -151,9 +137,7 @@ bool RealsenseComponent::Init() {
  * @return [description]
  */
 void RealsenseComponent::run() {
-  int times = 1;
   while (!cyber::IsShutdown()) {
-    std::cout << times << std::endl;
     // wait for device is ready. in case of device is busy
     if (!device_) {
       device_ = get_device();
@@ -186,7 +170,7 @@ void RealsenseComponent::run() {
       AINFO << "Accel:" << accel.x << ", " << accel.y << ", " << accel.z;
       OnAcc(accel, accel_frame.get_frame_number());
     } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
-               f.get_profile().stream_index() == 1 && FLAGS_publish_raw_image) {
+               f.get_profile().stream_index() == 1) {
       // left fisheye
       auto fisheye_frame = f.as<rs2::video_frame>();
 
@@ -206,7 +190,6 @@ void RealsenseComponent::run() {
         OnImage(new_size_img, fisheye_frame.get_frame_number());
       }
     }
-    times++;
   }
 }
 
@@ -240,16 +223,17 @@ void RealsenseComponent::Calibration() {
  * @return false
  */
 void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
-  auto image_proto = std::make_shared<Image>();
-  image_proto->set_frame_no(frame_no);
-  image_proto->set_height(dst.rows);
-  image_proto->set_width(dst.cols);
-  image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
-  image_proto->set_measurement_time(Time::Now().ToSecond());
-  auto m_size = dst.rows * dst.cols * dst.elemSize();
-  image_proto->set_data(dst.data, m_size);
-  image_writer_->Write(image_proto);
-
+  if (FLAGS_publish_raw_image) {
+    auto image_proto = std::make_shared<Image>();
+    image_proto->set_frame_no(frame_no);
+    image_proto->set_height(dst.rows);
+    image_proto->set_width(dst.cols);
+    image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+    image_proto->set_measurement_time(Time::Now().ToSecond());
+    auto m_size = dst.rows * dst.cols * dst.elemSize();
+    image_proto->set_data(dst.data, m_size);
+    image_writer_->Write(image_proto);
+  }
   if (FLAGS_publish_compressed_image) {
     CompressedImage(dst, frame_no);
   }
@@ -312,7 +296,10 @@ void RealsenseComponent::OnGyro(rs2_vector gyro, uint64 frame_no) {
 
 void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
   std::vector<uchar> data_encode;
-  cv::imencode(".jpeg", raw_image, data_encode);
+  std::vector<int> param = std::vector<int>(2);
+  param[0] = CV_IMWRITE_JPEG_QUALITY;
+  param[1] = 30;
+  cv::imencode(".jpeg", raw_image, data_encode, param);
   std::string str_encode(data_encode.begin(), data_encode.end());
 
   auto compressedimage = std::make_shared<Image>();

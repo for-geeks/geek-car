@@ -26,14 +26,15 @@
 #include <float.h>
 #include <math.h>
 #include "apriltag.h"
-#include "librealsense2/rs.hpp"
 #include "tag36h11.h"
+#include "opencv2/opencv.hpp"
 
 #include "modules/common/global_gflags.h"
 
 namespace apollo {
 namespace localization {
 
+using apollo::localization::Tag;
 using apollo::localization::Tags;
 
 inline rs2_quaternion quaternion_exp(rs2_vector v) {
@@ -80,7 +81,7 @@ bool LocalizationComponent::Init() {
 
   image_reader_ = node_->CreateReader<Image>(
       FLAGS_raw_image_channel, [this](const std::shared_ptr<Image>& image) {
-        image_ = image;
+        image_.CopyFrom(*image);
         // tell tag detection you can work now
         image_ready_.exchange(true);
       });
@@ -107,13 +108,24 @@ void LocalizationComponent::ApriltagDetection() {
   td->refine_edges = 1;
   td->decode_sharpening = 0.25;
 
-  zarray_t* detections = apriltag_detector_detect(td, image_);
 
-  if (!zarray_size(detections)) {
-    return;
-  }
+  cv::Mat new_image = cv::Mat(static_cast<int>(image_.height()),
+                              static_cast<int>(image_.width()), CV_8U,
+                              (void*)image_.data().c_str());
+  image_u8_t im = {
+    .width = new_image.cols,
+    .height = new_image.rows,
+    .stride = new_image.cols,
+    .buf = new_image.data
+  };
 
-  auto tags = std::make_ptr<Tags>();
+  zarray_t* detections = apriltag_detector_detect(td, &im);
+
+//  if (!zarray_size(detections)) {
+//    return;
+//  }
+
+  auto tags = std::make_shared<Tags>();
 
   for (int i = 0; i < zarray_size(detections); i++) {
     apriltag_detection_t* det;
@@ -123,18 +135,21 @@ void LocalizationComponent::ApriltagDetection() {
     printf("detection %3d: id (%2dx%2d)-%-4d, hamming %d, margin %8.3f\n", i,
            det->family->nbits, det->family->h, det->id, det->hamming,
            det->decision_margin);
-    auto tag = tags->mutable_tag();
 
-    tag->set_id(det->id);
-    tag->set_hamming(det->hamming);
-    tag->set_margin(det->decision_margin);
+    Tag tag;
+    
+    tag.set_id(det->id);
+    tag.set_hamming(det->hamming);
+    tag.set_margin(det->decision_margin);
 
-    auto family = tag->mutable_family();
+    auto family = tag.mutable_family();
     family->set_nbits(det->family->nbits);
     family->set_h(det->family->h);
+    auto next_tag = tags->add_tag();
+    next_tag->CopyFrom(tag);
   }
 
-  tag_writer_->Write(tags);
+  tags_writer_->Write(tags);
 
   apriltag_detections_destroy(detections);
 

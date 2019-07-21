@@ -1,6 +1,4 @@
-workspace(name = "apollo")
-
-# googletest (GTest and GMock)
+workspace(name = "apollo") # googletest (GTest and GMock)
 new_http_archive(
     name = "gtest",
     build_file = "third_party/gtest.BUILD",
@@ -68,5 +66,12 @@ new_local_repository(
 new_local_repository(
     name = "python27",
     build_file = "third_party/python27.BUILD",
+    path = "/usr",
+)
+
+
+new_local_repository(
+    name = "apriltag",
+    build_file = "third_party/apriltag.BUILD",
     path = "/usr",
 )

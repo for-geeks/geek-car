@@ -2,6 +2,17 @@ syntax = "proto2";
 
 package apollo.perception;
 
+message LaneInfo {
+  optional Coefficient left_lane = 1;
+  optional Coefficient right_lane = 2;
+}
+
+message Coefficient {
+  optional double a = 1;
+  optional double b = 2;
+  optional double c = 3;
+}
+
 message Lane {
   optional int32 id = 1;
 }

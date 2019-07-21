@@ -32,12 +32,14 @@
 
 #include "modules/common/global_gflags.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/control/proto/chassis.pb.h"
 
 namespace apollo {
 namespace sensors {
 
 using apollo::cyber::Component;
 using apollo::cyber::Writer;
+using apollo::control::Chassis;
 
 class RealsenseComponent : public Component<> {
  public:
@@ -52,6 +54,8 @@ class RealsenseComponent : public Component<> {
   void OnAcc(rs2_vector acc, uint64 frame_no);
   void OnGyro(rs2_vector gyro, uint64 frame_no);
   void CompressedImage(cv::Mat raw_image, uint64 frame_no);
+  
+  std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
@@ -59,6 +63,7 @@ class RealsenseComponent : public Component<> {
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
 
   std::shared_ptr<Writer<Image>> compressed_image_writer_ = nullptr;
+  Chassis chassis_;
 
   std::future<void> async_result_;
   rs2::device device_;  // realsense device

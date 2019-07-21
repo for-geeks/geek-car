@@ -2,15 +2,15 @@ load("//tools:cpplint.bzl", "cpplint")
 
 package(default_visibility = ["//visibility:public"])
 
-cc_binary(
-    name = "map",
-    srcs = [
-        "map.cc",
-    ],
-    linkopts = [
-        "-lrealsense",
-    ],
-)
+#cc_binary(
+#    name = "map",
+#    srcs = [
+#        "map.cc",
+#    ],
+#    linkopts = [
+#        "-lrealsense",
+#    ],
+#)
 
 cc_binary(
     name = "liblocalization_component.so",
@@ -31,6 +31,7 @@ cc_library(
     ],
     linkopts = [
         "-lrealsense2",
+	"-lopencv_core",
         "-lapriltag",
     ],
     deps = [
@@ -38,6 +39,7 @@ cc_library(
         "//modules/common:global_gflags",
         "//modules/localization/proto:localization_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
+	"@apriltag",
     ],
 )
 

@@ -49,8 +49,8 @@ DEFINE_string(control_coefficient, "/control_coefficient",
 DEFINE_bool(publish_acc, false, "publish acc data");
 DEFINE_bool(publish_gyro, false, "publish gyro data");
 DEFINE_bool(publish_pose, true, "publish pose data");
-DEFINE_bool(publish_raw_image, true, "publish raw gray image data");
-DEFINE_bool(publish_compressed_image, false, "publish raw gray image data");
+DEFINE_bool(publish_raw_image, false, "publish raw gray image data");
+DEFINE_bool(publish_compressed_image, true, "publish raw gray image data");
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");
