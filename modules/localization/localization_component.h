@@ -24,8 +24,8 @@
 #pragma once
 
 #include <memory>
-#include "librealsense2/rs.hpp"
 #include "apriltag.h"
+#include "librealsense2/rs.hpp"
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
@@ -36,10 +36,10 @@ namespace apollo {
 namespace localization {
 
 using apollo::cyber::Component;
+using apollo::cyber::Reader;
+using apollo::cyber::Writer;
 using apollo::localization::Tags;
 using apollo::sensors::Image;
-using apollo::cyber::Writer;
-using apollo::cyber::Reader;
 
 class LocalizationComponent : public Component<> {
  public:

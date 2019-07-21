@@ -2,19 +2,17 @@ syntax = "proto2";
 
 package apollo.localization;
 
+// AprilTag data structure
 message Family {
   optional uint32 nbits = 1;
   optional uint32 h = 2;
 }
-
-message Tag {
-  optional uint32 id = 1;
-  optional uint32 hamming = 2;
-  optional float margin = 3;
-  optional Family family = 4;
-  optional Pose pose = 5;
-}
-
+// To access the data, use data[i*cols+j] (row-major), or data[i+rows*j]
+// (column-major). For square matrices only one of rows/cols has to be stored.
+// Technically even in the rectangular case protobuf will know the length of the
+// data, and the other value can be derived.
+// Reference link:
+// https://stackoverflow.com/questions/6825196/protocol-buffers-store-an-double-array-1d-2d-and-3d
 message Matrix {
   optional uint32 rows = 1;
   optional uint32 cols = 2;
@@ -24,6 +22,14 @@ message Matrix {
 message Pose {
   optional Matrix R = 1;
   optional Matrix t = 2;
+}
+
+message Tag {
+  optional uint32 id = 1;
+  optional uint32 hamming = 2;
+  optional float margin = 3;
+  optional Family family = 4;
+  optional Pose pose = 5;
 }
 
 message Tags {
