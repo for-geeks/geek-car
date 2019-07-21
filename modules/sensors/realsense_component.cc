@@ -119,7 +119,7 @@ bool RealsenseComponent::Init() {
     q_.enqueue(std::move(f));  // enqueue any new frames into q
   });
 
-  // send vehicle speed to wheel odometry
+  // load_wheel_odometery_config
   WheelOdometry();
 
   // thread to handle frames
@@ -132,6 +132,7 @@ bool RealsenseComponent::Init() {
  * @return [description]
  */
 void RealsenseComponent::run() {
+  float norm_max = 0;
   while (!cyber::IsShutdown()) {
     // wait for device is ready. in case of device is busy
     if (!device_) {
@@ -149,6 +150,19 @@ void RealsenseComponent::run() {
       auto pose_frame = f.as<rs2::pose_frame>();
       auto pose_data = pose_frame.get_pose_data();
       AINFO << "pose " << pose_data.translation;
+
+      float norm = sqrt(pose_data.translation.x * pose_data.translation.x +
+                        pose_data.translation.y * pose_data.translation.y +
+                        pose_data.translation.z * pose_data.translation.z);
+      if (norm > norm_max) norm_max = norm;
+
+      ADEBUG << "norm_max:" << norm_max;
+
+      // send vehicle speed to wheel odometry
+      if (!wheel_odometry_sensor_.send_wheel_odometry(
+              0, 0, {chassis_.speed(), 0, 0})) {
+        AERROR << "Failed to send wheel odometry";
+      }
       if (pose_frame.get_frame_number() % 5 == 0) {
         OnPose(pose_data, pose_frame.get_frame_number());
       }
@@ -211,7 +225,7 @@ void RealsenseComponent::Calibration() {
 }
 
 void RealsenseComponent::WheelOdometry() {
-  auto wo_snr = device_.first<rs2::wheel_odometer>();
+  auto wheel_odometry_sensor_ = device_.first<rs2::wheel_odometer>();
   std::ifstream calibrationFile(
       "/home/raosiyue/apollo_lite/modules/sensors/conf/"
       "calibration_odometry.json");
@@ -219,11 +233,8 @@ void RealsenseComponent::WheelOdometry() {
                              std::istreambuf_iterator<char>());
   const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
 
-  if (!wo_snr.load_wheel_odometery_config(wo_calib)) {
+  if (!wheel_odometry_sensor_.load_wheel_odometery_config(wo_calib)) {
     AERROR << "Failed to load wheel odometry config file.";
-  }
-  if (!wo_snr.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0})) {
-    AERROR << "Failed to send wheel odometry";
   }
 }
 

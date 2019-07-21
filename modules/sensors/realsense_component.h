@@ -69,6 +69,7 @@ class RealsenseComponent : public Component<> {
   std::future<void> async_result_;
   rs2::device device_;  // realsense device
   rs2::sensor sensor_;  // sensor include imu and camera;
+  rs2::sensor wheel_odometry_sensor_;
 
   uint32_t device_wait_ = 2000;  // ms
   uint32_t spin_rate_ = 200;     // ms
