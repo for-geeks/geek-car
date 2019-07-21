@@ -29,7 +29,8 @@ apt-get -y update && \
     python-psutil \
     python-scipy \
     python-software-properties \
-    python3-psutil
+    python3-psutil \
+    python-numpy
 
 pip install -r py27_requirements.txt
 

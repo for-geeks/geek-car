@@ -51,11 +51,11 @@ bool ChassisComponent::Init() {
 
   // control message action
   async_action_ = cyber::Async(&ChassisComponent::Action, this);
-  //async_action_.get();
-  //uint32 chassis feedback
+  // async_action_.get();
+  // uint32 chassis feedback
   OnChassis();
-  //async_feedback_ = cyber::Async(&ChassisComponent::OnChassis, this);
-  //async_feedback_.get();
+  // async_feedback_ = cyber::Async(&ChassisComponent::OnChassis, this);
+  // async_feedback_.get();
   return true;
 }
 
@@ -68,7 +68,7 @@ void ChassisComponent::Action() {
   while (!cyber::IsShutdown()) {
     if (!cmd_.has_steer_angle() || !cmd_.has_throttle()) {
       AINFO << "control message is not ready";
-      //cyber::SleepFor(std::chrono::milliseconds(message_wait_));
+      // cyber::SleepFor(std::chrono::milliseconds(message_wait_));
       continue;
     } else {
       ADEBUG << "Message Origin: " << cmd_.DebugString();

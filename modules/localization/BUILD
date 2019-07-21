@@ -31,7 +31,7 @@ cc_library(
     ],
     linkopts = [
         "-lrealsense2",
-	"-lopencv_core",
+        "-lopencv_core",
         "-lapriltag",
     ],
     deps = [
@@ -39,7 +39,7 @@ cc_library(
         "//modules/common:global_gflags",
         "//modules/localization/proto:localization_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
-	"@apriltag",
+        "@apriltag",
     ],
 )
 

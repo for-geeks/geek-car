@@ -110,8 +110,7 @@ bool RealsenseComponent::Init() {
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
-		  FLAGS_chassis_channel,
-      [this](const std::shared_ptr<Chassis>& chassis) {
+      FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis>& chassis) {
         chassis_.Clear();
         chassis_.CopyFrom(*chassis);
       });
@@ -121,12 +120,15 @@ bool RealsenseComponent::Init() {
   });
 
   auto wo_snr = device_.first<rs2::wheel_odometer>();
-  std::ifstream calibrationFile("/home/raosiyue/apollo_lite/modules/sensors/conf/calibration_odometry.json");
-  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),std::istreambuf_iterator<char>());
+  std::ifstream calibrationFile(
+      "/home/raosiyue/apollo_lite/modules/sensors/conf/"
+      "calibration_odometry.json");
+  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
+                             std::istreambuf_iterator<char>());
   const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
 
   wo_snr.load_wheel_odometery_config(wo_calib);
-  wo_snr.send_wheel_odometry(0, 0, { chassis_.speed(),0,0 });
+  wo_snr.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0});
 
   async_result_ = cyber::Async(&RealsenseComponent::run, this);
   return true;
