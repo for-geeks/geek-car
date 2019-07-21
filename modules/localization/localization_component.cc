@@ -53,6 +53,8 @@ bool LocalizationComponent::Init() {
                << " height:" << image_.height() << " width:" << image_.width();
         // tell tag detection you can work now
         // image_ready_.exchange(true);
+
+        // TODO(all) config
         td_->quad_decimate = 2.0;
         td_->quad_sigma = 0.0;
         td_->refine_edges = 1;
@@ -95,7 +97,6 @@ bool LocalizationComponent::Init() {
           matd_print(pose.t, "%15f");
 
           Tag tag;
-
           tag.set_id(det->id);
           tag.set_hamming(det->hamming);
           tag.set_margin(det->decision_margin);

@@ -54,9 +54,10 @@ bash ${BUILD_PATH}/docker/build/installers/install_bazel.sh
 bash ${BUILD_PATH}/docker/build/installers/install_gflags_glog.sh
 bash ${BUILD_PATH}/docker/build/installers/install_protobuf.sh
 bash ${BUILD_PATH}/docker/build/installers/install_bazel_packages.sh
+bash ${BUILD_PATH}/docker/build/installers/install_conda.sh
+bash ${BUILD_PATH}/docker/build/installers/install_apriltag.sh
 bash ${BUILD_PATH}/docker/build/installers/install_google_styleguide.sh
 #bash ${BUILD_PATH}/docker/build/installers/install_osqp.sh
-bash ${BUILD_PATH}/docker/build/installers/install_conda.sh
 
 # Add Bionic source
 echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic main restricted" > /etc/apt/sources.list
@@ -116,5 +117,4 @@ apt-get install librealsense2-dev
 apt-get install librealsense2-dbg
 
 bash ${BUILD_PATH}/docker/build/installers/install_fast-rtps.sh
-bash ${BUILD_PATH}/docker/build/installers/install_apriltag.sh
 #bash ${BUILD_PATH}/docker/build/installers/install_pcl.sh
