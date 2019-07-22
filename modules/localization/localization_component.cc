@@ -41,7 +41,7 @@ using apollo::sensors::Image;
 
 // rotation matrix to euler angles
 // https://www.learnopencv.com/rotation-matrix-to-euler-angles/
-void rotation_validation(matd_t *R) {
+void rotation_validation(matd_t* R) {
   double r21 = MATD_EL(R, 2, 1);
   double r22 = MATD_EL(R, 2, 2);
   double sy = sqrt(r21 * r21 + r22 * r22);
@@ -54,128 +54,121 @@ void rotation_validation(matd_t *R) {
          << " z:" << theta_z;
 }
 
+// conversion  matrix pointer to proto
+void matd_t2proto(matd_t* mat) {
+  for (size_t row = 0; row < mat->nrows; ++row) {
+    for (size_t c = 0; c < mat->ncols; ++c) {
+      r->add_element(MATD_EL(mat, row, c));
+    }
+  }
+}
+
 bool LocalizationComponent::Init() {
   // pose_reader_ = node_->CreateReader<Pose>(
   //     FLAGS_pose_channel, [this](const std::shared_ptr<Pose>& pose) {
   //       predicted_pose_ = predict_pose(pose);
   //     });
 
-  image_reader_ = node_->CreateReader<Image>(
-      FLAGS_raw_image_channel, [this](const std::shared_ptr<Image>& image) {
-        image_.Clear();
-        image_.CopyFrom(*image);
-        ADEBUG << "Read image: in call back:" << image_.frame_no()
-               << " height:" << image_.height() << " width:" << image_.width();
-        // tell tag detection you can work now
-        // image_ready_.exchange(true);
-
-        // TODO(all) config
-        td_->quad_decimate = 2.0;
-        td_->quad_sigma = 0.0;
-        td_->refine_edges = 1;
-        td_->decode_sharpening = 0.25;
-
-        cv::Mat new_image = cv::Mat(static_cast<int>(image_.height()),
-                                    static_cast<int>(image_.width()), CV_8U,
-                                    (void*)image_.data().c_str());
-        image_u8_t im = {.width = new_image.cols,
-                         .height = new_image.rows,
-                         .stride = new_image.cols,
-                         .buf = new_image.data};
-
-        zarray_t* detections = apriltag_detector_detect(td_, &im);
-        ADEBUG << "detected tags:" << zarray_size(detections);
-
-        auto tags = std::make_shared<Tags>();
-
-        for (int i = 0; i < zarray_size(detections); i++) {
-          apriltag_detection_t* det;
-          zarray_get(detections, i, &det);
-
-          // Do something with det here
-          printf("detection %3d: id (%2dx%2d)-%-4d, hamming %d, margin %8.3f\n",
-                 i, det->family->nbits, det->family->h, det->id, det->hamming,
-                 det->decision_margin);
-          apriltag_detection_info_t info;
-          info.det = det;
-          info.tagsize = FLAGS_tagsize;
-          info.fx = FLAGS_left_fx;
-          info.fy = FLAGS_left_fy;
-          info.cx = FLAGS_left_cx;
-          info.cy = FLAGS_left_cy;
-
-          apriltag_pose_t pose;
-          double err = estimate_tag_pose(&info, &pose);
-	  ADEBUG << "detect err:" << err;
-          ADEBUG << "estimate tag pose : R, ";
-          matd_print(pose.R, "%15f");
-          ADEBUG << "estimate tag pose : t, ";
-          matd_print(pose.t, "%15f");
-
-          rotation_validation(pose.R);
-
-          Tag tag;
-          tag.set_id(det->id);
-          tag.set_hamming(det->hamming);
-          tag.set_margin(det->decision_margin);
-
-          auto family = tag.mutable_family();
-          family->set_nbits(det->family->nbits);
-          family->set_h(det->family->h);
-
-          auto r = tag.mutable_pose()->mutable_r();
-	  r->set_rows(pose.R->nrows);
-	  r->set_cols(pose.R->ncols);
-          //R->set_rows(pose.R->nrows);
-          //R->set_cols(pose.R->ncols);
-          for (size_t row = 0; row < pose.R->nrows; ++row) {
-            for (size_t c = 0; c < pose.R->ncols; ++c) {
-              r->add_element(MATD_EL(pose.R, row, c));
-            }
-          }
-
-	  auto t = tag.mutable_pose()->mutable_t();
-	  t->set_rows(pose.t->nrows);
-	  t->set_cols(pose.t->ncols);
-
-          for (size_t r = 0; r < pose.t->nrows; ++r) {
-            for (size_t c = 0; c < pose.t->ncols; ++c) {
-              t->add_element(MATD_EL(pose.t, r, c));
-            }
-          }
-
-	  auto p_proto = tag.mutable_pose();
-	  p_proto->set_error(err);
-
-          auto next_tag = tags->add_tag();
-          next_tag->CopyFrom(tag);
-        }
-        apriltag_detections_destroy(detections);
-        tags_writer_->Write(tags);
-      });
-
-  tags_writer_ = node_->CreateWriter<Tags>(FLAGS_tags_channel);
   td_ = apriltag_detector_create();
   tf_ = tag36h11_create();
 
   apriltag_detector_add_family(td_, tf_);
-  ApriltagDetection();
+
+  image_reader_ = node_->CreateReader<Image>(
+      FLAGS_raw_image_channel, [this](const std::shared_ptr<Image>& image) {
+        this->ApriltagDetection(image);
+      });
+
+  tags_writer_ = node_->CreateWriter<Tags>(FLAGS_tags_channel);
+
   return true;
 }
 
-void LocalizationComponent::ApriltagDetection() {
-  while (!cyber::IsShutdown()) {
-    if (!image_.has_data()) {
-      ADEBUG << "IMAGE is not ready";
-      return;
+void LocalizationComponent::ApriltagDetection(
+    const std::shared_ptr<Image>& image) {
+  ADEBUG << "Read image: in call back:" << image.frame_no()
+         << " height:" << image.height() << " width:" << image.width();
+  // TODO(all) config
+  td_->quad_decimate = 2.0;
+  td_->quad_sigma = 0.0;
+  td_->refine_edges = 1;
+  td_->decode_sharpening = 0.25;
+
+  cv::Mat new_image =
+      cv::Mat(static_cast<int>(image.height()), static_cast<int>(image.width()),
+              CV_8U, (void*)image.data().c_str());
+  image_u8_t im = {.width = new_image.cols,
+                   .height = new_image.rows,
+                   .stride = new_image.cols,
+                   .buf = new_image.data};
+
+  zarray_t* detections = apriltag_detector_detect(td_, &im);
+  ADEBUG << "detected Apriltags:" << zarray_size(detections);
+
+  auto tags = std::make_shared<Tags>();
+
+  for (int i = 0; i < zarray_size(detections); i++) {
+    apriltag_detection_t* det;
+    zarray_get(detections, i, &det);
+
+    // Do something with det here
+    printf("detection %3d: id (%2dx%2d)-%-4d, hamming %d, margin %8.3f\n", i,
+           det->family->nbits, det->family->h, det->id, det->hamming,
+           det->decision_margin);
+    apriltag_detection_info_t info;
+    info.det = det;
+    info.tagsize = FLAGS_tagsize;
+    info.fx = FLAGS_left_fx;
+    info.fy = FLAGS_left_fy;
+    info.cx = FLAGS_left_cx;
+    info.cy = FLAGS_left_cy;
+
+    apriltag_pose_t pose;
+    double err = estimate_tag_pose(&info, &pose);
+    ADEBUG << "detect err:" << err;
+    ADEBUG << "estimate tag pose : R, ";
+    matd_print(pose.R, "%15f");
+    ADEBUG << "estimate tag pose : t, ";
+    matd_print(pose.t, "%15f");
+
+    rotation_validation(pose.R);
+
+    Tag tag;
+    tag.set_id(det->id);
+    tag.set_hamming(det->hamming);
+    tag.set_margin(det->decision_margin);
+
+    auto family = tag.mutable_family();
+    family->set_nbits(det->family->nbits);
+    family->set_h(det->family->h);
+
+    auto r = tag.mutable_pose()->mutable_r();
+    r->set_rows(pose.R->nrows);
+    r->set_cols(pose.R->ncols);
+    for (size_t row = 0; row < pose.R->nrows; ++row) {
+      for (size_t c = 0; c < pose.R->ncols; ++c) {
+        r->add_element(MATD_EL(pose.R, row, c));
+      }
     }
-    // if image not ready, exit directly
-    ADEBUG << "image_ready_:" << image_ready_;
-    ADEBUG << image_.DebugString();
-    // if (!image_ready_.load()) {
-    //  return;
-    //}
+
+    auto t = tag.mutable_pose()->mutable_t();
+    t->set_rows(pose.t->nrows);
+    t->set_cols(pose.t->ncols);
+
+    for (size_t r = 0; r < pose.t->nrows; ++r) {
+      for (size_t c = 0; c < pose.t->ncols; ++c) {
+        t->add_element(MATD_EL(pose.t, r, c));
+      }
+    }
+
+    auto p_proto = tag.mutable_pose();
+    p_proto->set_error(err);
+
+    auto next_tag = tags->add_tag();
+    next_tag->CopyFrom(tag);
   }
+  apriltag_detections_destroy(detections);
+  tags_writer_->Write(tags);
 }
 
 LocalizationComponent::~LocalizationComponent() {
@@ -185,7 +178,6 @@ LocalizationComponent::~LocalizationComponent() {
     tag36h11_destroy(tf_);
   }
 }
-
 
 }  // namespace localization
 }  // namespace apollo

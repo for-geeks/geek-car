@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+package apollo.localization;
+///////////////////////////////////////////////////////////////
+// User-configurable parameters.
+
+message ApriltagDetection {
+  // How many threads should be used?
+  optional uint32 threads = 1;
+  optional float quad_decimate = 2 [default = 2.0];
+  optional float quad_sigma = 3 [default = 0.0];
+  optional uint32 refine_edges = 4 [default = 1];
+  optional double decode_sharpening = 5 [default = 0.25];
+  optional int32 debug = 6 [default = 0];
+}

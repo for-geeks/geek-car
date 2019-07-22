@@ -16,6 +16,7 @@ message Family {
 message Matrix {
   optional uint32 rows = 1;
   optional uint32 cols = 2;
+  // get data element[i*cols+j]
   repeated double element = 3;
 }
 
