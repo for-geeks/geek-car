@@ -20,8 +20,9 @@ message Matrix {
 }
 
 message Pose {
-  optional Matrix R = 1;
+  optional Matrix r = 1;
   optional Matrix t = 2;
+  optional double error = 3;
 }
 
 message Tag {

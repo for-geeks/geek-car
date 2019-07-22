@@ -39,6 +39,21 @@ using apollo::localization::Tag;
 using apollo::localization::Tags;
 using apollo::sensors::Image;
 
+// rotation matrix to euler angles
+// https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+void rotation_validation(matd_t *R) {
+  double r21 = MATD_EL(R, 2, 1);
+  double r22 = MATD_EL(R, 2, 2);
+  double sy = sqrt(r21 * r21 + r22 * r22);
+
+  double theta_x = atan2(MATD_EL(R, 2, 1), MATD_EL(R, 2, 2));
+  double theta_y = atan2(-MATD_EL(R, 2, 0), sy);
+  double theta_z = atan2(MATD_EL(R, 1, 0), MATD_EL(R, 0, 0));
+
+  ADEBUG << "euler angles is, x:" << theta_x << " y:" << theta_y
+         << " z:" << theta_z;
+}
+
 bool LocalizationComponent::Init() {
   // pose_reader_ = node_->CreateReader<Pose>(
   //     FLAGS_pose_channel, [this](const std::shared_ptr<Pose>& pose) {
@@ -91,6 +106,7 @@ bool LocalizationComponent::Init() {
 
           apriltag_pose_t pose;
           double err = estimate_tag_pose(&info, &pose);
+	  ADEBUG << "detect err:" << err;
           ADEBUG << "estimate tag pose : R, ";
           matd_print(pose.R, "%15f");
           ADEBUG << "estimate tag pose : t, ";
@@ -107,25 +123,29 @@ bool LocalizationComponent::Init() {
           family->set_nbits(det->family->nbits);
           family->set_h(det->family->h);
 
-          Matrix R, t;
-          R->set_rows(pose.R.nrows);
-          R->set_cols(pose.R.ncols);
-          for (int r = 0; r < pose.R.nrows; ++r) {
-            for (int c = 0; c < pose.R.ncols; ++c) {
-              R->add_element(MATD_EL(pose.R, r, c));
+          auto r = tag.mutable_pose()->mutable_r();
+	  r->set_rows(pose.R->nrows);
+	  r->set_cols(pose.R->ncols);
+          //R->set_rows(pose.R->nrows);
+          //R->set_cols(pose.R->ncols);
+          for (size_t row = 0; row < pose.R->nrows; ++row) {
+            for (size_t c = 0; c < pose.R->ncols; ++c) {
+              r->add_element(MATD_EL(pose.R, row, c));
             }
           }
 
-          t->set_rows(pose.t.nrows);
-          t->set_cols(pose.t.ncols);
-          for (int r = 0; r < pose.t.nrows; ++r) {
-            for (int c = 0; c < pose.t.ncols; ++r) {
+	  auto t = tag.mutable_pose()->mutable_t();
+	  t->set_rows(pose.t->nrows);
+	  t->set_cols(pose.t->ncols);
+
+          for (size_t r = 0; r < pose.t->nrows; ++r) {
+            for (size_t c = 0; c < pose.t->ncols; ++c) {
               t->add_element(MATD_EL(pose.t, r, c));
             }
           }
-          auto pose = tag.mutable_pose();
-          pose->set_R(R);
-          pose->set_t(t);
+
+	  auto p_proto = tag.mutable_pose();
+	  p_proto->set_error(err);
 
           auto next_tag = tags->add_tag();
           next_tag->CopyFrom(tag);
@@ -166,20 +186,6 @@ LocalizationComponent::~LocalizationComponent() {
   }
 }
 
-// rotation matrix to euler angles
-// https://www.learnopencv.com/rotation-matrix-to-euler-angles/
-void rotation_validation(matd* pose.R) {
-  double r21 = MATD_EL(pose.R, 2, 1);
-  double r22 = MATD_EL(pose.R, 2, 2);
-  double sy = sqrt(r21 * r21 + r22 * r22);
-
-  double theta_x = atan2(MATD_EL(pose.R, 2, 1), MATD_EL(pose.R, 2, 2));
-  double theta_y = atan2(-MATD_EL(pose.R, 2, 0), sy);
-  double theta_z = atan2(MATD_EL(pose.R, 1, 0), MATD_EL(pose.R, 0, 0));
-
-  ADEBUG << "euler angles is, x:" << theta_x << " y:" << theta_y
-         << " z:" << theta_z;
-}
 
 }  // namespace localization
 }  // namespace apollo
