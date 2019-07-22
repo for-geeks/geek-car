@@ -96,6 +96,8 @@ bool LocalizationComponent::Init() {
           ADEBUG << "estimate tag pose : t, ";
           matd_print(pose.t, "%15f");
 
+          rotation_validation(pose.R);
+
           Tag tag;
           tag.set_id(det->id);
           tag.set_hamming(det->hamming);
@@ -162,6 +164,21 @@ LocalizationComponent::~LocalizationComponent() {
     apriltag_detector_destroy(td_);
     tag36h11_destroy(tf_);
   }
+}
+
+// rotation matrix to euler angles
+// https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+void rotation_validation(matd* pose.R) {
+  double r21 = MATD_EL(pose.R, 2, 1);
+  double r22 = MATD_EL(pose.R, 2, 2);
+  double sy = sqrt(r21 * r21 + r22 * r22);
+
+  double theta_x = atan2(MATD_EL(pose.R, 2, 1), MATD_EL(pose.R, 2, 2));
+  double theta_y = atan2(-MATD_EL(pose.R, 2, 0), sy);
+  double theta_z = atan2(MATD_EL(pose.R, 1, 0), MATD_EL(pose.R, 0, 0));
+
+  ADEBUG << "euler angles is, x:" << theta_x << " y:" << theta_y
+         << " z:" << theta_z;
 }
 
 }  // namespace localization

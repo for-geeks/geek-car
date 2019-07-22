@@ -50,12 +50,12 @@ ln -s /usr/bin/g++-4.8 /etc/alternatives/g++
 ln -s /etc/alternatives/g++ /usr/bin/g++
 
 # Run installer
+bash ${BUILD_PATH}/docker/build/installers/install_conda.sh
+bash ${BUILD_PATH}/docker/build/installers/install_apriltag.sh
 bash ${BUILD_PATH}/docker/build/installers/install_bazel.sh
 bash ${BUILD_PATH}/docker/build/installers/install_gflags_glog.sh
 bash ${BUILD_PATH}/docker/build/installers/install_protobuf.sh
 bash ${BUILD_PATH}/docker/build/installers/install_bazel_packages.sh
-bash ${BUILD_PATH}/docker/build/installers/install_conda.sh
-bash ${BUILD_PATH}/docker/build/installers/install_apriltag.sh
 bash ${BUILD_PATH}/docker/build/installers/install_google_styleguide.sh
 #bash ${BUILD_PATH}/docker/build/installers/install_osqp.sh
 
