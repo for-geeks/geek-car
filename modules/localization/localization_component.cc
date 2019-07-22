@@ -55,7 +55,7 @@ void rotation_validation(matd_t* R) {
 }
 
 // conversion  matrix pointer to proto
-void matd_t2proto(matd_t* mat) {
+void matd_t2proto(matd_t* mat, Matrix* r) {
   for (size_t row = 0; row < mat->nrows; ++row) {
     for (size_t c = 0; c < mat->ncols; ++c) {
       r->add_element(MATD_EL(mat, row, c));
@@ -86,8 +86,8 @@ bool LocalizationComponent::Init() {
 
 void LocalizationComponent::ApriltagDetection(
     const std::shared_ptr<Image>& image) {
-  ADEBUG << "Read image: in call back:" << image.frame_no()
-         << " height:" << image.height() << " width:" << image.width();
+  ADEBUG << "Read image: in call back:" << image->frame_no()
+         << " height:" << image->height() << " width:" << image->width();
   // TODO(all) config
   td_->quad_decimate = 2.0;
   td_->quad_sigma = 0.0;
@@ -95,8 +95,8 @@ void LocalizationComponent::ApriltagDetection(
   td_->decode_sharpening = 0.25;
 
   cv::Mat new_image =
-      cv::Mat(static_cast<int>(image.height()), static_cast<int>(image.width()),
-              CV_8U, (void*)image.data().c_str());
+      cv::Mat(static_cast<int>(image->height()), static_cast<int>(image->width()),
+              CV_8U, (void*)image->data().c_str());
   image_u8_t im = {.width = new_image.cols,
                    .height = new_image.rows,
                    .stride = new_image.cols,
