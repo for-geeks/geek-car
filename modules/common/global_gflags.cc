@@ -60,10 +60,10 @@ DEFINE_double(longitude_ff, 5.0, "ff");
 DEFINE_double(offset, 5.3, "ff");
 
 DEFINE_double(tagsize, 0.07, "tag size in meters");
-DEFINE_double(left_fx, 285.253, "ff");
-DEFINE_double(left_fy, 286.26, "ff");
-DEFINE_double(left_cx, 211.345, "ff");
-DEFINE_double(left_cy, 200.011, "ff");
+DEFINE_double(left_fx, 142.6265, "fx");
+DEFINE_double(left_fy, 143.13, "fy");
+DEFINE_double(left_cx, 211.345, "cx");
+DEFINE_double(left_cy, 200.011, "cy");
 
 // TOOLS
 DEFINE_string(image_export_dir, "/home/raosiyue/out_test/",
