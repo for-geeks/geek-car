@@ -24,7 +24,6 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 echo "Build and install apriltag 3"
 
 git clone https://github.com/AprilRobotics/apriltag
-sudo works
 pushd apriltag
   git apply ../apriltag.diff
   cmake .
