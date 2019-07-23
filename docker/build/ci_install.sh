@@ -3,8 +3,8 @@ apt clean
 apt update -y && \
     apt install -y \
     build-essential \
-    gcc-4.8 \
-    g++-4.8 \
+    gcc-4.9 \
+    g++-4.9 \
     cmake \
     curl \
     git \
@@ -43,10 +43,10 @@ apt update -y && \
 
 #install gcc 4.8.5
 rm -f /usr/bin/gcc
-ln -s /usr/bin/gcc-4.8 /etc/alternatives/gcc
+ln -s /usr/bin/gcc-4.9 /etc/alternatives/gcc
 ln -s /etc/alternatives/gcc /usr/bin/gcc
 rm -f /usr/bin/g++
-ln -s /usr/bin/g++-4.8 /etc/alternatives/g++
+ln -s /usr/bin/g++-4.9 /etc/alternatives/g++
 ln -s /etc/alternatives/g++ /usr/bin/g++
 
 # Run installer
