@@ -23,21 +23,11 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 
 echo "Build and install apriltag 3"
 
-#git clone https://github.com/AprilRobotics/apriltag
-# sudo works
-# pushd apriltag
-#   make
-#   make install
-# popd
-# rm -fr apriltag
-
-
-wget https://github.com/AprilRobotics/apriltag/archive/3.1.1.tar.gz
-
-tar zxzf 3.1.1.tar.gz
-mkdir apriltag-build
-pushd apriltag-build
-cmake -DCMAKE_INSTALL_PREFIX=~/apriltag/ ../apriltag-3.1.1
-make install
+git clone https://github.com/AprilRobotics/apriltag
+sudo works
+pushd apriltag
+  git apply ../apriltag.diff
+  cmake .
+  make install
 popd
-rm -rf apriltag-3.1.1
+rm -fr apriltag
