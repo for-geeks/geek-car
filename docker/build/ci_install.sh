@@ -89,6 +89,7 @@ apt install -y --allow-downgrades \
     libopencv-imgproc-dev=2.4.8+dfsg1-2ubuntu1 \
     libopencv-highgui-dev=2.4.8+dfsg1-2ubuntu1 \
     libopencv-flann-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-photo-dev=2.4.8+dfsg1-2ubuntu1 \
     libgdal-dev \
     libvtk6-dev \
     libvtk6.3 \
