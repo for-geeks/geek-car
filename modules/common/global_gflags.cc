@@ -68,7 +68,7 @@ DEFINE_double(left_cx, 211.345, "cx");
 DEFINE_double(left_cy, 200.011, "cy");
 
 // IMAGE
-DECLARE_int32(compress_rate, '30', 'compressed image rate');
+DEFINE_int32(compress_rate, 30, "compressed image rate");
 
 // TOOLS
 DEFINE_string(image_export_dir, "/home/raosiyue/out_test/",

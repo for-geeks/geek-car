@@ -94,10 +94,15 @@ void LocalizationComponent::ApriltagDetection(
   td_->refine_edges = 1;
   td_->decode_sharpening = 0.25;
 
+  cv::Mat new_image;
+
   if (FLAGS_use_compressed_image_to_detect_tag) {
-    cv::Mat new_image = cv::imdecode(Mat(image->data()), CV_8U);
+    cv::Mat compressed_image = cv::Mat(static_cast<int>(image->height()),
+                                static_cast<int>(image->width()), CV_8U,
+                                (void*)image->data().c_str());
+    new_image = cv::imdecode(compressed_image, CV_8U);
   } else {
-    cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
+    new_image = cv::Mat(static_cast<int>(image->height()),
                                 static_cast<int>(image->width()), CV_8U,
                                 (void*)image->data().c_str());
   }
