@@ -17,10 +17,12 @@ map_x_max = 10
 map_y_min = 0
 map_y_max = 20
 
+
 class Point:
     """
     表示一个点
     """
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -40,9 +42,10 @@ class AStar:
             self.point = point  # 自己的坐标
             self.father = None  # 父节点
             self.g = g  # g值，g值在用到的时候会重新算
-            #self.h = (abs(endPoint.x - point.x) + abs(endPoint.y - point.y)) * 10  # 计算h值
-            #self.h = int((pow(abs(endPoint.x - point.x), 2) + pow(abs(endPoint.y - point.y), 2)) ** 0.5)# 计算h值,使用欧式距离
-            self.h = pow(abs(endPoint.x - point.x), 2) + pow(abs(endPoint.y - point.y), 2)  # 计算h值
+            # self.h = (abs(endPoint.x - point.x) + abs(endPoint.y - point.y)) * 10  # 计算h值
+            # self.h = int((pow(abs(endPoint.x - point.x), 2) + pow(abs(endPoint.y - point.y), 2)) ** 0.5)# 计算h值,使用欧式距离
+            self.h = pow(abs(endPoint.x - point.x), 2) + \
+                pow(abs(endPoint.y - point.y), 2)  # 计算h值
 
     def __init__(self, startPoint, endPoint):
         """
@@ -113,7 +116,8 @@ class AStar:
         else:
             step = 14
         # 如果不在openList中，就把它加入openlist
-        currentNode = self.pointInOpenList(Point(minF.point.x + offsetX, minF.point.y + offsetY))
+        currentNode = self.pointInOpenList(
+            Point(minF.point.x + offsetX, minF.point.y + offsetY))
         if not currentNode:
             currentNode = AStar.Node(Point(minF.point.x + offsetX, minF.point.y + offsetY), self.endPoint,
                                      g=minF.g + step)
@@ -185,15 +189,17 @@ class AStar:
             if len(self.openList) == 0:
                 return None
 
+
 def planning_reader():
     test_node = cyber.Node("planning_a_star_py")
     test_node.create_reader("/planning/target", PlanningInfo, callback)
     return test_node
 
+
 def callback(data):
 
     global obslist, map_w, map_h, map_x_min, map_x_max, map_y_min, map_y_max, planning_path
-    obslist=[]
+    obslist = []
 
     planning_path = Trajectory()
 
@@ -219,7 +225,7 @@ def callback(data):
     pathList = aStar.start()
     time_end = time.time()
     print('totally cost', time_end - time_start)
-    
+
     global planning_points
 
     for path_point in pathList:
@@ -231,6 +237,7 @@ def callback(data):
     global send_flag
     send_flag = 1
 
+
 def planning_router(node):
     g_count = 1
     writer = node.create_writer("/planning/a_star", Trajectory)
@@ -241,6 +248,7 @@ def planning_router(node):
             global line_msg
             writer.write(planning_path)
             send_flag = 0
+
 
 def test():
     global obslist, map_w, map_h, map_x_min, map_x_max, map_y_min, map_y_max
@@ -265,9 +273,10 @@ def test():
     pathList = aStar.start()
 
     for point in pathList:
-        print('('+ str(point.x) + ',' + str(point.y) + ')')
+        print('(' + str(point.x) + ',' + str(point.y) + ')')
 
     print(pathList)
+
 
 if __name__ == '__main__':
 
@@ -278,4 +287,4 @@ if __name__ == '__main__':
     cyber_node.spin()
     cyber.shutdown()
 
-    #test()
+    # test()
