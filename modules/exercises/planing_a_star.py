@@ -31,7 +31,6 @@ class Point:
         return False
 
     def __str__(self):
-        # return "x:"+str(self.x)+",y:"+str(self.y)
         return '(x:{}, y:{})'.format(self.x, self.y)
 
 
@@ -228,8 +227,6 @@ def callback(data):
         point_xy.y = path_point.y * 0.05
 
         planning_path.point.append(point_xy)
-
-        #planning_points.CopyFrom(point_xy)
 
     global send_flag
     send_flag = 1
