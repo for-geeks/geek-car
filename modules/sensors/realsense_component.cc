@@ -32,8 +32,8 @@
 #include <vector>
 
 #include "librealsense2/rs.hpp"
-#include "opencv2/calib3d.hpp"
 #include "opencv2/opencv.hpp"
+#include "opencv2/imgproc.hpp"
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"

@@ -94,9 +94,9 @@ void LocalizationComponent::ApriltagDetection(
   td_->refine_edges = 1;
   td_->decode_sharpening = 0.25;
 
-  cv::Mat new_image =
-      cv::Mat(static_cast<int>(image->height()), static_cast<int>(image->width()),
-              CV_8U, (void*)image->data().c_str());
+  cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
+                              static_cast<int>(image->width()), CV_8U,
+                              (void*)image->data().c_str());
   image_u8_t im = {.width = new_image.cols,
                    .height = new_image.rows,
                    .stride = new_image.cols,

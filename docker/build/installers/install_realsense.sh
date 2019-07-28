@@ -21,12 +21,12 @@ set -e
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-echo "Build and install apriltag 3"
+# intel realsense
+apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
+add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
+apt-get install librealsense2-dkms
+apt-get install librealsense2-utils
+apt-get install librealsense2-dev
+apt-get install librealsense2-dbg
 
-git clone https://github.com/AprilRobotics/apriltag
-pushd apriltag
-  git apply ../apriltag.diff
-  cmake .
-  make install
-popd
-rm -fr apriltag
+export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
