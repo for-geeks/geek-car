@@ -25,6 +25,7 @@
 
 #include <float.h>
 #include <math.h>
+#include <string>
 #include "apriltag_pose.h"
 #include "opencv2/opencv.hpp"
 #include "tag36h11.h"
@@ -64,18 +65,17 @@ void matd_t2proto(matd_t* mat, Matrix* r) {
 }
 
 bool LocalizationComponent::Init() {
-  // pose_reader_ = node_->CreateReader<Pose>(
-  //     FLAGS_pose_channel, [this](const std::shared_ptr<Pose>& pose) {
-  //       predicted_pose_ = predict_pose(pose);
-  //     });
-
   td_ = apriltag_detector_create();
   tf_ = tag36h11_create();
 
   apriltag_detector_add_family(td_, tf_);
 
+  std::string image_to_detect = FLAGS_use_compressed_image_to_detect_tag
+                                    ? FLAGS_compressed_image_channel
+                                    : FLAGS_raw_image_channel;
+
   image_reader_ = node_->CreateReader<Image>(
-      FLAGS_raw_image_channel, [this](const std::shared_ptr<Image>& image) {
+      image_to_detect, [this](const std::shared_ptr<Image>& image) {
         this->ApriltagDetection(image);
       });
 
@@ -94,9 +94,14 @@ void LocalizationComponent::ApriltagDetection(
   td_->refine_edges = 1;
   td_->decode_sharpening = 0.25;
 
-  cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
-                              static_cast<int>(image->width()), CV_8U,
-                              (void*)image->data().c_str());
+  if (FLAGS_use_compressed_image_to_detect_tag) {
+    cv::Mat new_image = cv::imdecode(Mat(image->data()), CV_8U);
+  } else {
+    cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
+                                static_cast<int>(image->width()), CV_8U,
+                                (void*)image->data().c_str());
+  }
+
   image_u8_t im = {.width = new_image.cols,
                    .height = new_image.rows,
                    .stride = new_image.cols,

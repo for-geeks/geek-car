@@ -51,6 +51,8 @@ DEFINE_bool(publish_gyro, false, "publish gyro data");
 DEFINE_bool(publish_pose, true, "publish pose data");
 DEFINE_bool(publish_raw_image, false, "publish raw gray image data");
 DEFINE_bool(publish_compressed_image, true, "publish raw gray image data");
+DEFINE_bool(use_compressed_image_to_detect_tag, true,
+            "use compressed_image_channel to detect apriltag data");
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");
@@ -64,6 +66,9 @@ DEFINE_double(left_fx, 142.6265, "fx");
 DEFINE_double(left_fy, 143.13, "fy");
 DEFINE_double(left_cx, 211.345, "cx");
 DEFINE_double(left_cy, 200.011, "cy");
+
+// IMAGE
+DECLARE_int32(compress_rate, '30', 'compressed image rate');
 
 // TOOLS
 DEFINE_string(image_export_dir, "/home/raosiyue/out_test/",

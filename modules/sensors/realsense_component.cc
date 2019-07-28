@@ -324,7 +324,7 @@ void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
   std::vector<uchar> data_encode;
   std::vector<int> param = std::vector<int>(2);
   param[0] = CV_IMWRITE_JPEG_QUALITY;
-  param[1] = 30;
+  param[1] = FLAGS_compress_rate;
   cv::imencode(".jpeg", raw_image, data_encode, param);
   std::string str_encode(data_encode.begin(), data_encode.end());
 

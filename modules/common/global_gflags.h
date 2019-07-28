@@ -51,6 +51,7 @@ DECLARE_bool(publish_gyro);
 DECLARE_bool(publish_pose);
 DECLARE_bool(publish_raw_image);
 DECLARE_bool(publish_compressed_image);
+DECLARE_bool(use_compressed_image_to_detect_tag);
 
 // CONST
 DECLARE_double(cruise_speed);
@@ -64,6 +65,9 @@ DECLARE_double(left_fx);
 DECLARE_double(left_fy);
 DECLARE_double(left_cx);
 DECLARE_double(left_cy);
+
+// IMAGE
+DECLARE_int32(compress_rate);
 
 
 // TOOLS
