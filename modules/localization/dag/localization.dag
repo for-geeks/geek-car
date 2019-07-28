@@ -5,6 +5,7 @@ module_config {
     class_name : "LocalizationComponent"
     config {
       name: "localization_component"
+      flag_file_path:"../modules/localization/conf/localization.conf"
     }
   }
 }

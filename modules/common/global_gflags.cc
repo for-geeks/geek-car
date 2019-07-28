@@ -36,7 +36,7 @@ DEFINE_string(compressed_image_channel, "/realsense/compressed_image",
               "raw image Y8 data from T265");
 DEFINE_string(acc_channel, "/realsense/acc", "acc data from T265");
 DEFINE_string(gyro_channel, "/realsense/gyro", "gyro data from T265");
-DEFINE_string(tags_channel, "/tag", "localization tag result");
+DEFINE_string(tags_channel, "/localization/tag", "localization tag result");
 
 // Module Channel
 DEFINE_string(control_channel, "/control", "control message channel");
@@ -60,8 +60,8 @@ DEFINE_double(longitude_ff, 5.0, "ff");
 DEFINE_double(offset, 5.3, "ff");
 
 DEFINE_double(tagsize, 0.07, "tag size in meters");
-DEFINE_double(left_fx, 285.253, "ff");
-DEFINE_double(left_fy, 286.26, "ff");
+DEFINE_double(left_fx, 142.6265, "ff");
+DEFINE_double(left_fy, 143.13, "ff");
 DEFINE_double(left_cx, 211.345, "ff");
 DEFINE_double(left_cy, 200.011, "ff");
 

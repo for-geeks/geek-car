@@ -3,13 +3,17 @@ syntax = "proto2";
 package apollo.planning;
 
 message Trajectory {
-  optional uint64 id = 1;
-  optional Point point = 2;
+  repeated Point point = 2;
 }
 
 message Point {
   // meters
   optional double x = 1;
   optional double y = 2;
-  optional double z = 3;
+}
+
+message PlanningInfo {
+  optional Point start_point = 1;
+  optional Point end_point = 2;
+  repeated Point obs_points = 3;
 }

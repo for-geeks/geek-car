@@ -47,3 +47,18 @@ message Tag {
 message Tags {
   repeated Tag tag = 1;
 }
+
+message localization {
+  optional pos apriltag0 = 1;
+  optional pos apriltag1 = 2;
+  optional pos apriltag = 3;
+  optional pos predict = 4;
+}
+
+message pos {
+  // meters
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double yaw = 4;
+}

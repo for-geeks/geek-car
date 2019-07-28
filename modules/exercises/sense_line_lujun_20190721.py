@@ -25,6 +25,33 @@ picnum = 664
 # weight 240
 # midline_x 228
 car_mid_point = 228
+weight=240
+
+
+mask_right_cor = np.array([[[443, 301], [443, 342], [376, 342]]], dtype=np.int32)
+mask_right_cor_a = (mask_right_cor[0][0][1] - mask_right_cor[0][2][1])/(mask_right_cor[0][0][0] - mask_right_cor[0][2][0])
+mask_right_cor_b = (mask_right_cor[0][0][1]) - (mask_right_cor[0][0][0])*mask_right_cor_a
+
+
+def clean_right(x_c, y_c):
+    val_ri_x = [tesd(x_c[ir], y_c[ir]) for ir in range(len(x_c))]
+
+    rightx_d = []
+    righty_d = []
+
+    for i_i, ir in enumerate(val_ri_x):
+        if ir == 0:
+            rightx_d.append(x_c[i_i])
+            righty_d.append(y_c[i_i])
+
+    return np.array(rightx_d), np.array(righty_d)
+
+
+def tesd(x, y):
+    if (mask_right_cor_b + x*mask_right_cor_a - 4) < y:
+        return 1
+    else:
+        return 0
 
 
 def laneInfo_router(node):
@@ -57,6 +84,8 @@ def get_tag_mask(image_input, tag_roi=(228, 340)):
     img_d = cv2.erode(img_d, kernel, iterations=2)
     img_d = cv2.dilate(img_d, kernel, iterations=3)
 
+    cv2.fillPoly(img_d, mask_right_cor, 0)
+
     image, contours, hierarchy = cv2.findContours(img_d, cv2.RETR_EXTERNAL,
                                                   cv2.CHAIN_APPROX_SIMPLE)
 
@@ -76,7 +105,7 @@ def get_tag_mask(image_input, tag_roi=(228, 340)):
             continue
 
         for i_i, poi in enumerate(loca_tem):
-            if poi == 1 and img_d[vis[i_i][0]][vis[i_i][1]] == 0:
+            if poi == 1 and img_d[vis[i_i][1]][vis[i_i][0]] == 220:
                 is_black = 1
                 break
 
@@ -187,7 +216,24 @@ def find_line_fit(img, midpoint=None, nwindows=9, margin=100, minpix=30):
     lefty = nonzeroy[left_lane_inds]
     rightx = nonzerox[right_lane_inds]
     righty = nonzeroy[right_lane_inds]
+    
+    rightx, righty = clean_right(rightx, righty)
 
+    if len(leftx) == 0:
+        if len(rightx) > 0:
+            leftx = rightx-240
+            lefty = righty
+        else:
+            leftx = [[0] for x_t in range(0,5)]
+            lefty = [[img.shape[0]-y_t*10] for y_t in range(0,5)]
+
+            rightx = [[img.shape[1]-1] for x_t in range(0, 5)]
+            righty = [[img.shape[0] - y_t * 10] for y_t in range(0, 5)]
+
+    if len(righty) == 0:
+        if len(leftx) > 0:
+            rightx = leftx + 240
+            righty = lefty
 
     # to plot
     #out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
