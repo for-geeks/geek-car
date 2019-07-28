@@ -21,7 +21,6 @@ class Point:
     """
     表示一个点
     """
-
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -176,7 +175,6 @@ class AStar:
             # 判断是否终止
             point = self.endPointInCloseList()
             if point:  # 如果终点在关闭表中，就返回结果
-                # print("关闭表中")
                 cPoint = point
                 pathList = []
                 while True:
@@ -206,21 +204,15 @@ def callback(data):
     pEnd_y = int(20 * data.end_point.y)
     pStart = Point(pStart_x, pStart_y)
     pEnd = Point(pEnd_x, pEnd_y)
-    #print(pStart_x)
-    #print(pStart_y)
-    #print(pEnd_x)
-    #print(pEnd_y)
 
     for point in data.obs_points:
         obslist.append([int(20 * point.x), int(20 * point.y)])
-
-    #print(obslist)
 
     for i in range(0):
         obslist.append([random.uniform(2, pEnd.y), random.uniform(2, pEnd.y)])
 
     time_start = time.time()
-    # 创建AStar对象,并设置起点为0,0终点为9,0
+    # 创建AStar对象,并设置起点终点
     aStar = AStar(pStart, pEnd)
     aStar.expansion(offset=1)
 
@@ -228,7 +220,7 @@ def callback(data):
     pathList = aStar.start()
     time_end = time.time()
     print('totally cost', time_end - time_start)
-    #print(pathList)
+    
     global planning_points
 
     for path_point in pathList:
@@ -255,13 +247,6 @@ def planning_router(node):
 
 def test():
     global obslist, map_w, map_h, map_x_min, map_x_max, map_y_min, map_y_max
-
-    map_w = 20
-    map_h = 20
-    map_x_min = -10
-    map_x_max = 10
-    map_y_min = 0
-    map_y_max = 20
 
     pStart_x = 0
     pStart_y = 0
