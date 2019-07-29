@@ -39,7 +39,7 @@ DEFINE_string(gyro_channel, "/realsense/gyro", "gyro data from T265");
 DEFINE_string(tags_channel, "/localization/tag", "localization tag result");
 DEFINE_string(routing_channel, "/planning/target",
               "planning routing information");
-DEFINE_string(planning_channel, "/planning/a_star",
+DEFINE_string(planning_channel, "/planning/trajectory",
               "planning trajectory result");
 
 // Module Channel

@@ -10,6 +10,7 @@ https://www.cs.cmu.edu/~motionplanning/lecture/Chap4-Potential-Field_howie.pdf
 """
 
 import numpy as np
+# import matplotlib.pyplot as plt
 
 from cyber_py import cyber
 from modules.planning.proto.planning_pb2 import PlanningInfo
@@ -140,23 +141,22 @@ def potential_field_planning(sx, sy, gx, gy, ox, oy, reso, rr):
 
 def draw_heatmap(data):
     data = np.array(data).T
-    # plt.pcolor(data, vmax=100.0, cmap=plt.cm.Blues)
+    # plt.pcolor(data, vmax=5.0, cmap=plt.cm.Blues)
 
 
 class planning(object):
 
     def __init__(self, node):
-        self.node = node
-        self.node.create_reader(
+        node.create_reader(
             "/planning/target", PlanningInfo, self.callback)
-        self.writer = self.node.create_writer("/planning/a_star", Trajectory)
+        self.writer = node.create_writer("/planning/trajectory", Trajectory)
 
     def callback(self, data):
         sx = data.start_point.x  # start x position [m]
         sy = data.start_point.y  # start y positon [m]
         gx = data.end_point.x  # goal x position [m]
         gy = data.end_point.y  # goal y position [m]
-        grid_size = 0.1  # potential grid size [m]
+        grid_size = 0.05  # potential grid size [m]
         robot_radius = 0.125  # robot radius [m]
 
         print('start point,{} goal point,{}'.format(

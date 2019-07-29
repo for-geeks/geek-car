@@ -15,10 +15,12 @@ map_x_max = 10
 map_y_min = 0
 map_y_max = 20
 
+
 class Point:
     """
     表示一个点
     """
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -38,9 +40,10 @@ class AStar:
             self.point = point  # 自己的坐标
             self.father = None  # 父节点
             self.g = g  # g值，g值在用到的时候会重新算
-            #self.h = (abs(endPoint.x - point.x) + abs(endPoint.y - point.y)) * 10  # 计算h值
-            #self.h = int((pow(abs(endPoint.x - point.x), 2) + pow(abs(endPoint.y - point.y), 2)) ** 0.5)# 计算h值,使用欧式距离
-            self.h = pow(abs(endPoint.x - point.x), 2) + pow(abs(endPoint.y - point.y), 2)  # 计算h值
+            # self.h = (abs(endPoint.x - point.x) + abs(endPoint.y - point.y)) * 10  # 计算h值
+            # self.h = int((pow(abs(endPoint.x - point.x), 2) + pow(abs(endPoint.y - point.y), 2)) ** 0.5)# 计算h值,使用欧式距离
+            self.h = pow(abs(endPoint.x - point.x), 2) + \
+                pow(abs(endPoint.y - point.y), 2)  # 计算h值
 
     def __init__(self, startPoint, endPoint):
         """
@@ -114,7 +117,8 @@ class AStar:
         if offsetX > 0 and offsetY >= 0:
             step = step + 14
         # 如果不在openList中，就把它加入openlist
-        currentNode = self.pointInOpenList(Point(minF.point.x + offsetX, minF.point.y + offsetY))
+        currentNode = self.pointInOpenList(
+            Point(minF.point.x + offsetX, minF.point.y + offsetY))
         if not currentNode:
             currentNode = AStar.Node(Point(minF.point.x + offsetX, minF.point.y + offsetY), self.endPoint,
                                      g=minF.g + step)
@@ -186,61 +190,64 @@ class AStar:
             if len(self.openList) == 0:
                 return None
 
+
 class planning(object):
 
-	def __init__(self, node):
-		self.node = node
-		self.node.create_reader("/planning/target", PlanningInfo, self.callback)
-		self.writer = self.node.create_writer("/planning/a_star", Trajectory)
+    def __init__(self, node):
+        self.node = node
+        self.node.create_reader(
+            "/planning/target", PlanningInfo, self.callback)
+        self.writer = self.node.create_writer(
+            "/planning/trajectory", Trajectory)
 
-	def callback(self, data):
+    def callback(self, data):
 
-	    global obslist, map_w, map_h, map_x_min, map_x_max, map_y_min, map_y_max, planning_path
-	    obslist=[]
+        global obslist, map_w, map_h, map_x_min, map_x_max, map_y_min, map_y_max
+        obslist = []
 
-	    pStart_x = int(20 * data.start_point.x)
-	    pStart_y = int(20 * data.start_point.y)
-	    pEnd_x = int(20 * data.end_point.x)
-	    pEnd_y = int(20 * data.end_point.y - 1) 
-	    pStart = Point(pStart_x, pStart_y) 
-	    pEnd = Point(pEnd_x, pEnd_y)
+        pStart_x = int(20 * data.start_point.x)
+        pStart_y = int(20 * data.start_point.y)
+        pEnd_x = int(20 * data.end_point.x)
+        pEnd_y = int(20 * data.end_point.y - 1)
+        pStart = Point(pStart_x, pStart_y)
+        pEnd = Point(pEnd_x, pEnd_y)
 
-	    for point in data.obs_points:
-		obslist.append([int(20 * point.x), int(20 * point.y)])
+        for point in data.obs_points:
+            obslist.append([int(20 * point.x), int(20 * point.y)])
 
-	    for i in range(0):
-		obslist.append([random.uniform(2, pEnd.y), random.uniform(2, pEnd.y)])
+        for i in range(0):
+            obslist.append([random.uniform(2, pEnd.y),
+                            random.uniform(2, pEnd.y)])
 
-	    #time_start = time.time()
-	    # 创建AStar对象,并设置起点终点
-	    aStar = AStar(pStart, pEnd)
-	    aStar.expansion(offset=9)
+        #time_start = time.time()
+        # 创建AStar对象,并设置起点终点
+        aStar = AStar(pStart, pEnd)
+        aStar.expansion(offset=9)
 
-	    # 开始寻路
-	    pathList = aStar.start()
-	    #time_end = time.time()
-	    #print('totally cost', time_end - time_start)
+        # 开始寻路
+        pathList = aStar.start()
+        #time_end = time.time()
+        #print('totally cost', time_end - time_start)
 
-	    self.planning_path = Trajectory()
-            if not pathList:
-                print("Failed to find a path")
-            else:   
-	        for path_point in pathList:
-		    point_xy.x = path_point.x * 0.05
-		    point_xy.y = path_point.y * 0.05
+        self.planning_path = Trajectory()
+        if not pathList:
+            print("Failed to find a path")
+        else:
+            for path_point in pathList:
+                point_xy.x = path_point.x * 0.05
+                point_xy.y = path_point.y * 0.05
 
-		    self.planning_path.point.append(point_xy)
+                self.planning_path.point.append(point_xy)
 
-	   
-	        if not cyber.is_shutdown() and self.planning_path:
-		    self.writer.write(self.planning_path)
-		    time_now = time.time()
+            if not cyber.is_shutdown() and self.planning_path:
+                self.writer.write(self.planning_path)
+
 
 if __name__ == '__main__':
 
     cyber.init()
     cyber_node = cyber.Node("planning")
     exercise = planning(cyber_node)
-    
+
     cyber_node.spin()
     cyber.shutdown()
