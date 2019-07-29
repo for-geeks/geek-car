@@ -157,7 +157,7 @@ class planning(object):
         gx = data.end_point.x  # goal x position [m]
         gy = data.end_point.y  # goal y position [m]
         grid_size = 0.05  # potential grid size [m]
-        robot_radius = 0.125  # robot radius [m]
+        robot_radius = 0.08  # robot radius [m]
 
         print('start point,{} goal point,{}'.format(
             data.start_point, data.end_point))
