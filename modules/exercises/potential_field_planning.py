@@ -192,10 +192,11 @@ class planning(object):
                 point.x = rx[i]
                 point.y = ry[i]
                 self.planning_path.point.append(point)
-                print('point,{}'.format(point))
+            print('trajectory,{}'.format(self.planning_path))
+            self.write_to_channel()
 
     def write_to_channel(self):
-        if not cyber.is_shutdown() and self.planning_path:
+        if not cyber.is_shutdown():
             self.writer.write(self.planning_path)
 
 
