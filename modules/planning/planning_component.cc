@@ -22,14 +22,28 @@
  * SOFTWARE.
 ******************************************************************************/
 #include "modules/planning/planning_component.h"
+#include "modules/common/global_gflags.h"
 
 namespace apollo {
 namespace planning {
 
 bool PlanningComponent::Init() {
-  writer_ = node_->CreateWriter<Trajectory>("/planning");
+  writer_ = node_->CreateWriter<Trajectory>(FLAGS_planning_channel);
+
+  reader_ = node_->CreateReader<PlanningInfo>(
+      FLAGS_routing_channel,
+      [this](const std::shared_ptr<PlanningInfo>& routing) {
+        // this->Plan(routing);
+        routing_ = routing;
+      });
 
   return true;
+}
+
+void PlanningComponent::Plan() {
+  Point endPoint;
+  endPoint.x = routing.x();
+  endPoint.y = routing.y();
 }
 
 }  // namespace planning

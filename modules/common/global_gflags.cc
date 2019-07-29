@@ -33,10 +33,14 @@ DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
 DEFINE_string(raw_image_channel, "/realsense/raw_image",
               "raw image Y8 data from T265");
 DEFINE_string(compressed_image_channel, "/realsense/compressed_image",
-              "raw image Y8 data from T265");
+              "compressed image Y8 data from T265");
 DEFINE_string(acc_channel, "/realsense/acc", "acc data from T265");
 DEFINE_string(gyro_channel, "/realsense/gyro", "gyro data from T265");
 DEFINE_string(tags_channel, "/localization/tag", "localization tag result");
+DEFINE_string(routing_channel, "/planning/target",
+              "planning routing information");
+DEFINE_string(planning_channel, "/planning/a_star",
+              "planning trajectory result");
 
 // Module Channel
 DEFINE_string(control_channel, "/control", "control message channel");

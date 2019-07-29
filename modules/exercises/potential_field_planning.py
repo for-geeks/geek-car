@@ -100,6 +100,11 @@ def potential_field_planning(sx, sy, gx, gy, ox, oy, reso, rr):
     gix = round((gx - minx) / reso)
     giy = round((gy - miny) / reso)
 
+    # if show_animation:
+    #     draw_heatmap(pmap)
+    #     plt.plot(ix, iy, "*k")
+    #     plt.plot(gix, giy, "*m")
+
     rx, ry = [sx], [sy]
     motion = get_motion_model()
     while d >= reso:
@@ -124,9 +129,9 @@ def potential_field_planning(sx, sy, gx, gy, ox, oy, reso, rr):
         rx.append(xp)
         ry.append(yp)
 
-        if show_animation:
-            plt.plot(ix, iy, ".r")
-            plt.pause(0.01)
+        # if show_animation:
+        #     plt.plot(ix, iy, ".r")
+        #     plt.pause(0.01)
 
     print("Goal!!")
 
@@ -135,7 +140,7 @@ def potential_field_planning(sx, sy, gx, gy, ox, oy, reso, rr):
 
 def draw_heatmap(data):
     data = np.array(data).T
-    plt.pcolor(data, vmax=100.0, cmap=plt.cm.Blues)
+    # plt.pcolor(data, vmax=100.0, cmap=plt.cm.Blues)
 
 
 class planning(object):
@@ -154,27 +159,30 @@ class planning(object):
         grid_size = 0.1  # potential grid size [m]
         robot_radius = 0.125  # robot radius [m]
 
+        print('start point,{} goal point,{}'.format(
+            data.start_point, data.end_point))
+
         ox = []
         oy = []
 
-        for point in data.obs_points:
-            ox.append(point.x)
-            oy.append(point.y)
+        for obstacle in data.obs_points:
+            ox.append(obstacle.x)
+            oy.append(obstacle.y)
 
-        print('ox,{}, oy{}'.format(ox, oy))
+        print('obstacle information:{} '.format(data.obs_points))
 
         # ox = [0.1]  # obstacle x position list [m]
         # oy = [0.2]  # obstacle y position list [m]
 
-        if show_animation:
-            plt.grid(True)
-            plt.axis("equal")
+        # if show_animation:
+        # plt.grid(True)
+        # plt.axis("equal")
 
         # path generation
         rx, ry = potential_field_planning(
             sx, sy, gx, gy, ox, oy, grid_size, robot_radius)
 
-	print('rx,{}, ry'.format(rx, ry))
+        print('rx,{}, ry.{}'.format(rx, ry))
         self.planning_path = Trajectory()
         if not rx:
             print("Failed to find a path")
@@ -184,20 +192,21 @@ class planning(object):
                 point.x = rx[i]
                 point.y = ry[i]
                 self.planning_path.point.append(point)
- 		print('point,{}'.format(point))
+                print('point,{}'.format(point))
 
-            if not cyber.is_shutdown() and self.planning_path:
-                self.writer.write(self.planning_path)
+    def write_to_channel(self):
+        if not cyber.is_shutdown() and self.planning_path:
+            self.writer.write(self.planning_path)
 
 
 def main():
     print("potential_field_planning start")
 
     cyber.init()
-    cyber_node = cyber.Node("planning")
-    _ = planning(cyber_node)
+    planning_node = cyber.Node("planning")
+    _ = planning(planning_node)
 
-    cyber_node.spin()
+    planning_node.spin()
     cyber.shutdown()
 
 

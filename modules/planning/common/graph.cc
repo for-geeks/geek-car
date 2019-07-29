@@ -27,12 +27,13 @@ namespace apollo {
 namespace planning {
 namespace common {
 
-const double LaneWidth = 30;  // cm
-const double NextStep = 10;   // cm
+const double LaneWidth = 0.4;  // meters
+const double NextStep = 0.1;   // meters
 
 struct Point {
   int x, y;
 };
+
 struct Graph {
   std::vector<double> left;
   std::vector<double> right;

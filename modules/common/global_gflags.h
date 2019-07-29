@@ -44,6 +44,8 @@ DECLARE_string(chassis_channel);
 DECLARE_string(control_ref_channel);
 DECLARE_string(control_coefficient);
 DECLARE_string(tags_channel);
+DECLARE_string(routing_channel);
+DECLARE_string(planning_channel);
 
 // switch
 DECLARE_bool(publish_acc);
@@ -68,7 +70,6 @@ DECLARE_double(left_cy);
 
 // IMAGE
 DECLARE_int32(compress_rate);
-
 
 // TOOLS
 DECLARE_string(image_export_dir);

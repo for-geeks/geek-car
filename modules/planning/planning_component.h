@@ -31,15 +31,19 @@ namespace apollo {
 namespace planning {
 
 using apollo::cyber::Component;
+using apollo::planning::PlanningInfo;
 using apollo::planning::Tracjectory;
 
 class PlanningComponent : public Component<> {
  public:
   bool Init() override;
-  // bool Proc() override;
+  void Plan();
 
  private:
   std::shared_ptr<Writer<Tracjectory>> writer_ = nullptr;
+  std::shared_ptr<Reader<PlanningInfo>> reader_ = nullptr;
+
+  PlanningInfo routing_;
 }
 
 CYBER_REGISTER_COMPONENT(PlanningComponent)
