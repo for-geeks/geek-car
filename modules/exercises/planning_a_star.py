@@ -107,7 +107,7 @@ class AStar:
             return
         # 设置单位花费
         if offsetX == 0 or offsetY == 0:
-            step = 14
+            step = 7
         else:
             step = 14
 

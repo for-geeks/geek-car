@@ -51,7 +51,7 @@ DEFINE_bool(publish_gyro, false, "publish gyro data");
 DEFINE_bool(publish_pose, true, "publish pose data");
 DEFINE_bool(publish_raw_image, false, "publish raw gray image data");
 DEFINE_bool(publish_compressed_image, true, "publish raw gray image data");
-DEFINE_bool(use_compressed_image_to_detect_tag, true,
+DEFINE_bool(use_compressed_image_to_detect_tag, false,
             "use compressed_image_channel to detect apriltag data");
 
 // const

@@ -75,7 +75,9 @@ class Exercise(object):
         self.localization.predict.yaw = self.yaw
 
     def get_global_pos_by_apriltag(self, data):
-        pitch = -15 * 3.14159265358979 / 180
+        pitch = -30 * 3.14159265358979 / 180
+        R1 = 0
+        R2 = 0
         print(math.sin(pitch * 2))
         for i in range(0, len(data.tag)):
             if (data.tag[i].id == 0):
@@ -84,23 +86,36 @@ class Exercise(object):
                     pitch) * data.tag[i].pose.t.element[1] - math.sin(pitch) * data.tag[i].pose.t.element[2]
                 z = (math.sin(pitch) * data.tag[i].pose.t.element[1] + math.cos(
                     pitch) * data.tag[i].pose.t.element[2])  # self.marker_pos[1][0] -
+                x = data.tag[i].pose.t.element[0]
+                y = data.tag[i].pose.t.element[1]
+                z = data.tag[i].pose.t.element[2]
+                R1 = math.sqrt(x * x + z * z + y * y)
                 r21 = data.tag[i].pose.r.element[2 * 3 + 1]
                 r22 = data.tag[i].pose.r.element[2 * 3 + 2]
                 sy = math.sqrt(r21 * r21 + r22 * r22)
                 theta_y = math.atan2(
                     -data.tag[i].pose.r.element[2 * 3 + 0], sy)
+                R1 = math.sqrt(x * x + z * z)
+                #print("!!!!!!!!!!!!!!!!!!!!!!!")
+                #print(R)    
                 self.position_0.x = 0 - \
                     math.cos(-theta_y) * x + math.sin(-theta_y) * z
+                #self.position_0.x = R * math.cos(-theta_y)
                 self.position_0.z = 1 - \
                     math.sin(-theta_y) * x - math.cos(-theta_y) * z
-                self.position_0.yaw = theta_y
+                #self.position_0.x = R * math.sin(-theta_y)
+                self.position_0.yaw = R1
             if data.tag[i].id == 1:
-                x = self.marker_pos[1][1] - data.tag[i].pose.t.element[0]
-                self.position_1.y = math.cos(
-                    pitch) * data.tag[i].pose.t.element[1] - math.sin(pitch) * data.tag[i].pose.t.element[2]
-                z = self.marker_pos[1][0] - (math.sin(pitch) * data.tag[i].pose.t.element[1] + math.cos(
-                    pitch) * data.tag[i].pose.t.element[2])
+                #x = self.marker_pos[1][1] - data.tag[i].pose.t.element[0]
+                x = data.tag[i].pose.t.element[0]
+                y = data.tag[i].pose.t.element[1]
+                z = data.tag[i].pose.t.element[2]
+                #self.position_1.y = math.cos(
+                #    pitch) * data.tag[i].pose.t.element[1] - math.sin(pitch) * data.tag[i].pose.t.element[2]
+                #z = self.marker_pos[1][0] - (math.sin(pitch) * data.tag[i].pose.t.element[1] + math.cos(
+                #    pitch) * data.tag[i].pose.t.element[2])
                 r21 = data.tag[i].pose.r.element[2 * 3 + 1]
+                R2 = math.sqrt(x * x + z * z + y * y)
                 r22 = data.tag[i].pose.r.element[2 * 3 + 2]
                 sy = math.sqrt(r21 * r21 + r22 * r22)
                 theta_y = math.atan2(
@@ -109,24 +124,27 @@ class Exercise(object):
                     math.cos(theta_y) * x + math.sin(theta_y) * z
                 self.position_1.z = self.marker_pos[1][0] - \
                     math.sin(theta_y) * x - math.cos(theta_y) * z
-                self.position_1.yaw = theta_y
+                self.position_1.yaw = R2
         if (len(data.tag)) == 0:
             self.pos.x = -1
             self.pos.y = -1
             self.pos.z = -1
         elif (len(data.tag)) == 2:
-            self.pos.x = (self.position_1.x + self.position_0.x) / 2
-            self.pos.y = (self.position_1.y + self.position_0.y) / 2
-            self.pos.z = (self.position_1.z + self.position_0.z) / 2
+            #self.pos.x = 
+            self.pos.y = 0#(self.position_1.y + self.position_0.y) / 2
+            self.pos.x = (R2 * R2 - R1 * R1 - 0.29 * 0.29) / 0.58
+            self.pos.z = math.sqrt(R1 * R1 - self.pos.x * self.pos.x)
         elif (len(data.tag)) == 1:
             if (data.tag[0].id == 0):
-                self.pos.x = self.position_0.x
-                self.pos.y = self.position_0.y
-                self.pos.z = self.position_0.z
+                pass
+                #self.pos.x = -1
+                #self.pos.y = self.position_0.y
+                #self.pos.z = self.position_0.z
             if (data.tag[0].id == 1):
-                self.pos.x = self.position_1.x
-                self.pos.y = self.position_1.y
-                self.pos.z = self.position_1.z
+                pass
+                #self.pos.x = self.position_1.x
+                #self.pos.y = self.position_1.y
+                #self.pos.z = self.position_1.z
         self.localization.apriltag0.x = self.position_0.x
         self.localization.apriltag0.y = self.position_0.y
         self.localization.apriltag0.z = self.position_0.z
