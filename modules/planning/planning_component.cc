@@ -27,6 +27,8 @@
 namespace apollo {
 namespace planning {
 
+using apollo::planning::Point;
+
 bool PlanningComponent::Init() {
   writer_ = node_->CreateWriter<Trajectory>(FLAGS_planning_channel);
 
@@ -37,13 +39,18 @@ bool PlanningComponent::Init() {
         routing_ = routing;
       });
 
+  Plan();
+
   return true;
 }
 
 void PlanningComponent::Plan() {
-  Point endPoint;
-  endPoint.x = routing.x();
-  endPoint.y = routing.y();
+  if (routing_.empty()) {
+    AERROR << "routing message is empty";
+  }
+
+  endPoint.x = routing_.x();
+  endPoint.y = routing_.y();
 }
 
 }  // namespace planning
