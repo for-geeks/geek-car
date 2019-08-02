@@ -8,7 +8,7 @@ Ref:
 https://www.cs.cmu.edu/~motionplanning/lecture/Chap4-Potential-Field_howie.pdf
 
 """
-
+import time
 import numpy as np
 # import matplotlib.pyplot as plt
 
@@ -78,13 +78,14 @@ def calc_repulsive_potential(x, y, ox, oy, rr):
 def get_motion_model():
     # dx, dy
     motion = [[1, 0],
-              [0, 1],
-              [-1, 0],
-              [0, -1],
-              [-1, -1],
-              [-1, 1],
-              [1, -1],
-              [1, 1]]
+            [0, 1],
+            [-1, 0],
+            [0, -1],
+            [-1, -1],
+            [-1, 1],
+            [1, -1],
+            [1, 1]
+            ]
 
     return motion
 
@@ -127,6 +128,7 @@ def potential_field_planning(sx, sy, gx, gy, ox, oy, reso, rr):
         xp = ix * reso + minx
         yp = iy * reso + miny
         d = np.hypot(gx - xp, gy - yp)
+        print("d is {}, ox{},oy{}, gx{}, gy{},xp{}, yp{}".format(d, ox, oy, gx, gy, xp, yp))
         rx.append(xp)
         ry.append(yp)
 
@@ -147,64 +149,78 @@ def draw_heatmap(data):
 class planning(object):
 
     def __init__(self, node):
-        node.create_reader(
-            "/planning/target", PlanningInfo, self.callback)
+        node.create_reader("/planning/target", PlanningInfo, self.callback)
         self.writer = node.create_writer("/planning/trajectory", Trajectory)
+        self.plan()
+
 
     def callback(self, data):
-        sx = data.start_point.x  # start x position [m]
-        sy = data.start_point.y  # start y positon [m]
-        gx = data.end_point.x  # goal x position [m]
-        gy = data.end_point.y  # goal y position [m]
-        grid_size = 0.05  # potential grid size [m]
-        robot_radius = 0.08  # robot radius [m]
+        #print(data)
+        self.data = data
 
-        print('start point,{} goal point,{}'.format(
-            data.start_point, data.end_point))
 
-        ox = []
-        oy = []
+    def plan(self):
+        print(hasattr(self, 'data'))
+        while not cyber.is_shutdown():
+            print("in plan ********************************************")
 
-        for obstacle in data.obs_points:
-            ox.append(obstacle.x)
-            oy.append(obstacle.y)
+            if not hasattr(self, 'data'):
+                time.sleep(0.2)
+                print("no data sleep firstly")
+                continue
 
-        print('obstacle information:{} '.format(data.obs_points))
+            sx = self.data.start_point.x  # start x position [m]
+            sy = self.data.start_point.y  # start y positon [m]
+            gx = self.data.end_point.x  # goal x position [m]
+            gy = self.data.end_point.y  # goal y position [m]
+            grid_size = 0.051  # potential grid size [m]
+            robot_radius = 0.0725  # robot radius [m]
+            print('start point,{},{} goal point,{}, {}'.format(sx, sy, gx, gy))
 
-        # ox = [0.1]  # obstacle x position list [m]
-        # oy = [0.2]  # obstacle y position list [m]
+            ox, oy = [], []
+            for obstacle in self.data.obs_points:
+                ox.append(obstacle.x)
+                oy.append(obstacle.y)
+            print('obstacle information, ox:{}, oy:{} '.format(ox, oy))
 
-        # if show_animation:
-        # plt.grid(True)
-        # plt.axis("equal")
+            # ox = [-0.03464780002832413]  # obstacle x position list [m]
+            # oy = [0.6250196099281311]  # obstacle y position list [m]
 
-        # path generation
-        rx, ry = potential_field_planning(
-            sx, sy, gx, gy, ox, oy, grid_size, robot_radius)
+            # if show_animation:
+                # plt.grid(True)
+                # plt.axis("equal")
 
-        print('rx,{}, ry.{}'.format(rx, ry))
-        self.planning_path = Trajectory()
-        if not rx:
-            print("Failed to find a path")
-        else:
-            point = Point()
-            for i, _ in enumerate(rx):
-                point.x = rx[i]
-                point.y = ry[i]
-                self.planning_path.point.append(point)
-            print('trajectory,{}'.format(self.planning_path))
-            self.write_to_channel()
+            # path generation
+            rx, ry = [], []
+            start = time.time()
+            rx, ry = potential_field_planning(
+                    sx, sy, gx, gy, ox, oy, grid_size, robot_radius)
+            end = time.time()
+            print('time cost: {}'.format(end - start))
+
+            print('rx,{}, ry.{}'.format(rx, ry))
+            self.planning_path = Trajectory()
+            if not rx:
+                print("Failed to find a path")
+            else: 
+                point = Point()
+                for i, _ in enumerate(rx):
+                    point.x = rx[i]
+                    point.y = ry[i]
+                    self.planning_path.point.append(point)
+                print('trajectory,{}'.format(self.planning_path))
+                self.write_to_channel()
+
 
     def write_to_channel(self):
-        if not cyber.is_shutdown():
-            self.writer.write(self.planning_path)
+        self.writer.write(self.planning_path)
 
 
 def main():
     print("potential_field_planning start")
 
     cyber.init()
-    planning_node = cyber.Node("planning")
+    planning_node = cyber.Node("planning_potential")
     _ = planning(planning_node)
 
     planning_node.spin()
