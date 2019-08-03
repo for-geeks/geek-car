@@ -68,7 +68,7 @@ ln -s /etc/alternatives/g++ /usr/bin/g++
 
 # Run installer [build|download]
 cp -r docker/build/installers /tmp/installers
-bash /tmp/installers/install_bazel.sh download
+bash /tmp/installers/install_bazel.sh build
 bash /tmp/installers/install_gflags_glog.sh
 bash /tmp/installers/install_protobuf.sh
 bash /tmp/installers/install_bazel_packages.sh
@@ -119,5 +119,4 @@ apt-get install librealsense2-dev
 apt-get install librealsense2-dbg
 
 bash /tmp/installers/install_fast-rtps.sh
-bash /tmp/installers/install_pcl.sh download
 rm -fr /tmp/*
