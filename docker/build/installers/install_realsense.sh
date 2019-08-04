@@ -16,17 +16,28 @@
 # limitations under the License.
 ###############################################################################
 
+# intel realsense
 # Fail on first error.
 set -e
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# intel realsense
-apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
-add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
-apt-get install librealsense2-dkms
-apt-get install librealsense2-utils
-apt-get install librealsense2-dev
-apt-get install librealsense2-dbg
+ARCH=$(uname -m)
 
-export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+if [ "$ARCH" == "x86_64" ]; then	
+	apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
+	add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
+	apt install librealsense2-dkms
+	apt install librealsense2-utils
+	apt install librealsense2-dev
+	apt install librealsense2-dbg
+
+	export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+elif [ "$ARCH" == "aarch64" ]; then
+	git clone https://github.com/JetsonHacksNano/installLibrealsense
+	pushd installLibrealsense
+	bash installLibrealsense.sh -nc
+	popd
+else
+	echo "not support $ARCH"
+fi
