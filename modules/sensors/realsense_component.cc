@@ -151,8 +151,8 @@ void RealsenseComponent::run() {
       AINFO << "pose " << pose_data.translation;
 
       double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
-                        pose_data.translation.y * pose_data.translation.y +
-                        pose_data.translation.z * pose_data.translation.z);
+                         pose_data.translation.y * pose_data.translation.y +
+                         pose_data.translation.z * pose_data.translation.z);
       if (norm > norm_max) norm_max = norm;
 
       ADEBUG << "norm_max:" << norm_max;
@@ -160,7 +160,7 @@ void RealsenseComponent::run() {
       auto wo_sensor = device_.first<rs2::wheel_odometer>();
       // send vehicle speed to wheel odometry
       wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0});
-      //if (!wheel_odometry_sensor_.send_wheel_odometry(
+      // if (!wheel_odometry_sensor_.send_wheel_odometry(
       //        0, 0, {chassis_.speed(), 0, 0})) {
       //  AERROR << "Failed to send wheel odometry";
       //}
@@ -213,7 +213,8 @@ void RealsenseComponent::Calibration() {
   rs2_intrinsics left = sensor_.get_stream_profiles()[0]
                             .as<rs2::video_stream_profile>()
                             .get_intrinsics();
-  ADEBUG << " intrinsicksL, fx:" << left.fx <<", fy:"<< left.fy <<", ppx:" << left.ppx << ", ppy:"<<left.ppy; 
+  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
+         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
   intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
                  left.ppy, 0, 0, 1);
   distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
@@ -222,8 +223,7 @@ void RealsenseComponent::Calibration() {
                left.ppy, 0, 0, 0, 1, 0);
 
   cv::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
-                                       cv::Size(848, 816), CV_16SC2, map1_,
-                                       map2_);
+                              cv::Size(848, 816), CV_16SC2, map1_, map2_);
 }
 
 void RealsenseComponent::WheelOdometry() {

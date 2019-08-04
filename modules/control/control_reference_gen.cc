@@ -165,7 +165,7 @@ double distance2Points(Point a, Point b) {
 
 #endif
 int main(int argc, char* argv[]) {
-  #if 0 
+#if 0
   trajectory_reader();
   apollo::cyber::Init("control ref gen");
   auto node_ = apollo::cyber::CreateNode("control_ref_gen");

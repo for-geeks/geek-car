@@ -77,4 +77,7 @@ DEFINE_int32(compress_rate, 30, "compressed image rate");
 // TOOLS
 DEFINE_string(image_export_dir, "/home/raosiyue/out_test/",
               "tools image saver dir");
-DEFINE_string(odometry_file, "/home/geek-car/geek_lite/modules/sensors/conf/calibration_odometry.json", "odometry calibration file ");
+DEFINE_string(
+    odometry_file,
+    "/home/geek-car/geek_lite/modules/sensors/conf/calibration_odometry.json",
+    "odometry calibration file ");

@@ -23,10 +23,10 @@
 ******************************************************************************/
 #include "modules/localization/localization_component.h"
 
-#include <vector>
 #include <float.h>
 #include <math.h>
 #include <string>
+#include <vector>
 #include "apriltag_pose.h"
 #include "opencv2/opencv.hpp"
 #include "tag36h11.h"
@@ -98,12 +98,14 @@ void LocalizationComponent::ApriltagDetection(
   cv::Mat new_image;
 
   if (FLAGS_use_compressed_image_to_detect_tag) {
-    std::vector<uchar> buff((unsigned char*)image->data().c_str(), (unsigned char*)image->data().c_str() + image->data().length());
+    std::vector<uchar> buff(
+        (unsigned char*)image->data().c_str(),
+        (unsigned char*)image->data().c_str() + image->data().length());
     new_image = cv::imdecode(buff, CV_8U);
   } else {
     new_image = cv::Mat(static_cast<int>(image->height()),
-                                static_cast<int>(image->width()), CV_8U,
-                                (void*)image->data().c_str());
+                        static_cast<int>(image->width()), CV_8U,
+                        (void*)image->data().c_str());
   }
 
   image_u8_t im = {.width = new_image.cols,
