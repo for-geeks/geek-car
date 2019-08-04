@@ -73,3 +73,4 @@ DECLARE_int32(compress_rate);
 
 // TOOLS
 DECLARE_string(image_export_dir);
+DECLARE_string(odometry_file);

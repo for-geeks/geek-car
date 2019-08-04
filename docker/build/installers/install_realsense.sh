@@ -38,6 +38,8 @@ elif [ "$ARCH" == "aarch64" ]; then
 	pushd installLibrealsense
 	bash installLibrealsense.sh -nc
 	popd
+	rm -rf installLibrealsense
+	rm -rf ${HOME}/librealsense
 else
 	echo "not support $ARCH"
 fi

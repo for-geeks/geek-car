@@ -33,7 +33,7 @@ cc_library(
         "-lrealsense2",
         "-lopencv_core",
         "-lopencv_imgproc",
-        "-lopencv_imgcodecs",
+	"-lopencv_imgcodecs",
         "-lapriltag",
     ],
     deps = [

@@ -42,6 +42,33 @@ sudo bash cyber.x86_64.sh
 bash apollo.sh build
 ```
 
+## Realsense Configure
+
+update serial num in file `modules/sensors/conf/sensors.conf` with field serial_number.
+
+how to get this serial_numer? use command `rs-enumerate-devices` provided by Intel.You will get something like :
+
+```bash
+geek-car@geekcar-desktop:~/geek_lite$ rs-enumerate-devices 
+Device info: 
+    Name                          : 	Intel RealSense T265
+    Serial Number                 : 	909212110229
+    Firmware Version              : 	0.0.18.5715
+    Physical Port                 : 	vid_8087 pid_0B37 bus_2 port_3
+    Product Id                    : 	0B37
+    Product Line                  : 	T200
+
+Stream Profiles supported by Tracking Module
+ Supported modes:
+    stream       resolution      fps       format
+    Fisheye 1	  848x800	@ 30Hz	   Y8
+    Fisheye 2	  848x800	@ 30Hz	   Y8
+    Gyro	 N/A		@ 200Hz	   MOTION_XYZ32F
+    Accel	 N/A		@ 62Hz	   MOTION_XYZ32F
+    Pose	 N/A		@ 200Hz	   6DOF
+
+```
+
 ## Have a try on Cyber RT
 
 ### Writing a Simple Talker and Listener (C++)

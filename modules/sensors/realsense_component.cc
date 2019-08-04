@@ -33,7 +33,6 @@
 
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
-#include "opencv2/imgproc.hpp"
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
@@ -222,16 +221,14 @@ void RealsenseComponent::Calibration() {
   cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
                left.ppy, 0, 0, 0, 1, 0);
 
-  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
+  cv::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
                                        cv::Size(848, 816), CV_16SC2, map1_,
                                        map2_);
 }
 
 void RealsenseComponent::WheelOdometry() {
   auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
-  std::ifstream calibrationFile(
-      "/home/raosiyue/apollo_lite/modules/sensors/conf/"
-      "calibration_odometry.json");
+  std::ifstream calibrationFile(FLAGS_odometry_file);
   const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
                              std::istreambuf_iterator<char>());
   const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
