@@ -73,13 +73,13 @@ rs2::device get_device(const std::string& serial_number = "") {
  * @return false
  */
 bool RealsenseComponent::Init() {
-  device_ = get_device(FLAGS_serial_number);
+  device_ = get_device();
 
   // print device information
   RealSense::printDeviceInformation(device_);
 
-  AINFO << "Got device with serial number "
-        << device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+  FLAGS_serial_number = device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+  AINFO << "Got device with serial number " << FLAGS_serial_number;
   cyber::SleepFor(std::chrono::milliseconds(device_wait_));
 
   sensor_ = device_.first<rs2::sensor>();

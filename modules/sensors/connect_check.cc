@@ -27,6 +27,7 @@
 #include <string>
 #include <thread>
 #include "librealsense2/rs.hpp"
+#include "modules/common/global_gflags.h"
 
 rs2::device get_device(const std::string& serial_number = "") {
   rs2::context ctx;

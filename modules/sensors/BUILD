@@ -39,6 +39,9 @@ cc_binary(
     linkopts = [
         "-lrealsense2",
     ],
+    deps = [
+        "//modules/common:global_gflags",
+    ],
 )
 
 cc_binary(
