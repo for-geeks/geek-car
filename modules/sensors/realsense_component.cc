@@ -160,11 +160,11 @@ void RealsenseComponent::run() {
 
       auto wo_sensor = device_.first<rs2::wheel_odometer>();
       // send vehicle speed to wheel odometry
-      wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0});
-      // if (!wheel_odometry_sensor_.send_wheel_odometry(
-      //        0, 0, {chassis_.speed(), 0, 0})) {
-      //  AERROR << "Failed to send wheel odometry";
-      //}
+      // wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0});
+       if (!wo_sensor.send_wheel_odometry(
+              0, 0, {chassis_.speed(), 0, 0})) {
+        AERROR << "Failed to send wheel odometry";
+      }
       if (pose_frame.get_frame_number() % 5 == 0) {
         OnPose(pose_data, pose_frame.get_frame_number());
       }
