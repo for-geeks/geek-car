@@ -46,11 +46,10 @@ rs2::device get_device(const std::string& serial_number = "") {
 int main() {
   // get the device given the serial number
   std::cout << "Waiting for device..." << std::endl;
-  std::string serial_number = FLAGS_serial_number;
-  auto device = get_device(serial_number);
+  auto device = get_device();
 
-  std::cout << "Device with serial number "
-            << device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER) << " got"
+  FLAGS_serial_number = device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+  std::cout << "Device with serial number " << FLAGS_serial_number << " got"
             << std::endl;
   std::this_thread::sleep_for(std::chrono::seconds(1));
 

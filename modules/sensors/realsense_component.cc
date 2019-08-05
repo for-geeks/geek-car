@@ -46,6 +46,7 @@ namespace sensors {
 
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
+using apollo::cyber::common::GetAbsolutePath;
 using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
 using apollo::sensors::Image;
@@ -228,7 +229,11 @@ void RealsenseComponent::Calibration() {
 
 void RealsenseComponent::WheelOdometry() {
   auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
-  std::ifstream calibrationFile(FLAGS_odometry_file);
+  // TODO(fixme) GIVE ME A Configurable FILE RELATIVE DIRECTORY
+  std::string calibration_file_path =
+      GetAbsolutePath(apollo::cyber::common::WorkRoot(),
+                      "../modules/sensors/conf/calibration_odometry.json");
+  std::ifstream calibrationFile(calibration_file_path);
   const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
                              std::istreambuf_iterator<char>());
   const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
