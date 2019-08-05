@@ -43,10 +43,9 @@ bash apollo.sh build
 ```
 
 ## Realsense Configure
+Auto get default realsense device, auto update serial number in file `modules/sensors/conf/sensors.conf` with field serial_number.The flags field is `FLAGS_serial_number`, you can get it if you want use.
 
-update serial num in file `modules/sensors/conf/sensors.conf` with field serial_number.
-
-how to get this serial_numer? use command `rs-enumerate-devices` provided by Intel.You will get something like :
+how to get this serial_number? use command `rs-enumerate-devices` provided by Intel.You will get something like :
 
 ```bash
 geek-car@geekcar-desktop:~/geek_lite$ rs-enumerate-devices 
@@ -154,7 +153,7 @@ pip install protobuf
 
 ## FAQ
 
-1.`ImportError:No module named proto.unit_test_pb2`:
+1. `ImportError:No module named proto.unit_test_pb2`:
 
 `source scripts/apollo_base.sh`
 
