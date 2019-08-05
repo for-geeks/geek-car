@@ -10,6 +10,8 @@ from modules.planning.proto.planning_pb2 import Point
 
 point_xy = Point()
 
+yawrate_old = 0
+
 class Config(object):
     """
     用来仿真的参数，
@@ -23,13 +25,14 @@ class Config(object):
         self.max_yawrate = 60.0 * math.pi / 180.0  # [rad/s]  # 最大角速度s
         self.max_accel = 1.1  # [m/ss]  # 最大加速度
         self.max_dyawrate = 600.0 * math.pi / 180.0  # [rad/ss]  # 最大角加速度
-        self.v_reso = 0.15  # [m/s]，速度分辨率
+        self.v_reso = 0.25  # [m/s]，速度分辨率
         self.yawrate_reso = 10 * math.pi / 180.0  # [rad/s]，角速度分辨率
         self.dt = 0.1  # [s]  # 采样周期
         self.predict_time = 3  # [s]  # 向前预估三秒
         self.to_goal_cost_gain = 6 # 目标代价增益
         self.speed_cost_gain = 10  # 速度代价增益
-        self.obstacle_cost_gain = 1
+        self.obstacle_cost_gain = 1 # 障碍物代价增益
+        self.yawrate_cost_gain = 8 # 角速度代价增益
         self.robot_radius = 0.2  # [m]  # 机器人半径
 
 
@@ -40,14 +43,11 @@ def motion(x, u, dt):
     :param dt: 采样时间
     :return:
     """
-    # 速度更新公式比较简单，在极短时间内，车辆位移也变化较大
-    # 采用圆弧求解如何？
     x[0] += u[0] * math.cos(x[2]) * dt  # x方向位移
     x[1] += u[0] * math.sin(x[2]) * dt  # y
     x[2] += u[1] * dt  # 航向角
     x[3] = u[0]  # 速度v
     x[4] = u[1]  # 角速度w
-    # print(x)
 
     return x
 
@@ -127,28 +127,9 @@ def calc_obstacle_cost(traj, ob, config):
     :return:
     """
     # calc obstacle cost inf: collision, 0:free
-    '''
-    min_r = float("inf")  # 距离初始化为无穷大
-
-    for ii in range(0, len(traj[:, 1])):
-        for i in range(len(ob[:, 0])):
-            ox = ob[i, 0]
-            oy = ob[i, 1]
-            dx = traj[ii, 0] - ox
-            dy = traj[ii, 1] - oy
-
-            r = math.sqrt(dx ** 2 + dy ** 2)
-            if r <= config.robot_radius:
-                return float("Inf")  # collision
-
-            if min_r >= r:
-                min_r = r
-
-    return 1.0 / min_r  # 越小越好
-    '''
 
     skip_n = 2  # for speed up
-    minr = float("inf")
+    minr = float("inf")# 距离初始化为无穷大
 
     for ii in range(0, len(traj[:, 1]), skip_n):
         for i in range(len(ob[:, 0])):
@@ -164,7 +145,7 @@ def calc_obstacle_cost(traj, ob, config):
             if minr >= r:
                 minr = r
 
-    return 1.0 / minr  # OK
+    return 1.0 / minr  # 越小越好
 
 
 def calc_final_input(x, u, vr, config, goal, ob):
@@ -178,62 +159,37 @@ def calc_final_input(x, u, vr, config, goal, ob):
     :param ob:障碍物
     :return:
     """
+    global yawrate_old
+
     x_init = x[:]
     min_cost = 10000.0
     min_u = u
 
     best_trajectory = np.array([x])
 
-    # evaluate all trajectory with sampled input in dynamic window
     # v,生成一系列速度，w，生成一系列角速度
-    '''
-    for w in np.arange(vr[2], vr[3], config.yawrate_reso):
-
-        trajectory = calc_trajectory(x_init, v, w, config)
-        #print(trajectory)
-
-        # calc cost
-        to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal, config)
-        speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
-        ob_cost = config.obstacle_cost_gain * calc_obstacle_cost(trajectory, ob, config)
-        #  print(ob_cost)
-
-        # 评价函数多种多样，看自己选择
-        # 本文构造的是越小越好
-        final_cost = to_goal_cost + speed_cost + ob_cost
-
-        #print(to_goal_cost, speed_cost, ob_cost)
-
-        # search minimum trajectory
-        if min_cost >= final_cost:
-            min_cost = final_cost
-            min_u = [v, w]
-            best_trajectory = trajectory
-    '''
     for v in np.arange(vr[0], vr[1], config.v_reso):
         for w in np.arange(vr[2], vr[3], config.yawrate_reso):
 
             trajectory = calc_trajectory(x_init, v, w, config)
 
-            #if w >= 0:
-            #    obstacle_cost_gain = config.obstacle_cost_gain
-            #else:
-            #    obstacle_cost_gain = config.obstacle_cost_gain + 1
-
             # calc cost
             to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal, config)
             speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
             ob_cost = config.obstacle_cost_gain * calc_obstacle_cost(trajectory, ob, config)
+            yawrate_cost = config.yawrate_cost_gain * abs(w - yawrate_old)
 
             # 评价函数多种多样，看自己选择
             # 本文构造的是越小越好
-            final_cost = to_goal_cost + speed_cost + ob_cost
+            final_cost = to_goal_cost + speed_cost + ob_cost + yawrate_cost
 
             # search minimum trajectory
             if min_cost >= final_cost:
                 min_cost = final_cost
                 min_u = [v, w]
                 best_trajectory = trajectory
+
+    yawrate_old = min_u[1]
 
     return min_u, best_trajectory
 
@@ -248,7 +204,6 @@ def dwa_control(x, u, config, goal, ob):
     :param ob:
     :return:
     """
-    # Dynamic Window control
 
     vr = calc_dynamic_window(x, config)
 
