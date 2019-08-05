@@ -1,15 +1,13 @@
+import numpy as np
+import cv2
+import time
+from modules.perception.proto.perception_pb2 import LaneInfo
+from modules.sensors.proto.sensors_pb2 import Image
+from cyber_py import cyber
 import sys
 
 sys.path.append("../")
-from cyber_py import cyber
-from modules.sensors.proto.sensors_pb2 import Image
-from modules.perception.proto.perception_pb2 import LaneInfo
-from modules.
 
-import time
-import sys
-import cv2
-import numpy as np
 
 line_msg = LaneInfo()
 send_flag = 0
@@ -19,20 +17,24 @@ src_corners = [[191, 223], [272, 223], [182, 269], [297, 269]]
 
 # turn to
 dst_corners = [[152, 270], [267, 270], [152, 339], [267, 339]]
-M = cv2.getPerspectiveTransform(np.float32(src_corners), np.float32(dst_corners))
+M = cv2.getPerspectiveTransform(
+    np.float32(src_corners), np.float32(dst_corners))
 
 picnum = 664
 
 # weight 240
 # midline_x 228
 car_mid_point = 228
-weight=240
+weight = 240
 
 road_weight = 260
 
-mask_right_cor = np.array([[[443, 301], [443, 342], [376, 342]]], dtype=np.int32)
-mask_right_cor_a = (mask_right_cor[0][0][1] - mask_right_cor[0][2][1])/(mask_right_cor[0][0][0] - mask_right_cor[0][2][0])
-mask_right_cor_b = (mask_right_cor[0][0][1]) - (mask_right_cor[0][0][0])*mask_right_cor_a
+mask_right_cor = np.array(
+    [[[443, 301], [443, 342], [376, 342]]], dtype=np.int32)
+mask_right_cor_a = (mask_right_cor[0][0][1] - mask_right_cor[0]
+                    [2][1])/(mask_right_cor[0][0][0] - mask_right_cor[0][2][0])
+mask_right_cor_b = (mask_right_cor[0][0][1]) - \
+    (mask_right_cor[0][0][0])*mask_right_cor_a
 
 
 def clean_right(x_c, y_c):
@@ -94,7 +96,6 @@ def get_midpoint(leftx, lefty, rightx, righty, shape):
     return mean_x, mean_y
 
 
-
 def laneInfo_router(node):
     g_count = 1
     writer = node.create_writer("/perception/lane_line", LaneInfo)
@@ -130,7 +131,8 @@ def get_tag_mask(image_input, tag_roi=(228, 340)):
     image, contours, hierarchy = cv2.findContours(img_d, cv2.RETR_EXTERNAL,
                                                   cv2.CHAIN_APPROX_SIMPLE)
 
-    vis = np.array([(tag_roi[0], tag_roi[1]), (tag_roi[0] - 20, tag_roi[1]), (tag_roi[0] + 20, tag_roi[1])])
+    vis = np.array([(tag_roi[0], tag_roi[1]), (tag_roi[0] - 20,
+                                               tag_roi[1]), (tag_roi[0] + 20, tag_roi[1])])
 
     c_max = []
     max_area = 0
@@ -138,7 +140,8 @@ def get_tag_mask(image_input, tag_roi=(228, 340)):
     for i in range(len(contours)):
         cnt = contours[i]
         loca_tem = np.array([cv2.pointPolygonTest(cnt, (vis[0][0], vis[0][1]), False),
-                             cv2.pointPolygonTest(cnt, (vis[1][0], vis[1][1]), False),
+                             cv2.pointPolygonTest(
+                                 cnt, (vis[1][0], vis[1][1]), False),
                              cv2.pointPolygonTest(cnt, (vis[2][0], vis[2][1]), False)])
 
         is_black = 0
@@ -251,13 +254,12 @@ def find_line_fit(img, midpoint=None, nwindows=9, margin=100, minpix=30):
     left_lane_inds = np.concatenate(left_lane_inds)
     right_lane_inds = np.concatenate(right_lane_inds)
 
-
     # Extract left and right line pixel positions
     leftx = nonzerox[left_lane_inds]
     lefty = nonzeroy[left_lane_inds]
     rightx = nonzerox[right_lane_inds]
     righty = nonzeroy[right_lane_inds]
-    
+
     rightx, righty = clean_right(rightx, righty)
 
     if len(leftx) == 0:
@@ -266,8 +268,8 @@ def find_line_fit(img, midpoint=None, nwindows=9, margin=100, minpix=30):
             leftx = rightx - road_weight
             lefty = righty
         else:
-            leftx = [[0] for x_t in range(0,5)]
-            lefty = [[img.shape[0]-y_t*10] for y_t in range(0,5)]
+            leftx = [[0] for x_t in range(0, 5)]
+            lefty = [[img.shape[0]-y_t*10] for y_t in range(0, 5)]
 
             rightx = [[img.shape[1]-1] for x_t in range(0, 5)]
             righty = [[img.shape[0] - y_t * 10] for y_t in range(0, 5)]
@@ -278,12 +280,11 @@ def find_line_fit(img, midpoint=None, nwindows=9, margin=100, minpix=30):
             rightx = leftx + road_weight
             righty = lefty
 
-
     mean_x, mean_y = get_midpoint(leftx, lefty, rightx, righty, img.shape)
 
     # to plot
     #out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
-    
+
     #out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
 
     # Fit a second order polynomial to each
@@ -322,7 +323,8 @@ def callback(data):
 
     wrap_img3 = get_tag_mask(wrap_img)
 
-    binary = abs_sobel_thresh(wrap_img3, orient='y', sobel_kernel=3, thresh=(20, 255))
+    binary = abs_sobel_thresh(wrap_img3, orient='y',
+                              sobel_kernel=3, thresh=(20, 255))
 
     left_fit_view, right_fit_view, left_fit, right_fit, out_img2 = find_line_fit(binary,
                                                                                  midpoint=car_mid_point,
@@ -358,4 +360,3 @@ if __name__ == '__main__':
 
     cyber_node.spin()
     cyber.shutdown()
-

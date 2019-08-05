@@ -26,7 +26,7 @@ class Exercise(object):
         self.marker_pos = {0: [1.0, 0], 1: [2.0, 0]}
         self.node.create_reader("/localization/tag", Tags, self.callback)
         self.node.create_reader("/realsense/pose", Pose, self.posecallback)
-        self.node.create_reader("/chassis", Chassis, self.Chassiscallback)
+        self.node.create_reader("/chassis", Chassis, self.chassiscallback)
         self.writer = self.node.create_writer("/localization", localization)
         self.start_yaw = 0
         self.init_flag = 0
@@ -41,7 +41,7 @@ class Exercise(object):
     def callback(self, data):
         self.get_global_pos_by_apriltag(data)
 
-    def Chassiscallback(self, Chassis):
+    def chassiscallback(self, Chassis):
         self.speed = Chassis.speed
 
     def posecallback(self, Pose):
@@ -96,8 +96,8 @@ class Exercise(object):
                 theta_y = math.atan2(
                     -data.tag[i].pose.r.element[2 * 3 + 0], sy)
                 R1 = math.sqrt(x * x + z * z)
-                #print("!!!!!!!!!!!!!!!!!!!!!!!")
-                #print(R)    
+                # print("!!!!!!!!!!!!!!!!!!!!!!!")
+                # print(R)
                 self.position_0.x = 0 - \
                     math.cos(-theta_y) * x + math.sin(-theta_y) * z
                 #self.position_0.x = R * math.cos(-theta_y)
@@ -110,9 +110,9 @@ class Exercise(object):
                 x = data.tag[i].pose.t.element[0]
                 y = data.tag[i].pose.t.element[1]
                 z = data.tag[i].pose.t.element[2]
-                #self.position_1.y = math.cos(
+                # self.position_1.y = math.cos(
                 #    pitch) * data.tag[i].pose.t.element[1] - math.sin(pitch) * data.tag[i].pose.t.element[2]
-                #z = self.marker_pos[1][0] - (math.sin(pitch) * data.tag[i].pose.t.element[1] + math.cos(
+                # z = self.marker_pos[1][0] - (math.sin(pitch) * data.tag[i].pose.t.element[1] + math.cos(
                 #    pitch) * data.tag[i].pose.t.element[2])
                 r21 = data.tag[i].pose.r.element[2 * 3 + 1]
                 R2 = math.sqrt(x * x + z * z + y * y)
@@ -130,8 +130,8 @@ class Exercise(object):
             self.pos.y = -1
             self.pos.z = -1
         elif (len(data.tag)) == 2:
-            #self.pos.x = 
-            self.pos.y = 0#(self.position_1.y + self.position_0.y) / 2
+            # self.pos.x =
+            self.pos.y = 0  # (self.position_1.y + self.position_0.y) / 2
             self.pos.x = (R2 * R2 - R1 * R1 - 0.29 * 0.29) / 0.58
             self.pos.z = math.sqrt(R1 * R1 - self.pos.x * self.pos.x)
         elif (len(data.tag)) == 1:
