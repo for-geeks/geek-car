@@ -45,7 +45,7 @@ rs2::device get_device(const std::string& serial_number = "") {
 int main() {
   // get the device given the serial number
   std::cout << "Waiting for device..." << std::endl;
-  std::string serial_number = "908412111198";  // serial number or empty
+  std::string serial_number = FLAGS_serial_number;
   auto device = get_device(serial_number);
 
   std::cout << "Device with serial number "
