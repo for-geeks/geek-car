@@ -29,7 +29,7 @@
 void PoseCallback(const std::shared_ptr<apollo::sensors::Pose>& pose) {
   if (std::to_string(pose->translation().x()) == "nan") {
     // TODO(all) restart realsense_component
-    std::string cmd = "scripts/realsense.sh restart";
+    std::string cmd = "/apollo/scripts/realsense.sh restart";
 
     AWARN << "realsense T265 return nan, waitting for respawn";
     const int ret = std::system(cmd.c_str());
@@ -40,7 +40,6 @@ void PoseCallback(const std::shared_ptr<apollo::sensors::Pose>& pose) {
     }
   }
 }
-
 
 int main() {
   apollo::cyber::Init("realsense_monitor");

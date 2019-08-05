@@ -161,8 +161,7 @@ void RealsenseComponent::run() {
       auto wo_sensor = device_.first<rs2::wheel_odometer>();
       // send vehicle speed to wheel odometry
       // wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0});
-       if (!wo_sensor.send_wheel_odometry(
-              0, 0, {chassis_.speed(), 0, 0})) {
+      if (!wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0})) {
         AERROR << "Failed to send wheel odometry";
       }
       if (pose_frame.get_frame_number() % 5 == 0) {
@@ -229,10 +228,9 @@ void RealsenseComponent::Calibration() {
 
 void RealsenseComponent::WheelOdometry() {
   auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
-  // TODO(fixme) GIVE ME A Configurable FILE RELATIVE DIRECTORY
+  // GIVE ME A Configurable FILE RELATIVE DIRECTORY
   std::string calibration_file_path =
-      GetAbsolutePath(apollo::cyber::common::WorkRoot(),
-                      "../modules/sensors/conf/calibration_odometry.json");
+      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAG_odometry_file);
   std::ifstream calibrationFile(calibration_file_path);
   const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
                              std::istreambuf_iterator<char>());

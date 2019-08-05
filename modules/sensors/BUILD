@@ -48,7 +48,7 @@ cc_binary(
     name = "realsense_monitor",
     srcs = ["realsense_monitor.cc"],
     deps = [
-	"//cyber",
+        "//cyber",
         "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
     ],

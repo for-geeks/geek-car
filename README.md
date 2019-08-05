@@ -135,16 +135,8 @@ int main(int argc, char* argv[]) {
 
 More details about develop toolschain you can find here：[CyberRT_Developer_Tools](https://github.com/ApolloAuto/apollo/blob/master/docs/cyber/CyberRT_Developer_Tools.md)
 
-## Appendix I：Cyber RT Dependence  
 
-- Bazel
-- Protobuf
-- Glog
-- Gtest
-- Fast-rtps
-- Pcl
-
-## Appendix II: Update
+## Appendix I: Update
 
 ```bash
 # open coredump
@@ -165,3 +157,9 @@ pip install protobuf
 1.`ImportError:No module named proto.unit_test_pb2`:
 
 `source scripts/apollo_base.sh`
+
+2. setup soft link to source directory
+
+```bash
+sudo ln -s path/to/geek_lite /apollo
+```
