@@ -1,8 +1,26 @@
 #!/usr/bin/env bash
 
 # test 3 lane detection
-bash chassis.sh stop
-bash realsense.sh stop
+function start() {
+    bash /apollo/scripts/realsense.sh 
+    bash /apollo/scripts/chassis.sh
+}
 
-bash realsense.sh
-bash chassis.sh
+function stop() {
+    bash /apollo/scripts/chassis.sh stop
+    bash /apollo/scripts/realsense.sh stop
+}
+
+
+case $1 in
+  start)
+    stop
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  *)
+    start
+    ;;
+esac
