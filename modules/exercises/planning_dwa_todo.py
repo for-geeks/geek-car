@@ -29,11 +29,13 @@ class Config(object):
         self.yawrate_reso = 10 * math.pi / 180.0  # [rad/s]，角速度分辨率
         self.dt = 0.1  # [s]  # 采样周期
         self.predict_time = 3  # [s]  # 向前预估三秒
+        self.yawrate_cost_gain = 8 # 角速度代价增益
+        self.robot_radius = 0.2  # [m]  # 机器人半径
+
+        #TODO 实验二   调试以下参数,运行代码
         self.to_goal_cost_gain = 6 # 目标代价增益
         self.speed_cost_gain = 10  # 速度代价增益
         self.obstacle_cost_gain = 1 # 障碍物代价增益
-        self.yawrate_cost_gain = 8 # 角速度代价增益
-        self.robot_radius = 0.2  # [m]  # 机器人半径
 
 
 def motion(x, u, dt):
@@ -43,15 +45,10 @@ def motion(x, u, dt):
     :param dt: 采样时间
     :return:
     """
-    ##TODO
-    x[0] += u[0] * math.cos(x[2]) * dt  # x方向位移
-    x[1] += u[0] * math.sin(x[2]) * dt  # y
-    x[2] += u[1] * dt  # 航向角
-    x[3] = u[0]  # 速度v
-    x[4] = u[1]  # 角速度w
+    ##TODO 实验一  编写轨迹模型函数并返回位置空间
 
     return x
-    ##TODO
+    
 
 def calc_dynamic_window(x, config):
     """
@@ -109,18 +106,14 @@ def calc_to_goal_cost(trajectory, goal, config):
     """
     # calc to goal cost. It is 2D norm.
 
-    ##TODO
-    dx = goal[0] - trajectory[-1, 0]
-    dy = goal[1] - trajectory[-1, 1]
-    goal_dis = math.sqrt(dx ** 2 + dy ** 2)
-    cost = config.to_goal_cost_gain * goal_dis
+    ##TODO 实验一 编写轨迹到目标点的代价函数
 
-    return cost
-    ##TODO
+    return goal_cost
+
 
 def calc_obstacle_cost(traj, ob, config):
     """
-    计算预测轨迹和障碍物的最小距离，dist(v,w)
+    计算预测轨迹和障碍物的最小距离
     :param traj:
     :param ob:
     :param config:
@@ -128,31 +121,20 @@ def calc_obstacle_cost(traj, ob, config):
     """
     # calc obstacle cost inf: collision, 0:free
 
-    ##TODO
+    ##TODO 实验一 编写预测轨迹和障碍物的最小距离的代价函数
 
-    skip_n = 2  # 省时
+    return obstacle_cost
 
-    minr = float("inf")# 距离初始化为无穷大
+def calc_speed_cost(traj, config):
+    """
+    计算预测速度与最大速度差距
+    :param traj:
+    :param config:
+    :return:
+    """
+    ##TODO 实验一 编写预测速度与最大速度差距的代价函数
 
-    for ii in range(0, len(traj[:, 1]), skip_n):
-        for i in range(len(ob[:, 0])):
-            ox = ob[i, 0]
-            oy = ob[i, 1]
-            dx = traj[ii, 0] - ox
-
-            dy = traj[ii, 1] - oy
-
-            r = math.sqrt(dx ** 2 + dy ** 2)
-            if r <= config.robot_radius:
-                return float("Inf")  # collision
-
-            if minr >= r:
-                minr = r
-
-    return 1.0 / minr  # 越小越好
-
-    ##TODO
-
+    return speed_cost
 
 def calc_final_input(x, u, vr, config, goal, ob):
     """
@@ -181,13 +163,15 @@ def calc_final_input(x, u, vr, config, goal, ob):
 
             # calc cost
             to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal, config)
-            speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
+            speed_cost = config.speed_cost_gain * calc_speed_cost(trajectory, config)
             ob_cost = config.obstacle_cost_gain * calc_obstacle_cost(trajectory, ob, config)
-            
+
+
+            #用于稳定规划路径，减少跳动
             yawrate_cost = config.yawrate_cost_gain * abs(w - yawrate_old)
 
             # 评价函数多种多样，看自己选择
-            # cost越小越好
+            # 本文构造的是越小越好
             final_cost = to_goal_cost + speed_cost + ob_cost + yawrate_cost
 
             # search minimum trajectory
@@ -244,7 +228,7 @@ class planning(object):
         ob = np.matrix(obslist)
 
         # input [forward speed, yawrate]
-        u = np.array([0.3, 0.0]) #初始速度
+        u = np.array([0.3, 0.0])
         config = Config()
 
         best_trajectory = np.array(x)

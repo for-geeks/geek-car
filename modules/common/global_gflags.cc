@@ -75,7 +75,7 @@ DEFINE_double(left_cy, 200.011, "cy");
 DEFINE_int32(compress_rate, 30, "compressed image rate");
 
 // TOOLS
-DEFINE_string(image_export_dir, "/home/raosiyue/out_test/",
+DEFINE_string(image_export_dir, "/home/geek-car/out_test/",
               "tools image saver dir");
 DEFINE_string(odometry_file,
               "../modules/sensors/conf/calibration_odometry.json",

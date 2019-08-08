@@ -51,7 +51,6 @@ def motion(x, u, dt):
     x[4] = u[1]  # 角速度w
 
     return x
-    ##TODO
 
 def calc_dynamic_window(x, config):
     """
@@ -70,7 +69,6 @@ def calc_dynamic_window(x, config):
           x[3] + config.max_accel * config.dt,
           x[4] - config.max_dyawrate * config.dt,
           x[4] + config.max_dyawrate * config.dt]
-    #  print(Vs, Vd)
 
     # 求出两个速度集合的交集
     vr = [max(vs[0], vd[0]), min(vs[1], vd[1]),
@@ -116,7 +114,6 @@ def calc_to_goal_cost(trajectory, goal, config):
     cost = config.to_goal_cost_gain * goal_dis
 
     return cost
-    ##TODO
 
 def calc_obstacle_cost(traj, ob, config):
     """
@@ -151,7 +148,19 @@ def calc_obstacle_cost(traj, ob, config):
 
     return 1.0 / minr  # 越小越好
 
+
+def calc_speed_cost(traj, config):
+    """
+    计算预测速度与最大速度差距
+    :param traj:
+    :param config:
+    :return:
+    """
     ##TODO
+
+    speed_cost = config.max_speed - traj[-1, 3]
+
+    return speed_cost
 
 
 def calc_final_input(x, u, vr, config, goal, ob):
@@ -181,13 +190,15 @@ def calc_final_input(x, u, vr, config, goal, ob):
 
             # calc cost
             to_goal_cost = config.to_goal_cost_gain * calc_to_goal_cost(trajectory, goal, config)
-            speed_cost = config.speed_cost_gain * (config.max_speed - trajectory[-1, 3])
+            speed_cost = config.speed_cost_gain * calc_speed_cost(trajectory, config)
             ob_cost = config.obstacle_cost_gain * calc_obstacle_cost(trajectory, ob, config)
-            
+
+
+            #用于稳定规划路径，减少跳动
             yawrate_cost = config.yawrate_cost_gain * abs(w - yawrate_old)
 
             # 评价函数多种多样，看自己选择
-            # cost越小越好
+            # 本文构造的是越小越好
             final_cost = to_goal_cost + speed_cost + ob_cost + yawrate_cost
 
             # search minimum trajectory
@@ -244,7 +255,7 @@ class planning(object):
         ob = np.matrix(obslist)
 
         # input [forward speed, yawrate]
-        u = np.array([0.3, 0.0]) #初始速度
+        u = np.array([0.3, 0.0])
         config = Config()
 
         best_trajectory = np.array(x)

@@ -3,12 +3,12 @@
 # test planning dwa
 function start() {
     bash /apollo/scripts/realsense.sh
-    bash /apollo/scripts/localization.sh
+    #bash /apollo/scripts/localization.sh
     bash /apollo/scripts/chassis.sh
 }
 
 function stop() {
-    bash /apollo/scripts/localization.sh stop
+    #bash /apollo/scripts/localization.sh stop
     bash /apollo/scripts/chassis.sh stop
     bash /apollo/scripts/realsense.sh stop
 }
