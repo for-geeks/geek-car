@@ -230,7 +230,7 @@ void RealsenseComponent::WheelOdometry() {
   auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
   // GIVE ME A Configurable FILE RELATIVE DIRECTORY
   std::string calibration_file_path =
-      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAG_odometry_file);
+      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
   std::ifstream calibrationFile(calibration_file_path);
   const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
                              std::istreambuf_iterator<char>());
