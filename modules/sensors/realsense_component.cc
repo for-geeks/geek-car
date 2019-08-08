@@ -222,8 +222,9 @@ void RealsenseComponent::Calibration() {
   cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
                left.ppy, 0, 0, 0, 1, 0);
 
-  cv::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
-                              cv::Size(848, 816), CV_16SC2, map1_, map2_);
+  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
+                                       cv::Size(848, 816), CV_16SC2, map1_,
+                                       map2_);
 }
 
 void RealsenseComponent::WheelOdometry() {
