@@ -107,7 +107,7 @@ void ChassisComponent::OnChassis() {
     while (1) {
       int ret = arduino_.Read(&buf, 1);
       if (ret == 1) {
-        ADEBUG << "Arduino return state:" << ret;
+        // ADEBUG << "Arduino return state:" << ret;
         if (buf == 0x0A) {
           break;
         }

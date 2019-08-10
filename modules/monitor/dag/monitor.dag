@@ -1,0 +1,10 @@
+# Dag all comes in DAG streming.
+module_config {
+  module_library : "../bazel-bin/modules/monitor/libmonitor_component.so"
+  components {
+    class_name : "MonitorComponent"
+    config {
+      name: "monitor_component"
+    }
+  }
+}
