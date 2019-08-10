@@ -21,4 +21,4 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "${DIR}/.."
 
-./bazel-bin/modules/sensors/realsense_monitor
+./bazel-bin/modules/monitor/realsense_monitor

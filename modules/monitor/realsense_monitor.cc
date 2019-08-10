@@ -21,14 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include <cstdlib>
 #include "cyber/cyber.h"
 #include "modules/common/global_gflags.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include <cstdlib>
 
-void PoseCallback(const std::shared_ptr<apollo::sensors::Pose>& pose) {
+void PoseCallback(const std::shared_ptr<apollo::sensors::Pose> &pose) {
   if (std::to_string(pose->translation().x()) == "nan") {
-    // TODO(all) restart realsense_component
+    // restart realsense_component
     std::string cmd = "/apollo/scripts/realsense.sh restart";
 
     AWARN << "realsense T265 return nan, waitting for respawn";

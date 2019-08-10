@@ -1,0 +1,8 @@
+syntax = "proto2";
+
+package apollo.monitor;
+
+message Status {
+  optional float id = 1;
+  optional string status = 2;
+}
