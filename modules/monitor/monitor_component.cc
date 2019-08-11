@@ -138,7 +138,7 @@ bool MonitorComponent::Arduino() {
    */
 
   struct stat info;
-  return stat(arduino_path.c_str(), &info) == 0 && (info.st_mode & S_IRGRP);
+  return stat(arduino_path, &info) == 0 && (info.st_mode & S_IRGRP);
 }
 
 void MonitorComponent::RealsenseField() {
