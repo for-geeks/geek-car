@@ -104,11 +104,11 @@ void MonitorComponent::Realsense() {
   writer_->Write(status);
 }
 
-void MonitorComponent::Arduino() {
+bool MonitorComponent::Arduino() {
   // check Arduino device
 
   // TODO(ALL) udev rules
-  arduino_path = "/dev/ttyACM0";
+  auto arduino_path = "/dev/ttyACM0";
   // AINFO << "SUCCESS, Arduino Connected.";
 
   /**

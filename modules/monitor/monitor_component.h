@@ -44,7 +44,7 @@ class MonitorComponent : public Component<> {
  public:
   bool Init() override;
   void Realsense();
-  void Arduino();
+  bool Arduino();
   void RealsenseField();
 
  private:
