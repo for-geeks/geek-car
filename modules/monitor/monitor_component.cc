@@ -45,7 +45,7 @@ bool MonitorComponent::Init() {
 }
 
 void MonitorComponent::Realsense() {
-  while (!cyber::IsShutdown()) {
+  while (true) {
     // First, create a rs2::context.
     // The context represents the current platform with respect to connected
     // devices
@@ -55,6 +55,7 @@ void MonitorComponent::Realsense() {
     rs2::device_list devices = ctx.query_devices();
 
     rs2::device selected_device;
+    AINFO << "Realsense Device size is :" << devices.size();
 
     auto status = std::make_shared<Status>();
 
@@ -75,7 +76,18 @@ void MonitorComponent::Realsense() {
       realsense->set_message(message);
     } else {
       // Update the selected device
-      selected_device = devices[0];
+      selected_device = devices.front();
+
+      // print device_info
+      RealSense::printDeviceInformation(selected_device);
+
+      realsense->set_connection_status(true);
+      realsense->set_message("Everything is ok");
+      // publish status;
+      std::string serial_number =
+          selected_device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+
+      realsense->set_serial_number(serial_number);
 
       if (reader_ == nullptr && realsense_ready_.load()) {
         reader_ = node_->CreateReader<Pose>(
@@ -87,17 +99,6 @@ void MonitorComponent::Realsense() {
       realsense_ready_.exchange(true);
       RealsenseField();
     }
-
-    // print device_info
-    RealSense::printDeviceInformation(selected_device);
-
-    // publish status;
-    std::string serial_number =
-        selected_device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
-
-    realsense->set_connection_status(true);
-    realsense->set_message("Everything is ok");
-    realsense->set_serial_number(serial_number);
 
     auto arduino = status->mutable_arduino();
     if (Arduino()) {
