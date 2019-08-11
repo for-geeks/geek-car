@@ -32,11 +32,11 @@
 namespace apollo {
 namespace monitor {
 
+using apollo::cyber::Component;
 using apollo::cyber::Reader;
 using apollo::cyber::Writer;
 using apollo::monitor::Status;
 using apollo::sensors::Pose;
-using apollo::cyber::Component;
 
 // Tell other device, we are ok or not
 // (devices, include Arduino, Realsense)
@@ -51,6 +51,9 @@ class MonitorComponent : public Component<> {
   std::shared_ptr<Writer<Status>> writer_ = nullptr;
   std::shared_ptr<Reader<Pose>> reader_ = nullptr;
   Pose pose_;
+
+  // atomic flag for action
+  std::atomic<bool> realsense_ready_ = {false};
 };
 
 CYBER_REGISTER_COMPONENT(MonitorComponent)

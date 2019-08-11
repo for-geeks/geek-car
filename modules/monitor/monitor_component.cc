@@ -76,9 +76,15 @@ void MonitorComponent::Realsense() {
     } else {
       // Update the selected device
       selected_device = devices[0];
-      reader_ = node_->CreateReader<Pose>(
-          FLAGS_pose_channel,
-          [this](const std::shared_ptr<Pose>& pose) { pose_.CopyFrom(*pose); });
+
+      if (reader_ == nullptr && realsense_ready_.load()) {
+        reader_ = node_->CreateReader<Pose>(
+            FLAGS_pose_channel, [this](const std::shared_ptr<Pose>& pose) {
+              pose_.CopyFrom(*pose);
+            });
+      }
+
+      realsense_ready_.exchange(true);
       RealsenseField();
     }
 

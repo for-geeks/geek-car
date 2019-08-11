@@ -100,7 +100,7 @@ class RealSense {
       // To prevent throwing exceptions from the "get_info" method we first
       // check if the device supports this type of info
       if (dev.supports(info_type))
-        device_info += dev.get_info(info_type);
+        device_info += std::string(" ") + dev.get_info(info_type);
       else
         device_info += " N/A";
 
