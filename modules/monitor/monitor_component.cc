@@ -45,63 +45,65 @@ bool MonitorComponent::Init() {
 }
 
 void MonitorComponent::Realsense() {
-  // First, create a rs2::context.
-  // The context represents the current platform with respect to connected
-  // devices
-  rs2::context ctx;
+  while (!cyber::IsShutdown()) {
+    // First, create a rs2::context.
+    // The context represents the current platform with respect to connected
+    // devices
+    rs2::context ctx;
 
-  // Using the context we can get all connected devices in a device list
-  rs2::device_list devices = ctx.query_devices();
+    // Using the context we can get all connected devices in a device list
+    rs2::device_list devices = ctx.query_devices();
 
-  rs2::device selected_device;
+    rs2::device selected_device;
 
-  auto status = std::make_shared<Status>();
+    auto status = std::make_shared<Status>();
 
-  auto realsense = status->mutable_realsense();
-  if (devices.size() == 0) {
-    std::string message =
-        "No device connected, please connect a RealSense device";
+    auto realsense = status->mutable_realsense();
+    if (devices.size() == 0) {
+      std::string message =
+          "No device connected, please connect a RealSense device";
 
-    AERROR << message;
+      AERROR << message;
 
-    // To help with the boilerplate code of waiting for a device to connect
-    // The SDK provides the rs2::device_hub class
-    rs2::device_hub device_hub(ctx);
+      // To help with the boilerplate code of waiting for a device to connect
+      // The SDK provides the rs2::device_hub class
+      rs2::device_hub device_hub(ctx);
 
-    // Using the device_hub we can block the program until a device connects
-    // selected_device = device_hub.wait_for_device();
-    realsense->set_connection_status(false);
-    realsense->set_message(message);
-  } else {
-    // Update the selected device
-    selected_device = devices[0];
-    reader_ = node_->CreateReader<Pose>(
-        FLAGS_pose_channel,
-        [this](const std::shared_ptr<Pose>& pose) { pose_.CopyFrom(*pose); });
-    RealsenseField();
+      // Using the device_hub we can block the program until a device connects
+      // selected_device = device_hub.wait_for_device();
+      realsense->set_connection_status(false);
+      realsense->set_message(message);
+    } else {
+      // Update the selected device
+      selected_device = devices[0];
+      reader_ = node_->CreateReader<Pose>(
+          FLAGS_pose_channel,
+          [this](const std::shared_ptr<Pose>& pose) { pose_.CopyFrom(*pose); });
+      RealsenseField();
+    }
+
+    // print device_info
+    RealSense::printDeviceInformation(selected_device);
+
+    // publish status;
+    std::string serial_number =
+        selected_device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+
+    realsense->set_connection_status(true);
+    realsense->set_message("Everything is ok");
+    realsense->set_serial_number(serial_number);
+
+    auto arduino = status->mutable_arduino();
+    if (Arduino()) {
+      arduino->set_connection_status(true);
+      arduino->set_message("Device mounted at /dev/ttyACM0");
+    } else {
+      arduino->set_connection_status(false);
+      arduino->set_message("Arduino NOT FOUND or permission refused");
+    }
+
+    writer_->Write(status);
   }
-
-  // print device_info
-  RealSense::printDeviceInformation(selected_device);
-
-  // publish status;
-  std::string serial_number =
-      selected_device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
-
-  realsense->set_connection_status(true);
-  realsense->set_message("Everything is ok");
-  realsense->set_serial_number(serial_number);
-
-  auto arduino = status->mutable_arduino();
-  if (Arduino()) {
-    arduino->set_connection_status(true);
-    arduino->set_message("Device mounted at /dev/ttyACM0");
-  } else {
-    arduino->set_connection_status(false);
-    arduino->set_message("Arduino NOT FOUND or permission refused");
-  }
-
-  writer_->Write(status);
 }
 
 bool MonitorComponent::Arduino() {
