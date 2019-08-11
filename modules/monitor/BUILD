@@ -25,6 +25,7 @@ cc_library(
         "//modules/common:global_gflags",
         "//modules/monitor/proto:status_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
+	"//modules/sensors:realsense_api",
     ],
 )
 

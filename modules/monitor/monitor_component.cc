@@ -55,7 +55,7 @@ void MonitorComponent::Realsense() {
 
   rs2::device selected_device;
 
-  Status status;
+  auto status = std::make_shared<Status>();
 
   auto realsense = status->mutable_realsense();
   if (devices.size() == 0) {
@@ -89,8 +89,8 @@ void MonitorComponent::Realsense() {
       selected_device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
 
   realsense->set_connection_status(true);
-  realsense->->set_message("Everything is ok");
-  realsense->set_seial_number(serial_number);
+  realsense->set_message("Everything is ok");
+  realsense->set_serial_number(serial_number);
 
   auto arduino = status->mutable_arduino();
   if (apollo::cyber::common::PathExists("/dev/ttyACM0")) {
@@ -107,8 +107,8 @@ void MonitorComponent::Arduino() {
   // check Arduino device
 
   // TODO(ALL) udev rules
-  if (apollo::cyber::common::PathExists('/dev/ttyACM0')) {
-    AINFO << "SUCCESS, Arduino Connected." << cmd;
+  if (apollo::cyber::common::PathExists("/dev/ttyACM0")) {
+    AINFO << "SUCCESS, Arduino Connected.";
   }
 
   // std::string cmd = "/apollo/scripts/realsense.sh";
@@ -121,7 +121,7 @@ void MonitorComponent::Arduino() {
 }
 
 void MonitorComponent::RealsenseField() {
-  if (std::to_string(pose_->translation().x()) == "nan") {
+  if (std::to_string(pose_.translation().x()) == "nan") {
     // restart realsense_component
     std::string cmd = "/apollo/scripts/realsense.sh restart";
 

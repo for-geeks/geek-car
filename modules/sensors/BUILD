@@ -15,7 +15,6 @@ cc_library(
     name = "realsense_component_lib",
     srcs = ["realsense_component.cc"],
     hdrs = [
-        "realsense.h",
         "realsense_component.h",
     ],
     linkopts = [
@@ -30,7 +29,14 @@ cc_library(
         "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
+	":realsense_api",
     ],
+)
+
+cc_library(
+    name = "realsense_api",
+    srcs = ["realsense.h"],
+    
 )
 
 cc_binary(
