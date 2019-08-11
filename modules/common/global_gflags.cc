@@ -70,6 +70,7 @@ DEFINE_double(left_fx, 142.6265, "fx");
 DEFINE_double(left_fy, 143.13, "fy");
 DEFINE_double(left_cx, 211.345, "cx");
 DEFINE_double(left_cy, 200.011, "cy");
+DEFINE_double(speed_feedback, -2, "chassis speed feedback coefficient");
 
 // IMAGE
 DEFINE_int32(compress_rate, 30, "compressed image rate");

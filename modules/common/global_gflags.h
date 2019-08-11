@@ -67,6 +67,7 @@ DECLARE_double(left_fx);
 DECLARE_double(left_fy);
 DECLARE_double(left_cx);
 DECLARE_double(left_cy);
+DECLARE_double(speed_feedback);
 
 // IMAGE
 DECLARE_int32(compress_rate);

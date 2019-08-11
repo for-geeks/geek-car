@@ -39,7 +39,7 @@ using apollo::monitor::Status;
 bool MonitorComponent::Init() {
   writer_ = node_->CreateWriter<Status>("/monitor");
 
-  // async_result_ = cyber::Async(&MonitorComponent::Realsense, this);
+  auto async = cyber::Async(&MonitorComponent::Realsense, this);
 
   return true;
 }
