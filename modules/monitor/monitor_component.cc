@@ -93,12 +93,13 @@ void MonitorComponent::Realsense() {
   realsense->set_serial_number(serial_number);
 
   auto arduino = status->mutable_arduino();
-  if (apollo::cyber::common::PathExists("/dev/ttyACM0")) {
+  if (Arduino()) {
     arduino->set_connection_status(true);
     arduino->set_message("Device mounted at /dev/ttyACM0");
+  } else {
+    arduino->set_connection_status(false);
+    arduino->set_message("Arduino NOT FOUND or permission refused");
   }
-  arduino->set_connection_status(false);
-  arduino->set_message("Arduino NOT FOUND at /dev/ttyACM0");
 
   writer_->Write(status);
 }
@@ -107,17 +108,37 @@ void MonitorComponent::Arduino() {
   // check Arduino device
 
   // TODO(ALL) udev rules
-  if (apollo::cyber::common::PathExists("/dev/ttyACM0")) {
-    AINFO << "SUCCESS, Arduino Connected.";
-  }
+  arduino_path = "/dev/ttyACM0";
+  // AINFO << "SUCCESS, Arduino Connected.";
 
-  // std::string cmd = "/apollo/scripts/realsense.sh";
-  // const int ret = std::system(cmd.c_str());
-  // if (ret == 0) {
-  //   AINFO << "SUCCESS: " << cmd;
-  // } else {
-  //   AERROR << "FAILED(" << ret << "): " << cmd;
-  // }
+  /**
+   * @info
+   * st_mode 则定义了下列数种情况：
+    S_IFMT   0170000    文件类型的位遮罩
+    S_IFSOCK 0140000    scoket
+    S_IFLNK 0120000     符号连接
+    S_IFREG 0100000     一般文件
+    S_IFBLK 0060000     区块装置
+    S_IFDIR 0040000     目录
+    S_IFCHR 0020000     字符装置
+    S_IFIFO 0010000     先进先出
+
+    S_ISUID 04000     文件的(set user-id on execution)位
+    S_ISGID 02000     文件的(set group-id on execution)位
+    S_ISVTX 01000     文件的sticky位
+
+    S_IRUSR(S_IREAD) 00400     文件所有者具可读取权限
+    S_IWUSR(S_IWRITE)00200     文件所有者具可写入权限
+    S_IXUSR(S_IEXEC) 00100     文件所有者具可执行权限
+
+    S_IRGRP 00040             用户组具可读取权限
+    S_IWGRP 00020             用户组具可写入权限
+    S_IXGRP 00010             用户组具可执行权限
+   *
+   */
+
+  struct stat info;
+  return stat(arduino_path.c_str(), &info) == 0 && (info.st_mode & S_IRGRP);
 }
 
 void MonitorComponent::RealsenseField() {

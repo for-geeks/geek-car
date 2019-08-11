@@ -25,18 +25,17 @@ cc_library(
         "-lrealsense2",
     ],
     deps = [
+        ":realsense_api",
         "//cyber",
         "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
-	":realsense_api",
     ],
 )
 
 cc_library(
     name = "realsense_api",
     srcs = ["realsense.h"],
-    
 )
 
 cc_binary(
