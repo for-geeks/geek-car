@@ -15,24 +15,17 @@ class Exercise(object):
         self.node = node
         self.msg = Image()
 
-        # TODO create reader
+        # create reader
         self.node.create_reader("/realsense/raw_image", Image, self.callback)
         # TODO create writer
-        self.writer = self.node.create_writer(
-            "/realsense/compressed_image", Image)
 
     def callback(self, data):
-        # TODO
-        print(data.frame_no)
-        # TODO reshape
-        self.reshape(data)
-        # TODO publish, write to channel
-        self.write_to_channel()
+        # TODO call reshape method
+        # TODO publish compressed image, call write_to_channel method
 
     def write_to_channel(self):
         # TODO
-        self.writer.write(self.msg)
-       # pass #need to delete when u code
+        pass
 
     def reshape(self, data):
         new_image = np.frombuffer(data.data, dtype=np.uint8)

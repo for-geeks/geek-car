@@ -14,8 +14,6 @@ message Image {
   optional bytes data = 8;   // actual matrix data, size is (step * rows)
 }
 
-// Define
-// https://github.com/IntelRealSense/librealsense/tree/master/examples/pose
 message Pose {
   optional uint64 frame_no = 1;
   optional Point translation = 2;

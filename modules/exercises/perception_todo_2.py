@@ -23,7 +23,8 @@ class Exercise(object):
         self.planning_path = Trajectory()
 
         # TODO create reader
-        self.node.create_reader("/perception/get_point", Trajectory, self.callback)
+        self.node.create_reader("/perception/get_point",
+                                Trajectory, self.callback)
         # TODO create writer
         self.writer = self.node.create_writer(
             "/perception/translation_point", Trajectory)
@@ -43,7 +44,7 @@ class Exercise(object):
 
     def reshape(self, data):
 
-        #print(data)
+        # print(data)
 
         point_array = data.point
         self.planning_path = Trajectory()
@@ -67,5 +68,3 @@ if __name__ == '__main__':
     exercise_node.spin()
 
     cyber.shutdown()
-
-

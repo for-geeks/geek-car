@@ -13,7 +13,8 @@ src_corners = [[191, 223], [272, 223], [182, 269], [297, 269]]
 
 # TODO: turn to
 dst_corners = [[152, 270], [267, 270], [152, 339], [267, 339]]
-M = cv2.getPerspectiveTransform(np.float32(src_corners), np.float32(dst_corners))
+M = cv2.getPerspectiveTransform(
+    np.float32(src_corners), np.float32(dst_corners))
 
 
 def perspective_transform(image, m, img_size=None):
@@ -30,7 +31,8 @@ class Exercise(object):
         self.msg = Image()
 
         # TODO create reader
-        self.node.create_reader("/realsense/compressed_image", Image, self.callback)
+        self.node.create_reader(
+            "/realsense/compressed_image", Image, self.callback)
         # TODO create writer
         self.writer = self.node.create_writer(
             "/perception/vertical_view", Image)
@@ -75,6 +77,3 @@ if __name__ == '__main__':
     exercise_node.spin()
 
     cyber.shutdown()
-
-
-
