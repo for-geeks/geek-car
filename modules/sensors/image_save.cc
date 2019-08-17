@@ -33,8 +33,8 @@ void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {
   cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
                               static_cast<int>(image->width()), CV_8U,
                               (void*)image->data().c_str());
-  std::string image_name = "/home/raosiyue/out_test/Gray_Image_" +
-                           std::to_string(image->frame_no()) + ".jpg";
+  std::string image_name =
+      FLAGS_image_export_dir + std::to_string(image->frame_no()) + ".jpg";
 
   cv::imwrite(image_name, new_image);
 

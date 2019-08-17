@@ -30,6 +30,7 @@
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+
 namespace apollo {
 namespace control {
 
@@ -39,6 +40,7 @@ using apollo::control::Control_Reference;
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::sensors::Pose;
+
 bool ControlComponent::Init() {
   // Reader
   chassis_reader_ = node_->CreateReader<Chassis>(
@@ -55,9 +57,12 @@ bool ControlComponent::Init() {
         refs_.CopyFrom(*refs);
       });
 
-  // Writer
+  // create Writer
   control_writer_ = node_->CreateWriter<Control_Command>(FLAGS_control_channel);
-  GenerateCommand();
+
+  // compute control message in aysnc
+  async_action_ = cyber::Async(&ControlComponent::GenerateCommand, this);
+  // async_action_.get();
 
   return true;
 }
@@ -76,14 +81,13 @@ void ControlComponent::GenerateCommand() {
     float speed_now = chassis_.speed();
     float error = speed_ref - speed_now;
     error_sum += static_cast<float>(error * 0.05);
-    cmd->set_throttle(
-        static_cast<float>(speed_ref * 10 + error * 12 + error_sum * 0.5));
+    cmd->set_throttle(static_cast<float>(
+        speed_ref * FLAGS_longitude_ff + error * FLAGS_longitude_kp +
+        error_sum * FLAGS_longitude_ki + FLAGS_offset));
     float error_yawrate =
         angular_speed_ref - static_cast<float>(pose_.angular_velocity().y());
     error_yawrate_sum += static_cast<float>(error_yawrate * 0.05);
-    cmd->set_steer_angle(
-        static_cast<float>(10 * error_yawrate + error_yawrate_sum * 1 +
-                           0.9 * tanh(error_yawrate / speed_now)));
+    cmd->set_steer_angle(static_cast<float>(0));
 
     control_writer_->Write(cmd);
 
@@ -94,6 +98,7 @@ void ControlComponent::GenerateCommand() {
 
 ControlComponent::~ControlComponent() {
   // back chassis handle
+  async_action_.wait();
 }
 
 }  // namespace control

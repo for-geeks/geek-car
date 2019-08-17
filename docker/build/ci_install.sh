@@ -50,12 +50,13 @@ ln -s /usr/bin/g++-4.8 /etc/alternatives/g++
 ln -s /etc/alternatives/g++ /usr/bin/g++
 
 # Run installer
+bash ${BUILD_PATH}/docker/build/installers/install_conda.sh
+bash ${BUILD_PATH}/docker/build/installers/install_apriltag.sh
 bash ${BUILD_PATH}/docker/build/installers/install_bazel.sh
 bash ${BUILD_PATH}/docker/build/installers/install_gflags_glog.sh
 bash ${BUILD_PATH}/docker/build/installers/install_protobuf.sh
 bash ${BUILD_PATH}/docker/build/installers/install_bazel_packages.sh
 bash ${BUILD_PATH}/docker/build/installers/install_google_styleguide.sh
-bash ${BUILD_PATH}/docker/build/installers/install_osqp.sh
 
 # Add Bionic source
 echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic main restricted" > /etc/apt/sources.list
@@ -86,6 +87,14 @@ apt install -y --allow-downgrades \
     libopencv-core-dev=2.4.8+dfsg1-2ubuntu1 \
     libopencv-imgproc-dev=2.4.8+dfsg1-2ubuntu1 \
     libopencv-highgui-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-flann-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-photo-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-video-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-features2d-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-objdetect-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-calib3d-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-ml-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-contrib-dev=2.4.8+dfsg1-2ubuntu1 \
     libgdal-dev \
     libvtk6-dev \
     libvtk6.3 \
@@ -106,5 +115,6 @@ ln -s /usr/lib/x86_64-linux-gnu/libboost_wserialization.so.1.65.1 /usr/lib/x86_6
 ln -s /usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.54.0 /usr/lib/x86_64-linux-gnu/libboost_chrono.so
 ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.x86_64-linux-gnu.so /usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so
 
+bash ${BUILD_PATH}/docker/build/installers/install_realsense.sh
 bash ${BUILD_PATH}/docker/build/installers/install_fast-rtps.sh
 #bash ${BUILD_PATH}/docker/build/installers/install_pcl.sh

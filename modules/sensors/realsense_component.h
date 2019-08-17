@@ -31,11 +31,13 @@
 #include "opencv2/opencv.hpp"
 
 #include "modules/common/global_gflags.h"
+#include "modules/control/proto/chassis.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {
 namespace sensors {
 
+using apollo::control::Chassis;
 using apollo::cyber::Component;
 using apollo::cyber::Writer;
 
@@ -47,19 +49,27 @@ class RealsenseComponent : public Component<> {
 
  private:
   void Calibration();
+  void WheelOdometry();
   void OnImage(cv::Mat dst, uint64 frame_no);
   void OnPose(rs2_pose pose_data, uint64 frame_no);
   void OnAcc(rs2_vector acc, uint64 frame_no);
   void OnGyro(rs2_vector gyro, uint64 frame_no);
+  void CompressedImage(cv::Mat raw_image, uint64 frame_no);
+
+  std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
 
+  std::shared_ptr<Writer<Image>> compressed_image_writer_ = nullptr;
+  Chassis chassis_;
+
   std::future<void> async_result_;
   rs2::device device_;  // realsense device
   rs2::sensor sensor_;  // sensor include imu and camera;
+  rs2::sensor wheel_odometry_sensor_;
 
   uint32_t device_wait_ = 2000;  // ms
   uint32_t spin_rate_ = 200;     // ms

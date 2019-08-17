@@ -49,10 +49,13 @@ bool ChassisComponent::Init() {
 
   chassis_writer_ = node_->CreateWriter<Chassis>(FLAGS_chassis_channel);
 
+  // control message action
   async_action_ = cyber::Async(&ChassisComponent::Action, this);
-  // chassis feedback
-  // async_feedback_ = cyber::Async(&ChassisComponent::OnChassis, this);
+  // async_action_.get();
+  // uint32 chassis feedback
   OnChassis();
+  // async_feedback_ = cyber::Async(&ChassisComponent::OnChassis, this);
+  // async_feedback_.get();
   return true;
 }
 
@@ -71,7 +74,7 @@ void ChassisComponent::Action() {
       ADEBUG << "Message Origin: " << cmd_.DebugString();
 
       // tell OnChassis() you can receive message now
-      action_ready_ = true;
+      action_ready_.exchange(true);
 
       float steer_angle = cmd_.steer_angle();
       float steer_throttle = cmd_.throttle();
@@ -104,7 +107,7 @@ void ChassisComponent::OnChassis() {
     while (1) {
       int ret = arduino_.Read(&buf, 1);
       if (ret == 1) {
-        ADEBUG << "Arduino return state:" << ret;
+        // ADEBUG << "Arduino return state:" << ret;
         if (buf == 0x0A) {
           break;
         }
@@ -120,16 +123,17 @@ void ChassisComponent::OnChassis() {
       auto proto_chassis = std::make_shared<Chassis>();
       proto_chassis->set_steer_angle(vehicle_info.steerangle);
       proto_chassis->set_throttle(vehicle_info.throttle);
-      proto_chassis->set_speed(vehicle_info.speed_now / 5544);
+      proto_chassis->set_speed(vehicle_info.speed_now / 5544 * (float)FLAGS_speed_feedback);
       chassis_writer_->Write(proto_chassis);
     }
   }
 }
 
 ChassisComponent::~ChassisComponent() {
-  if (action_ready_.exchange(true)) {
+  if (action_ready_.load()) {
     // close arduino
     // back chassis handle
+    async_action_.wait();
     async_feedback_.wait();
   }
 }

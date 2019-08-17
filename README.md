@@ -1,8 +1,5 @@
 # A Sample Framework Based On Cyber RT
 
-
-**CI State**: [![Build Status](https://api.travis-ci.com/mickeyouyou/geek_lite.svg?token=5Xm6xz9PbZpWnqkHqUPj&branch=master)](https://travis-ci.com/mickeyouyou/geek_lite)
-
 As the basic layer of the Apollo autonomous platform, Cyber provides data reliability and timeliness for the application (perception, planning, control, etc.), based on which you can create your own application layer according to your own situation.
 
 Key benefits of using Apollo Cyber RT:
@@ -43,6 +40,32 @@ sudo bash cyber.x86_64.sh
 ```bash
 # in apollo_lite directory
 bash apollo.sh build
+```
+
+## Realsense Configure
+Auto get default realsense device, auto update serial number in file `modules/sensors/conf/sensors.conf` with field serial_number.The flags field is `FLAGS_serial_number`, you can get it if you want use.
+
+how to get this serial_number? use command `rs-enumerate-devices` provided by Intel.You will get something like :
+
+```bash
+geek-car@geekcar-desktop:~/geek_lite$ rs-enumerate-devices 
+Device info: 
+    Name                          : 	Intel RealSense T265
+    Serial Number                 : 	909212110229
+    Firmware Version              : 	0.0.18.5715
+    Physical Port                 : 	vid_8087 pid_0B37 bus_2 port_3
+    Product Id                    : 	0B37
+    Product Line                  : 	T200
+
+Stream Profiles supported by Tracking Module
+ Supported modes:
+    stream       resolution      fps       format
+    Fisheye 1	  848x800	@ 30Hz	   Y8
+    Fisheye 2	  848x800	@ 30Hz	   Y8
+    Gyro	 N/A		@ 200Hz	   MOTION_XYZ32F
+    Accel	 N/A		@ 62Hz	   MOTION_XYZ32F
+    Pose	 N/A		@ 200Hz	   6DOF
+
 ```
 
 ## Have a try on Cyber RT
@@ -111,16 +134,8 @@ int main(int argc, char* argv[]) {
 
 More details about develop toolschain you can find here：[CyberRT_Developer_Tools](https://github.com/ApolloAuto/apollo/blob/master/docs/cyber/CyberRT_Developer_Tools.md)
 
-## Appendix I：Cyber RT Dependence  
 
-- Bazel
-- Protobuf
-- Glog
-- Gtest
-- Fast-rtps
-- Pcl
-
-## Appendix II: Update
+## Appendix I: Update
 
 ```bash
 # open coredump
@@ -138,6 +153,12 @@ pip install protobuf
 
 ## FAQ
 
-1.`ImportError:No module named proto.unit_test_pb2`:
+1. `ImportError:No module named proto.unit_test_pb2`:
 
 `source scripts/apollo_base.sh`
+
+2. setup soft link to source directory
+
+```bash
+sudo ln -s path/to/geek_lite /apollo
+```

@@ -62,6 +62,7 @@ RUN bash /tmp/installers/install_protobuf.sh
 RUN bash /tmp/installers/install_bazel_packages.sh
 RUN bash /tmp/installers/install_google_styleguide.sh
 RUN bash /tmp/installers/install_osqp.sh
+RUN bash /tmp/installers/install_apriltag.sh
 
 # Add Bionic source
 RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic main restricted" > /etc/apt/sources.list

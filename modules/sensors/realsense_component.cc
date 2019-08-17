@@ -29,9 +29,9 @@
 #include <mutex>
 #include <thread>
 #include <utility>
+#include <vector>
 
 #include "librealsense2/rs.hpp"
-#include "opencv2/calib3d.hpp"
 #include "opencv2/opencv.hpp"
 
 #include "cyber/common/log.h"
@@ -46,6 +46,7 @@ namespace sensors {
 
 using apollo::cyber::Rate;
 using apollo::cyber::Time;
+using apollo::cyber::common::GetAbsolutePath;
 using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
 using apollo::sensors::Image;
@@ -73,13 +74,13 @@ rs2::device get_device(const std::string& serial_number = "") {
  * @return false
  */
 bool RealsenseComponent::Init() {
-  device_ = get_device(FLAGS_serial_number);
+  device_ = get_device();
 
   // print device information
   RealSense::printDeviceInformation(device_);
 
-  AINFO << "Got device with serial number "
-        << device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+  FLAGS_serial_number = device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+  AINFO << "Got device with serial number " << FLAGS_serial_number;
   cyber::SleepFor(std::chrono::milliseconds(device_wait_));
 
   sensor_ = device_.first<rs2::sensor>();
@@ -91,14 +92,37 @@ bool RealsenseComponent::Init() {
   Calibration();
 
   pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
-  image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
-  acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
-  gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  if (FLAGS_publish_raw_image) {
+    image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
+  }
+
+  if (FLAGS_publish_acc) {
+    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
+  }
+
+  if (FLAGS_publish_gyro) {
+    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  }
+
+  if (FLAGS_publish_compressed_image) {
+    compressed_image_writer_ =
+        node_->CreateWriter<Image>(FLAGS_compressed_image_channel);
+  }
+
+  chassis_reader_ = node_->CreateReader<Chassis>(
+      FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis>& chassis) {
+        chassis_.Clear();
+        chassis_.CopyFrom(*chassis);
+      });
 
   sensor_.start([this](rs2::frame f) {
     q_.enqueue(std::move(f));  // enqueue any new frames into q
   });
 
+  // load_wheel_odometery_config
+  WheelOdometry();
+
+  // thread to handle frames
   async_result_ = cyber::Async(&RealsenseComponent::run, this);
   return true;
 }
@@ -108,9 +132,8 @@ bool RealsenseComponent::Init() {
  * @return [description]
  */
 void RealsenseComponent::run() {
-  int times = 1;
+  double norm_max = 0;
   while (!cyber::IsShutdown()) {
-    std::cout << times << std::endl;
     // wait for device is ready. in case of device is busy
     if (!device_) {
       device_ = get_device();
@@ -127,6 +150,20 @@ void RealsenseComponent::run() {
       auto pose_frame = f.as<rs2::pose_frame>();
       auto pose_data = pose_frame.get_pose_data();
       AINFO << "pose " << pose_data.translation;
+
+      double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
+                         pose_data.translation.y * pose_data.translation.y +
+                         pose_data.translation.z * pose_data.translation.z);
+      if (norm > norm_max) norm_max = norm;
+
+      ADEBUG << "norm_max:" << norm_max;
+
+      auto wo_sensor = device_.first<rs2::wheel_odometer>();
+      // send vehicle speed to wheel odometry
+      // wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0});
+      if (!wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0})) {
+        AERROR << "Failed to send wheel odometry";
+      }
       if (pose_frame.get_frame_number() % 5 == 0) {
         OnPose(pose_data, pose_frame.get_frame_number());
       }
@@ -143,7 +180,7 @@ void RealsenseComponent::run() {
       AINFO << "Accel:" << accel.x << ", " << accel.y << ", " << accel.z;
       OnAcc(accel, accel_frame.get_frame_number());
     } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
-               f.get_profile().stream_index() == 1 && FLAGS_publish_raw_image) {
+               f.get_profile().stream_index() == 1) {
       // left fisheye
       auto fisheye_frame = f.as<rs2::video_frame>();
 
@@ -163,7 +200,6 @@ void RealsenseComponent::run() {
         OnImage(new_size_img, fisheye_frame.get_frame_number());
       }
     }
-    times++;
   }
 }
 
@@ -177,6 +213,8 @@ void RealsenseComponent::Calibration() {
   rs2_intrinsics left = sensor_.get_stream_profiles()[0]
                             .as<rs2::video_stream_profile>()
                             .get_intrinsics();
+  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
+         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
   intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
                  left.ppy, 0, 0, 1);
   distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
@@ -189,6 +227,21 @@ void RealsenseComponent::Calibration() {
                                        map2_);
 }
 
+void RealsenseComponent::WheelOdometry() {
+  auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
+  // GIVE ME A Configurable FILE RELATIVE DIRECTORY
+  std::string calibration_file_path =
+      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
+  std::ifstream calibrationFile(calibration_file_path);
+  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
+                             std::istreambuf_iterator<char>());
+  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
+
+  if (!wheel_odometry_sensor.load_wheel_odometery_config(wo_calib)) {
+    AERROR << "Failed to load wheel odometry config file.";
+  }
+}
+
 /**
  * @brief callback of Image data
  *
@@ -197,15 +250,20 @@ void RealsenseComponent::Calibration() {
  * @return false
  */
 void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
-  auto image_proto = std::make_shared<Image>();
-  image_proto->set_frame_no(frame_no);
-  image_proto->set_height(dst.rows);
-  image_proto->set_width(dst.cols);
-  image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
-  image_proto->set_measurement_time(Time::Now().ToSecond());
-  auto m_size = dst.rows * dst.cols * dst.elemSize();
-  image_proto->set_data(dst.data, m_size);
-  image_writer_->Write(image_proto);
+  if (FLAGS_publish_raw_image) {
+    auto image_proto = std::make_shared<Image>();
+    image_proto->set_frame_no(frame_no);
+    image_proto->set_height(dst.rows);
+    image_proto->set_width(dst.cols);
+    image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+    image_proto->set_measurement_time(Time::Now().ToSecond());
+    auto m_size = dst.rows * dst.cols * dst.elemSize();
+    image_proto->set_data(dst.data, m_size);
+    image_writer_->Write(image_proto);
+  }
+  if (FLAGS_publish_compressed_image) {
+    CompressedImage(dst, frame_no);
+  }
 }
 
 /**
@@ -218,6 +276,9 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
 void RealsenseComponent::OnPose(rs2_pose pose_data, uint64 frame_no) {
   auto pose_proto = std::make_shared<Pose>();
   pose_proto->set_frame_no(frame_no);
+  pose_proto->set_tracker_confidence(pose_data.tracker_confidence);
+  pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
+
   auto translation = pose_proto->mutable_translation();
   translation->set_x(pose_data.translation.x);
   translation->set_y(pose_data.translation.y);
@@ -232,6 +293,7 @@ void RealsenseComponent::OnPose(rs2_pose pose_data, uint64 frame_no) {
   rotation->set_x(pose_data.rotation.x);
   rotation->set_y(pose_data.rotation.y);
   rotation->set_z(pose_data.rotation.z);
+  rotation->set_w(pose_data.rotation.w);
 
   auto angular_velocity = pose_proto->mutable_angular_velocity();
   angular_velocity->set_x(pose_data.angular_velocity.x);
@@ -257,6 +319,24 @@ void RealsenseComponent::OnGyro(rs2_vector gyro, uint64 frame_no) {
   proto_gyro->mutable_gyro()->set_z(gyro.z);
 
   gyro_writer_->Write(proto_gyro);
+}
+
+void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
+  std::vector<uchar> data_encode;
+  std::vector<int> param = std::vector<int>(2);
+  param[0] = CV_IMWRITE_JPEG_QUALITY;
+  param[1] = FLAGS_compress_rate;
+  cv::imencode(".jpeg", raw_image, data_encode, param);
+  std::string str_encode(data_encode.begin(), data_encode.end());
+
+  auto compressedimage = std::make_shared<Image>();
+  compressedimage->set_frame_no(frame_no);
+  compressedimage->set_height(raw_image.rows);
+  compressedimage->set_width(raw_image.cols);
+  compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+  compressedimage->set_measurement_time(Time::Now().ToSecond());
+  compressedimage->set_data(str_encode);
+  compressed_image_writer_->Write(compressedimage);
 }
 
 RealsenseComponent::~RealsenseComponent() {

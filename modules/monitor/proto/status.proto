@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+package apollo.monitor;
+
+message Realsense {
+  optional bool connection_status = 1;
+  optional string message = 2;
+  optional string serial_number = 3;
+}
+
+message Arduino {
+  optional bool connection_status = 1;
+  optional string message = 2;
+}
+
+message Status {
+  optional Realsense realsense = 1;
+  optional Arduino arduino = 2;
+}

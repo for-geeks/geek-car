@@ -70,6 +70,7 @@ RUN bash /tmp/installers/install_supervisor.sh
 RUN bash /tmp/installers/install_undistort.sh
 RUN bash /tmp/installers/install_user.sh
 RUN bash /tmp/installers/install_yarn.sh
+RUN bash /tmp/installers/install_apriltag.sh
 RUN bash /tmp/installers/post_install.sh
 
 WORKDIR /apollo

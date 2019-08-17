@@ -15,23 +15,27 @@ cc_library(
     name = "realsense_component_lib",
     srcs = ["realsense_component.cc"],
     hdrs = [
-        "realsense.h",
         "realsense_component.h",
     ],
     linkopts = [
         "-lopencv_core",
-        "-lopencv_highgui",
-        "-lopencv_videoio",
         "-lopencv_imgproc",
-        "-lopencv_imgcodecs",
         "-lopencv_calib3d",
+        "-lopencv_highgui",
         "-lrealsense2",
     ],
     deps = [
+        ":realsense_api",
         "//cyber",
         "//modules/common:global_gflags",
+        "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
     ],
+)
+
+cc_library(
+    name = "realsense_api",
+    srcs = ["realsense.h"],
 )
 
 cc_binary(
@@ -39,6 +43,9 @@ cc_binary(
     srcs = ["connect_check.cc"],
     linkopts = [
         "-lrealsense2",
+    ],
+    deps = [
+        "//modules/common:global_gflags",
     ],
 )
 
@@ -48,7 +55,6 @@ cc_binary(
     linkopts = [
         "-lopencv_core",
         "-lopencv_highgui",
-        "-lopencv_videoio",
         "-lopencv_imgproc",
         "-lopencv_imgcodecs",
     ],

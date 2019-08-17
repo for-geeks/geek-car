@@ -34,6 +34,7 @@ DECLARE_string(device_model);
 DECLARE_string(serial_number);
 DECLARE_string(pose_channel);
 DECLARE_string(raw_image_channel);
+DECLARE_string(compressed_image_channel);
 DECLARE_string(acc_channel);
 DECLARE_string(gyro_channel);
 
@@ -42,12 +43,35 @@ DECLARE_string(control_channel);
 DECLARE_string(chassis_channel);
 DECLARE_string(control_ref_channel);
 DECLARE_string(control_coefficient);
+DECLARE_string(tags_channel);
+DECLARE_string(routing_channel);
+DECLARE_string(planning_channel);
 
 // switch
 DECLARE_bool(publish_acc);
 DECLARE_bool(publish_gyro);
 DECLARE_bool(publish_pose);
 DECLARE_bool(publish_raw_image);
+DECLARE_bool(publish_compressed_image);
+DECLARE_bool(use_compressed_image_to_detect_tag);
 
 // CONST
 DECLARE_double(cruise_speed);
+DECLARE_double(longitude_kp);
+DECLARE_double(longitude_ki);
+DECLARE_double(longitude_ff);
+DECLARE_double(offset);
+
+DECLARE_double(tagsize);
+DECLARE_double(left_fx);
+DECLARE_double(left_fy);
+DECLARE_double(left_cx);
+DECLARE_double(left_cy);
+DECLARE_double(speed_feedback);
+
+// IMAGE
+DECLARE_int32(compress_rate);
+
+// TOOLS
+DECLARE_string(image_export_dir);
+DECLARE_string(odometry_file);

@@ -92,6 +92,8 @@ function set_lib_path() {
     export LD_LIBRARY_PATH=/usr/local/fast-rtps/lib:$LD_LIBRARY_PATH
     export LD_LIBRARY_PATH=/usr/local/apollo/libtorch/lib:$LD_LIBRARY_PATH
     export LD_LIBRARY_PATH=/usr/local/apollo/libtorch_gpu/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH # realsense
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH #realsense
     PY_LIB_PATH=/apollo/lib
     PY_TOOLS_PATH=/apollo/modules/tools
   else

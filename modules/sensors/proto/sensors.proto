@@ -6,30 +6,28 @@ message Image {
   optional uint64 frame_no = 2;
   optional double measurement_time = 3;
 
-  optional uint32 height = 4; // image height, that is, number of rows
-  optional uint32 width = 5;  // image width, that is, number of columns
+  optional uint32 height = 4;  // image height, that is, number of rows
+  optional uint32 width = 5;   // image width, that is, number of columns
 
   optional string encoding = 6;
-  optional uint32 step = 7; // Full row length in bytes
-  optional bytes data = 8;  // actual matrix data, size is (step * rows)
+  optional uint32 step = 7;  // Full row length in bytes
+  optional bytes data = 8;   // actual matrix data, size is (step * rows)
 }
 
-// Define
-// https://github.com/IntelRealSense/librealsense/tree/master/examples/pose
 message Pose {
   optional uint64 frame_no = 1;
-  optional Point velocity = 2; // (in meter/sec)
+  optional Point translation = 2;
+  optional Point velocity = 3;  // (in meter/sec)
   //(as represented in quaternion rotation, relative to initial position)
-  optional Point rotation = 3;
-  optional Point angular_velocity = 4;     //(in radians/sec)
-  optional Point angular_acceleration = 5; //(in radians/sec^2)
+  optional Quaternion rotation = 4;
+  optional Point angular_velocity = 5;      //(in radians/sec)
+  optional Point angular_acceleration = 6;  //(in radians/sec^2)
   //(pose data confidence 0x0 - Failed,
   // 0x1 - Low, 0x2 - Medium, 0x3 - High)
-  optional bytes tracker_confidence = 6;
+  optional uint32 tracker_confidence = 7;
   //(pose data confidence 0x0 - Failed,
   // 0x1 - Low, 0x2 - Medium, 0x3 - High)
-  optional bytes mapper_confidence = 7;
-  optional Point translation = 8;
+  optional uint32 mapper_confidence = 8;
 }
 
 message Acc {
@@ -45,4 +43,11 @@ message Point {
   optional double x = 1;
   optional double y = 2;
   optional double z = 3;
+}
+
+message Quaternion {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double w = 4;
 }
