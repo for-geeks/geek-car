@@ -51,27 +51,30 @@ class Exercise(object):
 
     def reshape(self, data):
 
-        # TODO a
+        # TODO e begin
         new_image = np.frombuffer(data.data, dtype=np.uint8)
         new_image = cv2.imdecode(new_image, cv2.IMREAD_COLOR)
+        # TODO e end
 
         img = cv2.resize(new_image, (424, 408))
 
         wrap_img = perspective_transform(img, M, img_size=(444, 343))
 
-        # TODO gray
+        # TODO f begin
         gray_d = cv2.cvtColor(wrap_img, cv2.COLOR_BGR2GRAY)
+        # TODO f end
 
-        # TODO threshold
+        # TODO h begin, threshold
         wrap_img = cv2.threshold(gray_d, 100, 220, cv2.THRESH_BINARY_INV)[1]
+        # TODO h end
 
-        # TODO erode dilate
+        # TODO i begin
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         img_d = cv2.erode(wrap_img, kernel, iterations=2)
         wrap_img = cv2.dilate(img_d, kernel, iterations=3)
+        # TODO i end
 
         img_param = [int(cv2.IMWRITE_JPEG_QUALITY), 30]
-        #new_image = new_image.reshape(816/2, 848/2)
 
         img_encode = cv2.imencode('.jpeg', wrap_img, img_param)[1]
         data_encode = np.array(img_encode)
@@ -84,7 +87,7 @@ if __name__ == '__main__':
     cyber.init()
 
     # TODO update node to your name
-    exercise_node = cyber.Node("your_name")
+    exercise_node = cyber.Node("threshold")
     exercise = Exercise(exercise_node)
 
     exercise_node.spin()

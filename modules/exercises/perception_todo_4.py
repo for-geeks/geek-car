@@ -11,12 +11,12 @@ import sys
 
 sys.path.append("../")
 
-
 mask_right_cor = np.array([[[443, 300], [443, 342], [375, 342]]], dtype=np.int32)
 
-mask_right_cor_a = (mask_right_cor[0][0][1] - mask_right_cor[0][2][1])/(mask_right_cor[0][0][0] - mask_right_cor[0][2][0])
+mask_right_cor_a = (mask_right_cor[0][0][1] - mask_right_cor[0][2][1]) / (
+            mask_right_cor[0][0][0] - mask_right_cor[0][2][0])
 
-mask_right_cor_b = (mask_right_cor[0][0][1]) - (mask_right_cor[0][0][0])*mask_right_cor_a
+mask_right_cor_b = (mask_right_cor[0][0][1]) - (mask_right_cor[0][0][0]) * mask_right_cor_a
 
 road_weight = 260
 
@@ -108,7 +108,7 @@ def get_win_point(leftx, lefty, rightx, righty, shape):
             pox_arr_y.append(tag_y)
         else:
             if len(pox_arr_y) > 0:
-                x_l = int(np.sum(pox_arr_x_l)//len(pox_arr_x_l))
+                x_l = int(np.sum(pox_arr_x_l) // len(pox_arr_x_l))
                 x_r = int(np.sum(pox_arr_x_r) // len(pox_arr_x_r))
                 left_x_re.append(x_l)
                 right_x_re.append(x_r)
@@ -182,7 +182,7 @@ def get_midpoint(leftx, lefty, rightx, righty, shape):
             pox_arr_y.append(tag_y)
         else:
             if len(pox_arr_y) > 0:
-                x_l = int(np.sum(pox_arr_x_l)//len(pox_arr_x_l))
+                x_l = int(np.sum(pox_arr_x_l) // len(pox_arr_x_l))
                 x_r = int(np.sum(pox_arr_x_r) // len(pox_arr_x_r))
                 mean_x.append(int((x_r - x_l) / 2 + x_l))
                 mean_y.append(int(np.average(pox_arr_y)))
@@ -212,7 +212,6 @@ def abs_sobel_thresh(image, sobel_kernel=3, orient='x', thresh=(0, 255)):
 
 
 def get_tag_mask(image_input, tag_roi=(228, 340)):
-
     gray_d = cv2.cvtColor(image_input, cv2.COLOR_BGR2GRAY)
     img_d = cv2.threshold(gray_d, 100, 220, cv2.THRESH_BINARY_INV)[1]
 
@@ -225,7 +224,7 @@ def get_tag_mask(image_input, tag_roi=(228, 340)):
     image, contours, hierarchy = cv2.findContours(img_d, cv2.RETR_EXTERNAL,
                                                   cv2.CHAIN_APPROX_TC89_KCOS)
 
-    vis = np.array([(tag_roi[0], tag_roi[1]), (tag_roi[0]-20, tag_roi[1]), (tag_roi[0]+20, tag_roi[1])])
+    vis = np.array([(tag_roi[0], tag_roi[1]), (tag_roi[0] - 20, tag_roi[1]), (tag_roi[0] + 20, tag_roi[1])])
 
     c_max = []
     max_area = 0
@@ -233,8 +232,8 @@ def get_tag_mask(image_input, tag_roi=(228, 340)):
     for i in range(len(contours)):
         cnt = contours[i]
         loca_tem = np.array([cv2.pointPolygonTest(cnt, (vis[0][0], vis[0][1]), False),
-                            cv2.pointPolygonTest(cnt, (vis[1][0], vis[1][1]), False),
-                            cv2.pointPolygonTest(cnt, (vis[2][0], vis[2][1]), False)])
+                             cv2.pointPolygonTest(cnt, (vis[1][0], vis[1][1]), False),
+                             cv2.pointPolygonTest(cnt, (vis[2][0], vis[2][1]), False)])
 
         is_black = 0
         if loca_tem.max() <= 0:
@@ -252,7 +251,7 @@ def get_tag_mask(image_input, tag_roi=(228, 340)):
                 max_cnt = cnt
                 max_area = area
                 break
-            
+
             if area > max_area:
                 max_cnt = cnt
                 max_area = area
@@ -279,18 +278,17 @@ def translation_view(x, y):
 
 
 def tesd(x, y):
-    if (mask_right_cor_b + x*mask_right_cor_a - 4) < y:
+    if (mask_right_cor_b + x * mask_right_cor_a - 4) < y:
         return 1
     else:
         return 0
 
 
 def findMaxContour(image_input, img_d, contours):
-    #gray_d = cv2.cvtColor(image_input, cv2.COLOR_BGR2GRAY)
-    
+    # gray_d = cv2.cvtColor(image_input, cv2.COLOR_BGR2GRAY)
 
-    tag_roi=(228, 340)
-    vis = np.array([(tag_roi[0], tag_roi[1]), (tag_roi[0]-20, tag_roi[1]), (tag_roi[0]+20, tag_roi[1])])
+    tag_roi = (228, 340)
+    vis = np.array([(tag_roi[0], tag_roi[1]), (tag_roi[0] - 20, tag_roi[1]), (tag_roi[0] + 20, tag_roi[1])])
     c_max = []
     max_area = 0
     max_cnt = contours[0]
@@ -314,7 +312,7 @@ def findMaxContour(image_input, img_d, contours):
                 max_cnt = cnt
                 max_area = area
                 break
-            
+
             if area > max_area:
                 max_cnt = cnt
                 max_area = area
@@ -327,26 +325,25 @@ def findMaxContour(image_input, img_d, contours):
         cv2.drawContours(temp, c_max, -1, (255, 0, 0), thickness=-1)
     else:
         temp = np.dstack((img_d, img_d, img_d)) * 255
-    
+
     return temp
 
 
-
 def find_line_fit(img, midpoint=None, nwindows=9, margin=100, minpix=30):
-    histogram = np.sum(img[img.shape[0]//2:, :], axis=0)
+    histogram = np.sum(img[img.shape[0] // 2:, :], axis=0)
     # Create an output image to draw on and  visualize the result
     out_img = np.dstack((img, img, img)) * 255
     # Find the peak of the left and right halves of the histogram
     # These will be the starting point for the left and right lines
     if midpoint is None:
-        midpoint = np.int(histogram.shape[0]/2)
+        midpoint = np.int(histogram.shape[0] / 2)
     else:
         midpoint = np.int(midpoint)
     leftx_base = np.argmax(histogram[:midpoint])
     rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
     # Set height of windows
-    window_height = np.int(img.shape[0]/nwindows)
+    window_height = np.int(img.shape[0] / nwindows)
     # Identify the x and y positions of all nonzero pixels in the image
     nonzero = img.nonzero()
     nonzeroy = np.array(nonzero[0])
@@ -362,8 +359,8 @@ def find_line_fit(img, midpoint=None, nwindows=9, margin=100, minpix=30):
     # Step through the windows one by one
     for window in range(nwindows):
         # Identify window boundaries in x and y (and right and left)
-        win_y_low = img.shape[0] - (window+1)*window_height
-        win_y_high = img.shape[0] - window*window_height
+        win_y_low = img.shape[0] - (window + 1) * window_height
+        win_y_high = img.shape[0] - window * window_height
         win_xleft_low = leftx_current - margin
         win_xleft_high = leftx_current + margin
         win_xright_low = rightx_current - margin
@@ -400,13 +397,13 @@ def find_line_fit(img, midpoint=None, nwindows=9, margin=100, minpix=30):
 
     if len(leftx) == 0:
         if len(rightx) > 0:
-            leftx = rightx-road_weight
+            leftx = rightx - road_weight
             lefty = righty
         else:
             leftx = [[0] for x_t in range(0, 9)]
-            lefty = [[img.shape[0]-y_t*10] for y_t in range(0,9)]
+            lefty = [[img.shape[0] - y_t * 10] for y_t in range(0, 9)]
 
-            rightx = [[img.shape[1]-1] for x_t in range(0, 9)]
+            rightx = [[img.shape[1] - 1] for x_t in range(0, 9)]
             righty = [[img.shape[0] - y_t * 10] for y_t in range(0, 9)]
 
     if len(righty) == 0:
@@ -459,36 +456,37 @@ class Exercise(object):
 
     def getmeanpoint(self, data):
 
-        #print(data)
         new_image = np.frombuffer(data.data, dtype=np.uint8)
         new_image = cv2.imdecode(new_image, cv2.IMREAD_COLOR)
 
         img = cv2.resize(new_image, (424, 408))
 
         wrap_img = perspective_transform(img, M, img_size=(444, 343))
-        
-        # TODO gray
+
         gray_d = cv2.cvtColor(wrap_img, cv2.COLOR_BGR2GRAY)
-                        
-        # TODO threshold
+
         wrap_img_2 = cv2.threshold(gray_d, 100, 220, cv2.THRESH_BINARY_INV)[1]
-                                                
-        # TODO b
+
+        # TODO e begin
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         img_d = cv2.erode(wrap_img_2, kernel, iterations=2)
         wrap_img_2 = cv2.dilate(img_d, kernel, iterations=3)
-    
+        # TODO e end
+
         cv2.fillPoly(img_d, mask_right_cor, 0)
-        # TODO b
-        image, contours, hierarchy = cv2.findContours(wrap_img_2, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_TC89_KCOS)
+        # TODO e begin
+        image, contours, hierarchy = cv2.findContours(wrap_img_2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+        # TODO e end
 
-        # TODO c
+        # TODO f begin
         wrap_img3 = findMaxContour(wrap_img, wrap_img_2, contours)
+        # TODO f end
 
-        # TODO d 
+        # TODO g begin
         binary = abs_sobel_thresh(wrap_img3, orient='x', sobel_kernel=3, thresh=(20, 255))
 
         left_list, right_list, mean_x, mean_y, out_img2 = find_line_fit(binary, midpoint=car_mid_point, margin=100)
+        # TODO g end
 
         self.planning_path = Trajectory()
         self.planning_path_left = Trajectory()
@@ -499,10 +497,6 @@ class Exercise(object):
             left_list_real, left_y_real = translation_view(np.asarray(left_list), np.asarray(mean_y))
 
             right_list_real, right_y_real = translation_view(np.asarray(right_list), np.asarray(mean_y))
-
-            # print(mean_x_real, mean_y_real)
-
-            #print(right_y_real)
 
             for i, point in enumerate(mean_y_real):
                 point_xy = Point()
@@ -521,7 +515,8 @@ class Exercise(object):
                 point_xy.y = right_y_real[i]
                 self.planning_path_right.point.append(point_xy)
 
-            print("left:", np.asarray(left_list_real).mean(), "right:", np.asarray(right_list_real).mean(), "mean:", np.asarray(mean_x_real).mean())
+            print("left:", np.asarray(left_list_real).mean(), "right:", np.asarray(right_list_real).mean(), "mean:",
+                  np.asarray(mean_x_real).mean())
 
 
 if __name__ == '__main__':
@@ -534,4 +529,4 @@ if __name__ == '__main__':
     exercise_node.spin()
 
     cyber.shutdown()
-
+    
