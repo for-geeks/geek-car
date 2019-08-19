@@ -16,7 +16,6 @@ class Exercise(object):
         self.msg = Image()
 
         # TODO create reader
-        self.node.create_reader("/realsense/raw_image", Image, self.callback)
 
     def callback(self, data):
         # TODO
