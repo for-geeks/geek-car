@@ -42,11 +42,12 @@ sudo bash cyber.x86_64.sh
 bash apollo.sh build
 ```
 
-## Realsense Configure
+## Realsense Auto Configuration
 Auto get default realsense device, auto update serial number in file `modules/sensors/conf/sensors.conf` with field serial_number.The flags field is `FLAGS_serial_number`, you can get it if you want use.
 
 how to get this serial_number? use command `rs-enumerate-devices` provided by Intel.You will get something like :
 
+### Debug
 ```bash
 geek-car@geekcar-desktop:~/geek_lite$ rs-enumerate-devices 
 Device info: 
@@ -68,11 +69,11 @@ Stream Profiles supported by Tracking Module
 
 ```
 
-## Have a try on Cyber RT
+## Have a try Based on Cyber RT
 
 ### Writing a Simple Talker and Listener (C++)
 
-1.Create Talker
+1. Create Talker
 
 ```cpp
 #include "cyber/cyber.h"
@@ -107,7 +108,7 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-2.Create Listener
+2. Create Listener
 ```cpp
 #include "cyber/cyber.h"
 #include "cyber/examples/proto/examples.pb.h"
