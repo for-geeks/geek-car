@@ -150,15 +150,3 @@ fi
 pip install protobuf
 
 ```
-
-## FAQ
-
-1. `ImportError:No module named proto.unit_test_pb2`:
-
-`source scripts/apollo_base.sh`
-
-2. setup soft link to source directory
-
-```bash
-sudo ln -s path/to/geek_lite /apollo
-```
