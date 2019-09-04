@@ -25,7 +25,7 @@ echo "Build and install apriltag 3"
 
 git clone https://github.com/AprilRobotics/apriltag
 pushd apriltag
-  git apply ../apriltag.diff
+  #git apply ../apriltag.diff
   cmake .
   make install
 popd
