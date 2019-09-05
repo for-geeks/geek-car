@@ -83,9 +83,17 @@ apt install -y --allow-downgrades \
     libboost1.54-dev \
     libboost-dev=1.54.0.1ubuntu1 \
     libkml-dev \
-    libopencv-core-dev=2.4.8+dfsg1-2ubuntu1 \
-    libopencv-imgproc-dev=2.4.8+dfsg1-2ubuntu1 \
-    libopencv-highgui-dev=2.4.8+dfsg1-2ubuntu1 \
+    libopencv-core-dev \
+    libopencv-imgproc-dev \
+    libopencv-highgui-dev \
+    libopencv-flann-dev \
+    libopencv-photo-dev \
+    libopencv-video-dev \
+    libopencv-features2d-dev \
+    libopencv-objdetect-dev \
+    libopencv-calib3d-dev \
+    libopencv-ml-dev \
+    libopencv-contrib-dev \
     libgdal-dev \
     libvtk6-dev \
     libvtk6.3 \
