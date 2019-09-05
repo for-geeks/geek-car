@@ -1,7 +1,3 @@
-#FROM ubuntu:18.04
-
-#ENV DEBIAN_FRONTEND=noninteractive
-
 apt clean
 apt update -y && \
     apt install -y \
