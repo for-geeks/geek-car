@@ -56,6 +56,7 @@ bash ${BUILD_PATH}/docker/build/installers/install_bazel.sh
 bash ${BUILD_PATH}/docker/build/installers/install_gflags_glog.sh
 bash ${BUILD_PATH}/docker/build/installers/install_protobuf.sh
 bash ${BUILD_PATH}/docker/build/installers/install_bazel_packages.sh
+bash ${BUILD_PATH}/docker/build/installers/install_python_modules.sh
 bash ${BUILD_PATH}/docker/build/installers/install_google_styleguide.sh
 bash ${BUILD_PATH}/docker/build/installers/install_qt.sh
 

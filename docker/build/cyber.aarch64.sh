@@ -72,6 +72,7 @@ bash /tmp/installers/install_bazel.sh build
 bash /tmp/installers/install_gflags_glog.sh
 bash /tmp/installers/install_protobuf.sh
 bash /tmp/installers/install_bazel_packages.sh
+bash /tmp/installers/install_python_modules.sh
 bash /tmp/installers/install_google_styleguide.sh
 bash /tmp/installers/install_osqp.sh download
 bash /tmp/installers/install_apriltag.sh

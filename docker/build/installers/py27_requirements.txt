@@ -12,6 +12,7 @@ flask
 flask-cors
 requests >= 2.18
 simplejson
+jupyter
 
 # Python tools
 pyproj == 1.9.6
