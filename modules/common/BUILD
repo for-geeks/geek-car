@@ -16,7 +16,7 @@ cc_library(
 )
 
 cc_library(
-    name ="curve_fitting",
+    name = "curve_fitting",
     srcs = ["curve_fitting.h"],
 )
 
