@@ -56,6 +56,13 @@ http_archive(
     url = "file:///home/tmp/protobuf-3.3.0.tar.gz",
 )
 
+# qt
+new_local_repository(
+    name = "qt",
+    build_file = "third_party/qt.BUILD",
+    path = "/usr/local/Qt5.5.1/5.5/gcc_64",
+)
+
 new_local_repository(
     name = "fastrtps",
     build_file = "third_party/fastrtps.BUILD",
