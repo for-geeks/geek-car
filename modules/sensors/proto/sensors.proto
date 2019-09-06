@@ -2,6 +2,13 @@ syntax = "proto2";
 
 package apollo.sensors;
 
+message RealSenseDevice {
+  enum DeviceModel {
+    T265 = 0;
+    D435I = 1;
+  }
+}
+
 message Image {
   optional uint64 frame_no = 2;
   optional double measurement_time = 3;

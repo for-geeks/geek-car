@@ -60,8 +60,7 @@ rs2::device get_device(const std::string& serial_number = "") {
     AWARN << "No device detected. Is it plugged in?";
   }
 
-  rs2::device dev = list.front();
-  return dev;
+  return list.front();
 }
 
 /**
@@ -76,19 +75,35 @@ bool RealsenseComponent::Init() {
   // Print device information
   RealSense::printDeviceInformation(device_);
 
+  if (std::strstr(dev.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
+    device_model_ = DeviceModel::T265;
+  } else if (std::strstr(dev.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
+    device_model_ = DeviceModel::D435I;
+  } else {
+    AWARN << "The device data is not yet supported for parsing";
+  }
+
   // Get device serial_number
   FLAGS_serial_number = device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
-  AINFO << "Got device with serial number " << FLAGS_serial_number;
+  AINFO << "Got device with serial number: " << FLAGS_serial_number;
   cyber::SleepFor(std::chrono::milliseconds(device_wait_));
 
   // Get default as Sensor but for D435I is rs2::depth_sensor
   sensor_ = device_.first<rs2::sensor>();
-  // print sensor option to log
-  RealSense::getSensorOption(sensor_);
+
+  // RealSense::getSensorOption(sensor_);
   sensor_.set_option(RS2_OPTION_FRAMES_QUEUE_SIZE, 0);
   sensor_.open(sensor_.get_stream_profiles());
 
   Calibration();
+
+  sensor_.start([this](rs2::frame f) {
+    // enqueue any new frames into q
+    q_.enqueue(std::move(f));
+  });
+
+  // load_wheel_odometery_config
+  WheelOdometry();
 
   pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
   if (FLAGS_publish_raw_image) {
@@ -114,21 +129,14 @@ bool RealsenseComponent::Init() {
         chassis_.CopyFrom(*chassis);
       });
 
-  sensor_.start([this](rs2::frame f) {
-    q_.enqueue(std::move(f));  // enqueue any new frames into q
-  });
-
-  // load_wheel_odometery_config
-  WheelOdometry();
-
   // thread to handle frames
   async_result_ = cyber::Async(&RealsenseComponent::run, this);
   return true;
 }
 
 /**
- * [RealSense:: collect frames of T265]
- * @return [description]
+ * Sensor RealSense:: collect frames
+ * @return void
  */
 void RealsenseComponent::run() {
   double norm_max = 0;
@@ -185,9 +193,7 @@ void RealsenseComponent::run() {
       AINFO << "fisheye " << f.get_profile().stream_index() << ", "
             << fisheye_frame.get_width() << "x" << fisheye_frame.get_height();
 
-      cv::Mat image(
-          cv::Size(fisheye_frame.get_width(), fisheye_frame.get_height()),
-          CV_8U, (void*)fisheye_frame.get_data(), cv::Mat::AUTO_STEP);
+      cv::Mat image = frame_to_mat(fisheye_frame);
       cv::Mat dst;
       cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
       cv::Size dsize = cv::Size(static_cast<int>(dst.cols * 0.5),
@@ -202,17 +208,18 @@ void RealsenseComponent::run() {
       // frame if of type `rs2::depth_frame` (which derives from
       // `rs2::video_frame` and adds special depth related functionality).
       auto color_frame = f.as<rs2::video_frame>();
+      cv::Mat color_image = frame_to_mat(color_frame);
+      OnImage(color_image, color_frame.get_frame_number());
 
     } else if (f.get_profile().stream_type() == RS2_STREAM_DEPTH) {
       auto depth_frame = f.as<rs2::depth_frame>();
+      cv::Mat depth_image = frame_to_mat(depth_frame);
+      // TODO(fengzongbao) need new publish method for depth frame
+      OnImage(depth_image, depth_image.get_frame_number());
     }
   }
 }
 
-/**
- * @brief fisheye calibration
- *
- */
 void RealsenseComponent::Calibration() {
   cv::Mat intrinsicsL;
   cv::Mat distCoeffsL;
@@ -260,7 +267,12 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
     image_proto->set_frame_no(frame_no);
     image_proto->set_height(dst.rows);
     image_proto->set_width(dst.cols);
-    image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+    // encodings
+    if (device_model_ == DeviceModel::T265) {
+      image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+    } else if (device_model_ == DeviceModel::D435I) {
+      image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_RGBA8));
+    }
     image_proto->set_measurement_time(Time::Now().ToSecond());
     auto m_size = dst.rows * dst.cols * dst.elemSize();
     image_proto->set_data(dst.data, m_size);
@@ -338,10 +350,56 @@ void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
   compressedimage->set_frame_no(frame_no);
   compressedimage->set_height(raw_image.rows);
   compressedimage->set_width(raw_image.cols);
-  compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+  // encodings
+  if (device_model_ == DeviceModel::T265) {
+    compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+  } else if (device_model_ == DeviceModel::D435I) {
+    compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_RGBA8));
+  }
   compressedimage->set_measurement_time(Time::Now().ToSecond());
   compressedimage->set_data(str_encode);
   compressed_image_writer_->Write(compressedimage);
+}
+
+// Convert rs2::frame to cv::Mat
+cv::Mat frame_to_mat(const rs2::frame& f) {
+  auto vf = f.as<video_frame>();
+  const int w = vf.get_width();
+  const int h = vf.get_height();
+
+  if (f.get_profile().format() == RS2_FORMAT_BGR8) {
+    return cv::Mat(cv::Size(w, h), cv::CV_8UC3, (void*)f.get_data(),
+                   cv::Mat::AUTO_STEP);
+  } else if (f.get_profile().format() == RS2_FORMAT_RGB8) {
+    auto r = cv::Mat(cv::Size(w, h), CV_8UC3, (void*)f.get_data(),
+                     cv::Mat::AUTO_STEP);
+    cv::cvtColor(r, r, cv::COLOR_RGB2BGR);
+    return r;
+  } else if (f.get_profile().format() == RS2_FORMAT_Z16) {
+    return cv::Mat(cv::Size(w, h), CV_16UC1, (void*)f.get_data(),
+                   cv::Mat::AUTO_STEP);
+  } else if (f.get_profile().format() == RS2_FORMAT_Y8) {
+    return cv::Mat(cv::Size(w, h), CV_8UC1, (void*)f.get_data(),
+                   cv::Mat::AUTO_STEP);
+  } else if (f.get_profile().format() == RS2_FORMAT_DISPARITY32) {
+    return cv::Mat(cv::Size(w, h), CV_32FC1, (void*)f.get_data(),
+                   cv::Mat::AUTO_STEP);
+  }
+
+  AWARN << "Frame format is not supported yet!";
+}
+
+// Converts depth frame to a matrix of doubles with distances in meters
+cv::Mat depth_frame_to_meters(const rs2::pipeline& pipe,
+                              const rs2::depth_frame& f) {
+  cv::Mat dm = frame_to_mat(f);
+  dm.convertTo(dm, CV_64F);
+  auto depth_scale = pipe.get_active_profile()
+                         .get_device()
+                         .first<rs::depth_sensor>()
+                         .get_depth_scale();
+  dm = dm * depth_scale;
+  return dm;
 }
 
 RealsenseComponent::~RealsenseComponent() {

@@ -67,8 +67,9 @@ class RealsenseComponent : public Component<> {
   Chassis chassis_;
 
   std::future<void> async_result_;
-  rs2::device device_;  // realsense device
-  rs2::sensor sensor_;  // sensor include imu and camera;
+  rs2::device device_;     // realsense device
+  rs2::sensor sensor_;     // sensor include imu and camera;
+  uint32_t device_model_;  // realsense device model like T265 OR D435I
   rs2::sensor wheel_odometry_sensor_;
 
   uint32_t device_wait_ = 2000;  // ms
