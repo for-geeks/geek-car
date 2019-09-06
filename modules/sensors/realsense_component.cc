@@ -54,17 +54,14 @@ using apollo::sensors::Pose;
 
 rs2::device get_device(const std::string& serial_number = "") {
   rs2::context ctx;
-  while (true) {
-    for (auto&& dev : ctx.query_devices()) {
-      if (((serial_number.empty() &&
-            std::strstr(dev.get_info(RS2_CAMERA_INFO_NAME),
-                        FLAGS_device_model.c_str())) ||
-           std::strcmp(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER),
-                       serial_number.c_str()) == 0))
-        return dev;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  auto list = ctx.query_devices();
+  // Get a snapshot of currently connected devices
+  if (list.size() == 0) {
+    AWARN << "No device detected. Is it plugged in?";
   }
+
+  rs2::device dev = list.front();
+  return dev;
 }
 
 /**
@@ -76,13 +73,15 @@ rs2::device get_device(const std::string& serial_number = "") {
 bool RealsenseComponent::Init() {
   device_ = get_device();
 
-  // print device information
+  // Print device information
   RealSense::printDeviceInformation(device_);
 
+  // Get device serial_number
   FLAGS_serial_number = device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
   AINFO << "Got device with serial number " << FLAGS_serial_number;
   cyber::SleepFor(std::chrono::milliseconds(device_wait_));
 
+  // Get default as Sensor but for D435I is rs2::depth_sensor
   sensor_ = device_.first<rs2::sensor>();
   // print sensor option to log
   RealSense::getSensorOption(sensor_);
@@ -198,6 +197,14 @@ void RealsenseComponent::run() {
       if (fisheye_frame.get_frame_number() % 2 == 0) {
         OnImage(new_size_img, fisheye_frame.get_frame_number());
       }
+    } else if (f.get_profile().stream_type() == RS2_STREAM_COLOR) {
+      // Notice that the color frame is of type `rs2::video_frame` and the depth
+      // frame if of type `rs2::depth_frame` (which derives from
+      // `rs2::video_frame` and adds special depth related functionality).
+      auto color_frame = f.as<rs2::video_frame>();
+
+    } else if (f.get_profile().stream_type() == RS2_STREAM_DEPTH) {
+      auto depth_frame = f.as<rs2::depth_frame>();
     }
   }
 }
