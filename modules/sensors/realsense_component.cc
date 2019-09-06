@@ -75,10 +75,10 @@ bool RealsenseComponent::Init() {
   // Print device information
   RealSense::printDeviceInformation(device_);
 
-  if (std::strstr(dev.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
-    device_model_ = DeviceModel::T265;
-  } else if (std::strstr(dev.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
-    device_model_ = DeviceModel::D435I;
+  if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
+    device_model_ = RealSenseDeviceModel::T265;
+  } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
+    device_model_ = RealSenseDeviceModel::D435I;
   } else {
     AWARN << "The device data is not yet supported for parsing";
   }
@@ -215,7 +215,7 @@ void RealsenseComponent::run() {
       auto depth_frame = f.as<rs2::depth_frame>();
       cv::Mat depth_image = frame_to_mat(depth_frame);
       // TODO(fengzongbao) need new publish method for depth frame
-      OnImage(depth_image, depth_image.get_frame_number());
+      OnImage(depth_image, depth_frame.get_frame_number());
     }
   }
 }
@@ -268,9 +268,9 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
     image_proto->set_height(dst.rows);
     image_proto->set_width(dst.cols);
     // encodings
-    if (device_model_ == DeviceModel::T265) {
+    if (device_model_ == RealSenseDeviceModel::T265) {
       image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
-    } else if (device_model_ == DeviceModel::D435I) {
+    } else if (device_model_ == RealSenseDeviceModel::D435I) {
       image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_RGBA8));
     }
     image_proto->set_measurement_time(Time::Now().ToSecond());
@@ -351,9 +351,9 @@ void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
   compressedimage->set_height(raw_image.rows);
   compressedimage->set_width(raw_image.cols);
   // encodings
-  if (device_model_ == DeviceModel::T265) {
+  if (device_model_ == RealSenseDeviceModel::T265) {
     compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
-  } else if (device_model_ == DeviceModel::D435I) {
+  } else if (device_model_ == RealSenseDeviceModel::D435I) {
     compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_RGBA8));
   }
   compressedimage->set_measurement_time(Time::Now().ToSecond());
@@ -362,8 +362,8 @@ void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
 }
 
 // Convert rs2::frame to cv::Mat
-cv::Mat frame_to_mat(const rs2::frame& f) {
-  auto vf = f.as<video_frame>();
+cv::Mat RealsenseComponent::frame_to_mat(const rs2::frame& f) {
+  auto vf = f.as<rs2::video_frame>();
   const int w = vf.get_width();
   const int h = vf.get_height();
 
@@ -390,8 +390,8 @@ cv::Mat frame_to_mat(const rs2::frame& f) {
 }
 
 // Converts depth frame to a matrix of doubles with distances in meters
-cv::Mat depth_frame_to_meters(const rs2::pipeline& pipe,
-                              const rs2::depth_frame& f) {
+cv::Mat RealsenseComponent::depth_frame_to_meters(const rs2::pipeline& pipe,
+                                                  const rs2::depth_frame& f) {
   cv::Mat dm = frame_to_mat(f);
   dm.convertTo(dm, CV_64F);
   auto depth_scale = pipe.get_active_profile()

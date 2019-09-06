@@ -2,7 +2,7 @@ syntax = "proto2";
 
 package apollo.sensors;
 
-message RealSenseDevice {
+message RealSenseDeviceModel {
   enum DeviceModel {
     T265 = 0;
     D435I = 1;

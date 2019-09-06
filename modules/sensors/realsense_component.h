@@ -55,6 +55,9 @@ class RealsenseComponent : public Component<> {
   void OnAcc(rs2_vector acc, uint64 frame_no);
   void OnGyro(rs2_vector gyro, uint64 frame_no);
   void CompressedImage(cv::Mat raw_image, uint64 frame_no);
+  cv::Mat frame_to_mat(const rs2::frame& f);
+  cv::Mat depth_frame_to_meters(const rs2::pipeline& pipe,
+                                const rs2::depth_frame& f);
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
