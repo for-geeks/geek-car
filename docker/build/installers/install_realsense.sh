@@ -24,7 +24,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 
 ARCH=$(uname -m)
 
-if [ "$ARCH" == "x86_64" ]; then	
+if [ "$ARCH" == "x86_64" ]; then
 	apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
 	add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
 	apt install librealsense2-dkms
@@ -36,7 +36,11 @@ if [ "$ARCH" == "x86_64" ]; then
 elif [ "$ARCH" == "aarch64" ]; then
 	git clone https://github.com/JetsonHacksNano/installLibrealsense
 	pushd installLibrealsense
+	# The scripts default to building with CUDA support.
+	# To build and install librealsense WITHOUT CUDA support:
 	bash installLibrealsense.sh -nc
+	# patches kernel modules and installs them to support the RealSense cameras.
+	bash patchUbuntu.sh
 	popd
 	rm -rf installLibrealsense
 	rm -rf ${HOME}/librealsense
