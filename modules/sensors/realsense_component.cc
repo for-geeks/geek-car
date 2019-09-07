@@ -95,6 +95,11 @@ bool RealsenseComponent::Init() {
     image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
   }
 
+  if (FLAGS_publish_depth_image &&
+      device_model_ == RealSenseDeviceModel::D435I) {
+    depth_image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
+  }
+
   if (FLAGS_publish_acc) {
     acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
   }
@@ -210,8 +215,7 @@ void RealsenseComponent::run() {
     } else if (f.get_profile().stream_type() == RS2_STREAM_DEPTH) {
       auto depth_frame = f.as<rs2::depth_frame>();
       cv::Mat depth_image = frame_to_mat(depth_frame);
-      // TODO(fengzongbao) need new publish method for depth frame
-      OnImage(depth_image, depth_frame.get_frame_number());
+      OnDepthImage(depth_image, depth_frame.get_frame_number());
     }
   }
 }
@@ -236,7 +240,7 @@ void RealsenseComponent::Calibration() {
                                          cv::Size(848, 816), CV_16SC2, map1_,
                                          map2_);
   } else if (device_model_ == RealSenseDeviceModel::D435I) {
-    // TODO(fengzongbao) need to complete
+    // no need to calibration 435I
   }
 }
 
@@ -280,6 +284,23 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
   }
   if (FLAGS_publish_compressed_image) {
     CompressedImage(dst, frame_no);
+  }
+}
+
+void RealsenseComponent::OnDepthImage(cv::Mat mat, uint64 frame_no) {
+  if (FLAGS_publish_depth_image) {
+    auto image_proto = std::make_shared<Image>();
+    image_proto->set_frame_no(frame_no);
+    image_proto->set_height(dst.rows);
+    image_proto->set_width(dst.cols);
+    // encoding /**< 16-bit linear depth values. The depth is meters is equal to
+    // depth scale * pixel value. */
+    image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Z16));
+
+    image_proto->set_measurement_time(Time::Now().ToSecond());
+    auto m_size = dst.rows * dst.cols * dst.elemSize();
+    image_proto->set_data(dst.data, m_size);
+    image_writer_->Write(image_proto);
   }
 }
 

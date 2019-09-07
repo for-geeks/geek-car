@@ -52,6 +52,7 @@ class RealsenseComponent : public Component<> {
   void Calibration();
   void WheelOdometry();
   void OnImage(cv::Mat dst, uint64 frame_no);
+  void OnDepthImage(cv::Mat mat, uint64 frame_no);
   void OnPose(rs2_pose pose_data, uint64 frame_no);
   void OnAcc(rs2_vector acc, uint64 frame_no);
   void OnGyro(rs2_vector gyro, uint64 frame_no);
@@ -63,6 +64,7 @@ class RealsenseComponent : public Component<> {
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
+  std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;

@@ -57,6 +57,7 @@ DEFINE_bool(publish_raw_image, false, "publish raw gray image data");
 DEFINE_bool(publish_compressed_image, true, "publish raw gray image data");
 DEFINE_bool(use_compressed_image_to_detect_tag, false,
             "use compressed_image_channel to detect apriltag data");
+DEFINE_bool(publish_depth_image, true, "depth image from d435");
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");

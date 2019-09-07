@@ -54,6 +54,7 @@ DECLARE_bool(publish_pose);
 DECLARE_bool(publish_raw_image);
 DECLARE_bool(publish_compressed_image);
 DECLARE_bool(use_compressed_image_to_detect_tag);
+DECLARE_bool(publish_depth_image);
 
 // CONST
 DECLARE_double(cruise_speed);
