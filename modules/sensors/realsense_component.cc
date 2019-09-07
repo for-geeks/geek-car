@@ -368,7 +368,7 @@ cv::Mat RealsenseComponent::frame_to_mat(const rs2::frame& f) {
   const int h = vf.get_height();
 
   if (f.get_profile().format() == RS2_FORMAT_BGR8) {
-    return cv::Mat(cv::Size(w, h), cv::CV_8UC3, (void*)f.get_data(),
+    return cv::Mat(cv::Size(w, h), CV_8UC3, (void*)f.get_data(),
                    cv::Mat::AUTO_STEP);
   } else if (f.get_profile().format() == RS2_FORMAT_RGB8) {
     auto r = cv::Mat(cv::Size(w, h), CV_8UC3, (void*)f.get_data(),
@@ -396,7 +396,7 @@ cv::Mat RealsenseComponent::depth_frame_to_meters(const rs2::pipeline& pipe,
   dm.convertTo(dm, CV_64F);
   auto depth_scale = pipe.get_active_profile()
                          .get_device()
-                         .first<rs::depth_sensor>()
+                         .first<rs2::depth_sensor>()
                          .get_depth_scale();
   dm = dm * depth_scale;
   return dm;
