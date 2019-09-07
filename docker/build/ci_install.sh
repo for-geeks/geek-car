@@ -119,3 +119,4 @@ ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.x86_64
 
 bash ${BUILD_PATH}/docker/build/installers/install_realsense.sh
 bash ${BUILD_PATH}/docker/build/installers/install_fast-rtps.sh
+bash ${BUILD_PATH}/docker/build/installers/install_pcl.sh build

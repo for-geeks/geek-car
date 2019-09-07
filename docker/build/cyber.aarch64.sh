@@ -122,4 +122,5 @@ ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.aarch6
 # intel realsense
 bash /tmp/installers/install_realsense.sh
 bash /tmp/installers/install_fast-rtps.sh
+bash /tmp/installers/install_pcl.sh build
 rm -fr /tmp/*
