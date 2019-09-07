@@ -52,25 +52,8 @@ using apollo::sensors::Gyro;
 using apollo::sensors::Image;
 using apollo::sensors::Pose;
 
-rs2::device get_device(const std::string& serial_number = "") {
-  rs2::context ctx;
-  auto list = ctx.query_devices();
-  // Get a snapshot of currently connected devices
-  if (list.size() == 0) {
-    AWARN << "No device detected. Is it plugged in?";
-  }
-
-  return list.front();
-}
-
-/**
- * @brief device and sensor init
- *
- * @return true
- * @return false
- */
 bool RealsenseComponent::Init() {
-  device_ = get_device();
+  device_ = GetDevice();
 
   // Print device information
   RealSense::printDeviceInformation(device_);
@@ -105,7 +88,9 @@ bool RealsenseComponent::Init() {
   // load_wheel_odometery_config
   WheelOdometry();
 
-  pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
+  if (FLAGS_publish_pose && device_model_ == RealSenseDeviceModel::T265) {
+    pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
+  }
   if (FLAGS_publish_raw_image) {
     image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
   }
@@ -132,6 +117,17 @@ bool RealsenseComponent::Init() {
   // thread to handle frames
   async_result_ = cyber::Async(&RealsenseComponent::run, this);
   return true;
+}
+
+rs2::device RealsenseComponent::GetDevice() {
+  rs2::context ctx;
+  auto list = ctx.query_devices();
+  // Get a snapshot of currently connected devices
+  if (list.size() == 0) {
+    AWARN << "No device detected. Is it plugged in?";
+  }
+
+  return list.front();
 }
 
 /**
@@ -221,23 +217,27 @@ void RealsenseComponent::run() {
 }
 
 void RealsenseComponent::Calibration() {
-  cv::Mat intrinsicsL;
-  cv::Mat distCoeffsL;
-  rs2_intrinsics left = sensor_.get_stream_profiles()[0]
-                            .as<rs2::video_stream_profile>()
-                            .get_intrinsics();
-  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
-         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
-  intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
-                 left.ppy, 0, 0, 1);
-  distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
-  cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
-  cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
-               left.ppy, 0, 0, 0, 1, 0);
+  if (device_model_ == RealsenseDeviceModel::T265) {
+    cv::Mat intrinsicsL;
+    cv::Mat distCoeffsL;
+    rs2_intrinsics left = sensor_.get_stream_profiles()[0]
+                              .as<rs2::video_stream_profile>()
+                              .get_intrinsics();
+    ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
+           << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
+    intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
+                   left.ppy, 0, 0, 1);
+    distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
+    cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
+    cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
+                 left.ppy, 0, 0, 0, 1, 0);
 
-  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
-                                       cv::Size(848, 816), CV_16SC2, map1_,
-                                       map2_);
+    cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
+                                         cv::Size(848, 816), CV_16SC2, map1_,
+                                         map2_);
+  } else if (device_model_ == RealSenseDeviceModel::D435I) {
+    // TODO(fengzongbao) need to complete
+  }
 }
 
 void RealsenseComponent::WheelOdometry() {
