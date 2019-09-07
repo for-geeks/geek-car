@@ -139,7 +139,7 @@ void RealsenseComponent::run() {
   while (!cyber::IsShutdown()) {
     // wait for device is ready. in case of device is busy
     if (!device_) {
-      device_ = get_device();
+      device_ = GetDevice();
       continue;
     }
 
@@ -217,7 +217,7 @@ void RealsenseComponent::run() {
 }
 
 void RealsenseComponent::Calibration() {
-  if (device_model_ == RealsenseDeviceModel::T265) {
+  if (device_model_ == RealSenseDeviceModel::T265) {
     cv::Mat intrinsicsL;
     cv::Mat distCoeffsL;
     rs2_intrinsics left = sensor_.get_stream_profiles()[0]
