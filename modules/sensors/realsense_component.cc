@@ -291,15 +291,15 @@ void RealsenseComponent::OnDepthImage(cv::Mat mat, uint64 frame_no) {
   if (FLAGS_publish_depth_image) {
     auto image_proto = std::make_shared<Image>();
     image_proto->set_frame_no(frame_no);
-    image_proto->set_height(dst.rows);
-    image_proto->set_width(dst.cols);
+    image_proto->set_height(mat.rows);
+    image_proto->set_width(mat.cols);
     // encoding /**< 16-bit linear depth values. The depth is meters is equal to
     // depth scale * pixel value. */
     image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Z16));
 
     image_proto->set_measurement_time(Time::Now().ToSecond());
-    auto m_size = dst.rows * dst.cols * dst.elemSize();
-    image_proto->set_data(dst.data, m_size);
+    auto m_size = mat.rows * mat.cols * mat.elemSize();
+    image_proto->set_data(mat.data, m_size);
     image_writer_->Write(image_proto);
   }
 }
