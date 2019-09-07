@@ -48,18 +48,17 @@ class RealsenseComponent : public Component<> {
   ~RealsenseComponent();
 
  private:
-  rs2::device GetDevice();
+  rs2::device GetFirstConnectedDevice();
   void Calibration();
   void WheelOdometry();
   void OnImage(cv::Mat dst, uint64 frame_no);
   void OnDepthImage(cv::Mat mat, uint64 frame_no);
+  void OnPointCloud();
   void OnPose(rs2_pose pose_data, uint64 frame_no);
   void OnAcc(rs2_vector acc, uint64 frame_no);
   void OnGyro(rs2_vector gyro, uint64 frame_no);
   void CompressedImage(cv::Mat raw_image, uint64 frame_no);
-  cv::Mat frame_to_mat(const rs2::frame& f);
-  cv::Mat depth_frame_to_meters(const rs2::pipeline& pipe,
-                                const rs2::depth_frame& f);
+  pcl_ptr RealsenseComponent::Points2Pcl(const rs2::points& points);
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 

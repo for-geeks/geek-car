@@ -35,7 +35,11 @@ cc_library(
 
 cc_library(
     name = "realsense_api",
-    srcs = ["realsense.h"],
+    srcs = ["realsense.cc"],
+    hdrs = ["realsense.h"],
+    linkopts = [
+        "-lrealsense2",
+    ],
 )
 
 cc_binary(

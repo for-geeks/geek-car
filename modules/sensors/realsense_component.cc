@@ -52,8 +52,10 @@ using apollo::sensors::Gyro;
 using apollo::sensors::Image;
 using apollo::sensors::Pose;
 
+using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
+
 bool RealsenseComponent::Init() {
-  device_ = GetDevice();
+  device_ = GetFirstConnectedDevice();
 
   // Print device information
   RealSense::printDeviceInformation(device_);
@@ -124,7 +126,7 @@ bool RealsenseComponent::Init() {
   return true;
 }
 
-rs2::device RealsenseComponent::GetDevice() {
+rs2::device RealsenseComponent::GetFirstConnectedDevice() {
   rs2::context ctx;
   auto list = ctx.query_devices();
   // Get a snapshot of currently connected devices
@@ -142,9 +144,9 @@ rs2::device RealsenseComponent::GetDevice() {
 void RealsenseComponent::run() {
   double norm_max = 0;
   while (!cyber::IsShutdown()) {
-    // wait for device is ready. in case of device is busy
+    // wait for device is ready. in case of device in busy state
     if (!device_) {
-      device_ = GetDevice();
+      device_ = GetFirstConnectedDevice();
       continue;
     }
 
@@ -214,8 +216,9 @@ void RealsenseComponent::run() {
 
     } else if (f.get_profile().stream_type() == RS2_STREAM_DEPTH) {
       auto depth_frame = f.as<rs2::depth_frame>();
-      cv::Mat depth_image = frame_to_mat(depth_frame);
-      OnDepthImage(depth_image, depth_frame.get_frame_number());
+      OnPointCloud(depth_frame);
+      // cv::Mat depth_image = frame_to_mat(depth_frame);
+      // OnDepthImage(depth_image, depth_frame.get_frame_number());
     }
   }
 }
@@ -304,6 +307,43 @@ void RealsenseComponent::OnDepthImage(cv::Mat mat, uint64 frame_no) {
   }
 }
 
+void RealsenseComponent::OnPointCloud(rs2::frame& f) {
+  // Declare pointcloud object, for calculating pointclouds and texture mappings
+  rs2::pointcloud pc;
+  // We want the points object to be persistent so we can display the last cloud
+  // when a frame drops
+  rs2::points points;
+
+  auto depth = f.get_depth_frame();
+
+  // Generate the pointcloud and texture mappings
+  points = pc.calculate(depth);
+
+  auto pcl_points = points_to_pcl(points);
+
+  pcl_ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PassThrough<pcl::PointXYZ> pass;
+  pass.setInputCloud(pcl_points);
+  pass.setFilterFieldName("z");
+  pass.setFilterLimits(0.0, 1.0);
+  pass.filter(*cloud_filtered);
+
+  std::vector<pcl_ptr> layers;
+  layers.push_back(pcl_points);
+  layers.push_back(cloud_filtered);
+
+// TODO(fengzongbao) need to complete publish pointcloud
+#if 0
+  point_new = std::make_shared<apollo::sensors::PointCloud>();
+  point_new = pcl_ptr->add_point();
+  point_new->set_x(nan);
+  point_new->set_y(nan);
+  point_new->set_z(nan);
+  point_new->set_timestamp(timestamp);
+  point_new->set_intensity(0);
+#endif
+}
+
 /**
  * @brief callback of Pose data
  *
@@ -380,47 +420,6 @@ void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
   compressedimage->set_measurement_time(Time::Now().ToSecond());
   compressedimage->set_data(str_encode);
   compressed_image_writer_->Write(compressedimage);
-}
-
-// Convert rs2::frame to cv::Mat
-cv::Mat RealsenseComponent::frame_to_mat(const rs2::frame& f) {
-  auto vf = f.as<rs2::video_frame>();
-  const int w = vf.get_width();
-  const int h = vf.get_height();
-
-  if (f.get_profile().format() == RS2_FORMAT_BGR8) {
-    return cv::Mat(cv::Size(w, h), CV_8UC3, (void*)f.get_data(),
-                   cv::Mat::AUTO_STEP);
-  } else if (f.get_profile().format() == RS2_FORMAT_RGB8) {
-    auto r = cv::Mat(cv::Size(w, h), CV_8UC3, (void*)f.get_data(),
-                     cv::Mat::AUTO_STEP);
-    cv::cvtColor(r, r, cv::COLOR_RGB2BGR);
-    return r;
-  } else if (f.get_profile().format() == RS2_FORMAT_Z16) {
-    return cv::Mat(cv::Size(w, h), CV_16UC1, (void*)f.get_data(),
-                   cv::Mat::AUTO_STEP);
-  } else if (f.get_profile().format() == RS2_FORMAT_Y8) {
-    return cv::Mat(cv::Size(w, h), CV_8UC1, (void*)f.get_data(),
-                   cv::Mat::AUTO_STEP);
-  } else if (f.get_profile().format() == RS2_FORMAT_DISPARITY32) {
-    return cv::Mat(cv::Size(w, h), CV_32FC1, (void*)f.get_data(),
-                   cv::Mat::AUTO_STEP);
-  }
-
-  AWARN << "Frame format is not supported yet!";
-}
-
-// Converts depth frame to a matrix of doubles with distances in meters
-cv::Mat RealsenseComponent::depth_frame_to_meters(const rs2::pipeline& pipe,
-                                                  const rs2::depth_frame& f) {
-  cv::Mat dm = frame_to_mat(f);
-  dm.convertTo(dm, CV_64F);
-  auto depth_scale = pipe.get_active_profile()
-                         .get_device()
-                         .first<rs2::depth_sensor>()
-                         .get_depth_scale();
-  dm = dm * depth_scale;
-  return dm;
 }
 
 RealsenseComponent::~RealsenseComponent() {
