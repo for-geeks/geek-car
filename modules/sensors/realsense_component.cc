@@ -97,7 +97,7 @@ bool RealsenseComponent::Init() {
 
   if (FLAGS_publish_depth_image &&
       device_model_ == RealSenseDeviceModel::D435I) {
-    depth_image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
+    depth_image_writer_ = node_->CreateWriter<Image>(FLAGS_depth_image_channel);
   }
 
   if (FLAGS_publish_acc) {

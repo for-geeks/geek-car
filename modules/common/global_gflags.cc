@@ -30,10 +30,10 @@ DEFINE_string(device_name, "ttyACM0", "Arduino device name ");
 DEFINE_string(device_model, "T265", "T265 model");
 DEFINE_string(serial_number, "908412111198", "T265 serial no");
 DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
-DEFINE_string(raw_image_channel, "/realsense/raw_image",
-              "raw image Y8 data from T265");
+DEFINE_string(raw_image_channel, "/realsense/raw_image", "raw image");
+DEFINE_string(depth_image_channel, "/realsense/depth_image", "raw image Y16 ");
 DEFINE_string(compressed_image_channel, "/realsense/compressed_image",
-              "compressed image Y8 data from T265");
+              "compressed image");
 DEFINE_string(acc_channel, "/realsense/acc", "acc data from T265");
 DEFINE_string(gyro_channel, "/realsense/gyro", "gyro data from T265");
 DEFINE_string(tags_channel, "/localization/tag", "localization tag result");
