@@ -72,6 +72,15 @@ new_local_repository(
     path = "/usr/local/include/pcl-1.7",
 )
 
+# eigen
+new_http_archive(
+    name = "eigen",
+    build_file = "third_party/eigen.BUILD",
+    sha256 = "ba4f95f9082ce99012d5ff320472a0e9fd0be921a20f11912f0bf7e6ca93f240",
+    strip_prefix = "eigen-git-mirror-3.2.10",
+    url = "file:///home/tmp/eigen-3.2.10.tar.gz",
+)
+
 new_local_repository(
     name = "fastrtps",
     build_file = "third_party/fastrtps.BUILD",
