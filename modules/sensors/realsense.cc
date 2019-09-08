@@ -28,6 +28,8 @@
 namespace apollo {
 namespace sensors {
 
+using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
+
 // Convert rs2::frame to cv::Mat
 cv::Mat frame_to_mat(const rs2::frame& f) {
   auto vf = f.as<rs2::video_frame>();
