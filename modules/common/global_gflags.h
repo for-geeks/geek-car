@@ -35,6 +35,7 @@ DECLARE_string(serial_number);
 DECLARE_string(pose_channel);
 DECLARE_string(raw_image_channel);
 DECLARE_string(depth_image_channel);
+DECLARE_string(point_cloud_channel);
 DECLARE_string(compressed_image_channel);
 DECLARE_string(acc_channel);
 DECLARE_string(gyro_channel);
@@ -56,6 +57,7 @@ DECLARE_bool(publish_raw_image);
 DECLARE_bool(publish_compressed_image);
 DECLARE_bool(use_compressed_image_to_detect_tag);
 DECLARE_bool(publish_depth_image);
+DECLARE_bool(publish_point_cloud);
 
 // CONST
 DECLARE_double(cruise_speed);

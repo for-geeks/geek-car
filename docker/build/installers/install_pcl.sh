@@ -38,7 +38,7 @@ if [ "$BUILD" == "build" ] || [ "$ARCH" == "x86_64" ]; then
   mkdir build
   cd build
   cmake ..
-  make -j2
+  make
   make install
   popd
 else

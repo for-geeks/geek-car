@@ -32,6 +32,7 @@ DEFINE_string(serial_number, "908412111198", "T265 serial no");
 DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
 DEFINE_string(raw_image_channel, "/realsense/raw_image", "raw image");
 DEFINE_string(depth_image_channel, "/realsense/depth_image", "raw image Y16 ");
+DEFINE_string(point_cloud_channel, "/realsense/point_cloud", "points object ");
 DEFINE_string(compressed_image_channel, "/realsense/compressed_image",
               "compressed image");
 DEFINE_string(acc_channel, "/realsense/acc", "acc data from T265");
@@ -58,6 +59,7 @@ DEFINE_bool(publish_compressed_image, true, "publish raw gray image data");
 DEFINE_bool(use_compressed_image_to_detect_tag, false,
             "use compressed_image_channel to detect apriltag data");
 DEFINE_bool(publish_depth_image, true, "depth image from d435");
+DEFINE_bool(publish_point_cloud, true, "publish point cloud for 435I");
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");

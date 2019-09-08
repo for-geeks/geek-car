@@ -32,6 +32,7 @@
 
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
+#include "modules/sensors/proto/point_cloud.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {
@@ -67,6 +68,8 @@ class RealsenseComponent : public Component<> {
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
+  std::shared_ptr<Writer<apollo::sensors::PointCloud>> point_cloud_writer_ =
+      nullptr;
 
   std::shared_ptr<Writer<Image>> compressed_image_writer_ = nullptr;
   Chassis chassis_;

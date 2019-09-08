@@ -38,16 +38,13 @@
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
-#include "cyber/time/rate.h"
 #include "cyber/time/time.h"
-#include "modules/sensors/proto/point_cloud.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/realsense.h"
 
 namespace apollo {
 namespace sensors {
 
-using apollo::cyber::Rate;
 using apollo::cyber::Time;
 using apollo::cyber::common::GetAbsolutePath;
 using apollo::sensors::Acc;
@@ -103,6 +100,13 @@ bool RealsenseComponent::Init() {
   if (FLAGS_publish_depth_image &&
       device_model_ == RealSenseDeviceModel::D435I) {
     depth_image_writer_ = node_->CreateWriter<Image>(FLAGS_depth_image_channel);
+  }
+
+  // Point cloud channel
+  if (FLAGS_publish_point_cloud &&
+      device_model_ == RealSenseDeviceModel::D435I) {
+    point_cloud_writer_ = node_->CreateWriter<apollo::sensors::PointCloud>(
+        FLAGS_point_cloud_channel);
   }
 
   if (FLAGS_publish_acc) {
@@ -337,13 +341,22 @@ void RealsenseComponent::OnPointCloud(rs2::frame& f) {
 
 // TODO(fengzongbao) need to complete publish pointcloud
 #if 0
+  apollo::sensors::PointCloud point_cloud_proto;
+  point_cloud_proto->set_frame_id(f.get_frame_number());
+  point_cloud_proto->set_is_dense();
+  point_cloud_proto->set_measurement_time();
+  point_cloud_proto->set_width();
+  point_cloud_proto->set_height();
+
   point_new = std::make_shared<apollo::sensors::PointCloud>();
-  point_new = pcl_ptr->add_point();
-  point_new->set_x(nan);
-  point_new->set_y(nan);
-  point_new->set_z(nan);
-  point_new->set_timestamp(timestamp);
-  point_new->set_intensity(0);
+  auto next_point = point_cloud_proto->add_point();
+  next_point->set_x(nan);
+  next_point->set_y(nan);
+  next_point->set_z(nan);
+  next_point->set_timestamp(timestamp);
+  next_point->set_intensity(0);
+
+  point_cloud_writer_->Write(point_cloud_proto);
 #endif
 }
 
