@@ -41,7 +41,7 @@ class kalman_filter(object):
 
     def kalman_prediction(self, speed, yaw):
 
-        #X = X.T
+        
         #B = np.array([[speed * 0.05 * math.sin(yaw)], [speed * 0.05 * math.cos(yaw)]])
         #self.X = self.A.dot(self.X) + B
         pass
@@ -151,9 +151,9 @@ class Exercise(object):
                 theta_y = math.atan2(
                     -data.tag[i].pose.r.element[2 * 3 + 0], sy)
 
-                self.position_0.x = Tre[0]
-                self.position_0.y = Tre[1]
-                self.position_0.z = Tre[2]
+                self.position_0.x = Tre[0][0]
+                self.position_0.y = Tre[1][0]
+                self.position_0.z = Tre[2][0]
                 self.position_0.yaw = theta_y
 
                 self.kalman.kalman_update(self.position_0)

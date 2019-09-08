@@ -78,8 +78,8 @@ class Control(object):
     def lateral_controller(self, trajectory, lateral_error):
         # TODO  you should calculate steerangle here
         if (len(trajectory.point)):
-            preview_x = -1*trajectory.point[len(trajectory.point) / 2].x
-            preview_y = -1 * trajectory.point[len(trajectory.point) / 2].y
+            preview_x = trajectory.point[len(trajectory.point) / 2].y
+            preview_y = trajectory.point[len(trajectory.point) / 2].x
             print preview_x, preview_y
             self.cmd.steer_angle = -57 * math.atan2(2 * preview_y * 0.313,
                                                     (preview_x * preview_x + preview_y * preview_y))

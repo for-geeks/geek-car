@@ -99,8 +99,9 @@ class Control(object):
     def longitude_controller(self, target_speed, speed_now):
         # TODO  you should calculate throttle here
         self.sum_error_longi += 0.05 * (target_speed - speed_now)
-        self.cmd.throttle = target_speed * 4 + 6 + 8.0 * \
-            (target_speed - speed_now) + 5.0 * self.sum_error_longi
+        self.cmd.throttle = target_speed * 4 + 6 + 10 * (target_speed - speed_now) + 5 * self.sum_error_longi 
+            
+            # + 5.0 * self.sum_error_longi
         pass
 
 
@@ -110,3 +111,5 @@ if __name__ == '__main__':
     # TODO update node to your name
     exercise_node = cyber.Node("control_node")
     exercise = Control(exercise_node)
+    #exercise_node.spin()
+    #cyber.shutdown()
