@@ -38,6 +38,7 @@
 #include "cyber/cyber.h"
 #include "cyber/time/rate.h"
 #include "cyber/time/time.h"
+#include "modules/sensors/proto/point_cloud.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/realsense.h"
 

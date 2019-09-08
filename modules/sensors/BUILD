@@ -38,6 +38,10 @@ cc_library(
     srcs = ["realsense.cc"],
     hdrs = ["realsense.h"],
     linkopts = [
+        "-lopencv_core",
+        "-lopencv_imgproc",
+        "-lopencv_calib3d",
+        "-lopencv_highgui",
         "-lrealsense2",
     ],
 )
