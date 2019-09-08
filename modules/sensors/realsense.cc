@@ -24,6 +24,8 @@
 #include "modules/sensors/realsense.h"
 
 #include "opencv2/opencv.hpp"
+#include "pcl/filters/passthrough.h"
+#include "pcl/point_types.h"
 
 namespace apollo {
 namespace sensors {

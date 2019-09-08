@@ -30,6 +30,7 @@ cc_library(
         "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
+        "@pcl",
     ],
 )
 
@@ -43,6 +44,9 @@ cc_library(
         "-lopencv_calib3d",
         "-lopencv_highgui",
         "-lrealsense2",
+    ],
+    deps = [
+        "@pcl",
     ],
 )
 

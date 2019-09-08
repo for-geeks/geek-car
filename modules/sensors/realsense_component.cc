@@ -33,6 +33,8 @@
 
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
+#include "pcl/filters/passthrough.h"
+#include "pcl/point_types.h"
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"

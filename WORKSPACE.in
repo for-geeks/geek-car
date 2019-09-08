@@ -63,6 +63,15 @@ new_local_repository(
     path = "/usr/local/Qt5.5.1/5.5/gcc_64",
 )
 
+# PCL 1.7
+# =======
+# This requires libpcl-dev to be installed in your Ubuntu/Debian.
+new_local_repository(
+    name = "pcl",
+    build_file = "third_party/pcl.BUILD",
+    path = "/usr/local/include/pcl-1.7",
+)
+
 new_local_repository(
     name = "fastrtps",
     build_file = "third_party/fastrtps.BUILD",
