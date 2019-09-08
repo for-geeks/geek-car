@@ -335,26 +335,35 @@ void RealsenseComponent::OnPointCloud(rs2::frame& f) {
   pass.setFilterLimits(0.0, 1.0);
   pass.filter(*cloud_filtered);
 
+  // Apply an affine transform defined by an Eigen Transform.
+  // pcl::transformPointCloud(*source_cloud, *transformed_cloud, transform_1);
+
   std::vector<pcl_ptr> layers;
   layers.push_back(pcl_points);
   layers.push_back(cloud_filtered);
 
-// TODO(fengzongbao) need to complete publish pointcloud
 #if 0
+  auto sp = points.get_profile().as<rs2::video_stream_profile>();
+
   apollo::sensors::PointCloud point_cloud_proto;
   point_cloud_proto->set_frame_id(f.get_frame_number());
-  point_cloud_proto->set_is_dense();
-  point_cloud_proto->set_measurement_time();
-  point_cloud_proto->set_width();
-  point_cloud_proto->set_height();
+  point_cloud_proto->set_is_dense(false);
+  point_cloud_proto->set_measurement_time(Time::Now().ToSecond());
+  point_cloud_proto->set_width(sp.width());
+  point_cloud_proto->set_height(sp.height());
 
-  point_new = std::make_shared<apollo::sensors::PointCloud>();
-  auto next_point = point_cloud_proto->add_point();
-  next_point->set_x(nan);
-  next_point->set_y(nan);
-  next_point->set_z(nan);
-  next_point->set_timestamp(timestamp);
-  next_point->set_intensity(0);
+  for (int i = 0; i < points.size(); i++) {
+    apollo::sensor::Point p;
+
+    p->set_x(nan);
+    p->set_y(nan);
+    p->set_z(nan);
+    p->set_timestamp(timestamp);
+    p->set_intensity(0);
+
+    auto next_point = point_cloud_proto->add_point();
+    next_point->CopyFrom(p);
+  }
 
   point_cloud_writer_->Write(point_cloud_proto);
 #endif

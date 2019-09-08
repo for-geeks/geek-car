@@ -57,7 +57,10 @@ cv::Mat frame_to_mat(const rs2::frame& f) {
                    cv::Mat::AUTO_STEP);
   }
 
+  cv::Mat empty;
+
   AWARN << "Frame format is not supported yet!";
+  return empty;
 }
 
 // Converts depth frame to a matrix of doubles with distances in meters
@@ -73,7 +76,7 @@ cv::Mat depth_frame_to_meters(const rs2::pipeline& pipe,
   return dm;
 }
 
-pcl_ptr Points2Pcl(const rs2::points& points) {
+pcl_ptr points_to_pcl(const rs2::points& points) {
   pcl_ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
   auto sp = points.get_profile().as<rs2::video_stream_profile>();

@@ -23,6 +23,13 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 ARCH=$(uname -m)
 if [ "$ARCH" == "aarch64" ]; then
   BUILD=$1
+  JOBS=1
+  shift
+fi
+
+if [ "$ARCH" == "x86_64" ]; then
+  BUILD=$1
+  JOBS=4
   shift
 fi
 
@@ -38,7 +45,7 @@ if [ "$BUILD" == "build" ] || [ "$ARCH" == "x86_64" ]; then
   mkdir build
   cd build
   cmake ..
-  make
+  make -j$JOBS
   make install
   popd
 else
