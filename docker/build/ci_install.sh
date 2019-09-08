@@ -101,7 +101,8 @@ apt install -y --allow-downgrades \
     libvtk6-dev \
     libvtk6.3 \
     vtk6 \
-    libpocofoundation9
+    libpocofoundation9 \
+    libpcl-dev
 
 rm -f /usr/lib/libPocoFoundation.so
 ln -s /usr/lib/libPocoFoundation.so.9 /usr/lib/libPocoFoundation.so
@@ -119,4 +120,4 @@ ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.x86_64
 
 bash ${BUILD_PATH}/docker/build/installers/install_realsense.sh
 bash ${BUILD_PATH}/docker/build/installers/install_fast-rtps.sh
-bash ${BUILD_PATH}/docker/build/installers/install_pcl.sh build
+# bash ${BUILD_PATH}/docker/build/installers/install_pcl.sh build

@@ -6,9 +6,12 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "pcl",
     defines = ["PCL_NO_PRECOMPILE"],
-    includes = ["."],
+    includes = [
+        ".",
+        "/usr/include/pcl-1.8",
+    ],
     linkopts = [
-        "-L/usr/local/lib",
+        "-L/usr/lib/aarch64-linux-gnu",
         "-lboost_system",
         "-lpcl_common",
         "-lpcl_features",
