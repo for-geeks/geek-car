@@ -32,7 +32,7 @@ class Control(object):
 # /planning/trajectory\
 # /planning/control_trajectory
         self.node.create_reader(
-            "/perception/control_trajectory", Trajectory, self.trajectorycallback)
+            "/perception/road_mean_point", Trajectory, self.trajectorycallback)
         self.writer = self.node.create_writer("/control", Control_Command)
 
         signal.signal(signal.SIGINT, self.sigint_handler)

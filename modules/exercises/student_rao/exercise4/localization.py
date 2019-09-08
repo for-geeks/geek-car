@@ -42,15 +42,15 @@ class kalman_filter(object):
 
     def kalman_prediction(self, speed, yaw):
 	
-	#X = X.T
+	
 	B = np.array([[speed * 0.05 * math.sin(yaw)], [speed * 0.05 * math.cos(yaw)]])
 	self.X = self.A.dot(self.X) + B
 
     def kalman_update(self, data):
 	Y = np.array([[data.x], [data.z]])
 	self.X = self.X + 0.1 * self.K.dot(Y - self.X)
-	self.kalman_pos.x = self.X[0]
-	self.kalman_pos.z = self.X[1]
+	self.kalman_pos.x = self.X[0][0]
+	self.kalman_pos.z = self.X[1][0]
 
 
     def covariance(self, x, z):
@@ -154,10 +154,11 @@ class Exercise(object):
   		r22 = data.tag[i].pose.r.element[2 * 3 + 2]
   		sy = math.sqrt(r21 * r21 + r22 * r22)
   		theta_y = math.atan2(-data.tag[i].pose.r.element[2 * 3 + 0], sy)
-
-		self.position_0.x = Tre[0]
-		self.position_0.y = Tre[1]
-		self.position_0.z = 1 - Tre[2]
+                print "=================== Tre test"
+                print Tre[0]
+		self.position_0.x = Tre[0][0]
+		self.position_0.y = Tre[1][0]
+		self.position_0.z = 1 - Tre[2][0]
 		self.position_0.yaw = theta_y
 
 		self.kalman.kalman_update(self.position_0)
@@ -237,6 +238,14 @@ class Exercise(object):
 	self.localization.apriltag.z = self.pos.z
 	self.localization.apriltag.yaw = self.pos.yaw
 	self.kalman.kalman_update(self.localization.apriltag0);
+
+    def calculate_pos_by_apriltag(self, Rt, T):
+        # please calculate position vec Tre,  by R and T
+        # matrix inv np.linalg.inv(A)
+        # matrix multiply  : np.matmul(A, B)
+
+        Tre = T
+        return Tre
 
     def localization_with_odometer_calculation(self):
         # this needs to be done by student
