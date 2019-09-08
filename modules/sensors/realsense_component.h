@@ -29,6 +29,7 @@
 #include "cyber/component/component.h"
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
+#include "pcl/point_types.h"
 
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
@@ -42,6 +43,8 @@ using apollo::control::Chassis;
 using apollo::cyber::Component;
 using apollo::cyber::Writer;
 
+using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
+
 class RealsenseComponent : public Component<> {
  public:
   bool Init() override;
@@ -54,12 +57,11 @@ class RealsenseComponent : public Component<> {
   void WheelOdometry();
   void OnImage(cv::Mat dst, uint64 frame_no);
   void OnDepthImage(cv::Mat mat, uint64 frame_no);
-  void OnPointCloud();
+  void OnPointCloud(rs2::frame f);
   void OnPose(rs2_pose pose_data, uint64 frame_no);
   void OnAcc(rs2_vector acc, uint64 frame_no);
   void OnGyro(rs2_vector gyro, uint64 frame_no);
   void CompressedImage(cv::Mat raw_image, uint64 frame_no);
-  pcl_ptr RealsenseComponent::Points2Pcl(const rs2::points& points);
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 

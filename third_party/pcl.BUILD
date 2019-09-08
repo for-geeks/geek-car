@@ -9,6 +9,7 @@ cc_library(
     includes = [
         ".",
         "/usr/include/pcl-1.8",
+	"/usr/include/eigen3",
     ],
     linkopts = [
         "-L/usr/lib/aarch64-linux-gnu",

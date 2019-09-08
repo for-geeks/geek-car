@@ -23,14 +23,10 @@
 ******************************************************************************/
 #include "modules/sensors/realsense.h"
 
-#include "opencv2/opencv.hpp"
 #include "pcl/filters/passthrough.h"
-#include "pcl/point_types.h"
 
 namespace apollo {
 namespace sensors {
-
-using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 // Convert rs2::frame to cv::Mat
 cv::Mat frame_to_mat(const rs2::frame& f) {

@@ -34,7 +34,6 @@
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 #include "pcl/filters/passthrough.h"
-#include "pcl/point_types.h"
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
@@ -314,17 +313,17 @@ void RealsenseComponent::OnDepthImage(cv::Mat mat, uint64 frame_no) {
   }
 }
 
-void RealsenseComponent::OnPointCloud(rs2::frame& f) {
+void RealsenseComponent::OnPointCloud(rs2::frame f) {
   // Declare pointcloud object, for calculating pointclouds and texture mappings
   rs2::pointcloud pc;
   // We want the points object to be persistent so we can display the last cloud
   // when a frame drops
   rs2::points points;
 
-  auto depth = f.get_depth_frame();
+  //auto depth = f.get_depth_frame();
 
   // Generate the pointcloud and texture mappings
-  points = pc.calculate(depth);
+  points = pc.calculate(f);
 
   auto pcl_points = points_to_pcl(points);
 

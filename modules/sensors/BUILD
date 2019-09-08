@@ -46,6 +46,7 @@ cc_library(
         "-lrealsense2",
     ],
     deps = [
+	"//cyber",
         "@pcl",
     ],
 )
