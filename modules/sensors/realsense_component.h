@@ -29,6 +29,7 @@
 #include "cyber/component/component.h"
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
+#include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
 
 #include "modules/common/global_gflags.h"
