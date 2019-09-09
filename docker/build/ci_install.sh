@@ -39,6 +39,7 @@ apt update -y && \
     libopenni-dev \
     libopenni2-0 \
     libopenni2-dev \
+    libpcl-dev \
     software-properties-common
 
 #install gcc 4.8.5
@@ -101,8 +102,7 @@ apt install -y --allow-downgrades \
     libvtk6-dev \
     libvtk6.3 \
     vtk6 \
-    libpocofoundation9 \
-    libpcl-dev
+    libpocofoundation9
 
 rm -f /usr/lib/libPocoFoundation.so
 ln -s /usr/lib/libPocoFoundation.so.9 /usr/lib/libPocoFoundation.so
