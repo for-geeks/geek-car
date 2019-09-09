@@ -53,7 +53,7 @@ class RealsenseComponent : public Component<> {
   ~RealsenseComponent();
 
  private:
-  rs2::device GetFirstConnectedDevice();
+  void InitDeviceAndSensor();
   void Calibration();
   void WheelOdometry();
   void OnImage(cv::Mat dst, uint64 frame_no);

@@ -8,8 +8,7 @@ cc_library(
     defines = ["PCL_NO_PRECOMPILE"],
     includes = [
         ".",
-        "/usr/include/pcl-1.8",
-	"/usr/include/eigen3",
+        "/usr/local/include",
     ],
     linkopts = [
         "-L/usr/lib/aarch64-linux-gnu",

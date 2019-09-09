@@ -25,9 +25,21 @@
 
 #include "pcl/filters/passthrough.h"
 
+#include "cyber/cyber.h"
+
 namespace apollo {
 namespace sensors {
 
+rs2::device GetFirstConnectedDevice() {
+  rs2::context ctx;
+  auto list = ctx.query_devices();
+  // Get a snapshot of currently connected devices
+  if (list.size() == 0) {
+    AWARN << "No device detected. Is it plugged in?";
+  }
+
+  return list.front();
+}
 // Convert rs2::frame to cv::Mat
 cv::Mat frame_to_mat(const rs2::frame& f) {
   auto vf = f.as<rs2::video_frame>();

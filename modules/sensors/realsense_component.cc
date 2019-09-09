@@ -54,40 +54,7 @@ using apollo::sensors::Pose;
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 bool RealsenseComponent::Init() {
-  device_ = GetFirstConnectedDevice();
-
-  // Print device information
-  RealSense::printDeviceInformation(device_);
-
-  if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
-    device_model_ = RealSenseDeviceModel::T265;
-  } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
-    device_model_ = RealSenseDeviceModel::D435I;
-  } else {
-    AWARN << "The device data is not yet supported for parsing";
-  }
-
-  // Get device serial_number
-  FLAGS_serial_number = device_.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
-  AINFO << "Got device with serial number: " << FLAGS_serial_number;
-  cyber::SleepFor(std::chrono::milliseconds(device_wait_));
-
-  // Get default as Sensor but for D435I is rs2::depth_sensor
-  sensor_ = device_.first<rs2::sensor>();
-
-  // RealSense::getSensorOption(sensor_);
-  sensor_.set_option(RS2_OPTION_FRAMES_QUEUE_SIZE, 0);
-  sensor_.open(sensor_.get_stream_profiles());
-
-  Calibration();
-
-  sensor_.start([this](rs2::frame f) {
-    // enqueue any new frames into q
-    q_.enqueue(std::move(f));
-  });
-
-  // load_wheel_odometery_config
-  WheelOdometry();
+  InitDeviceAndSensor();
 
   if (FLAGS_publish_pose && device_model_ == RealSenseDeviceModel::T265) {
     pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
@@ -132,15 +99,36 @@ bool RealsenseComponent::Init() {
   return true;
 }
 
-rs2::device RealsenseComponent::GetFirstConnectedDevice() {
-  rs2::context ctx;
-  auto list = ctx.query_devices();
-  // Get a snapshot of currently connected devices
-  if (list.size() == 0) {
-    AWARN << "No device detected. Is it plugged in?";
+void RealsenseComponent::InitDeviceAndSensor() {
+  device_ = GetFirstConnectedDevice();
+
+  // Print device information
+  RealSense::printDeviceInformation(device_);
+
+  if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
+    device_model_ = RealSenseDeviceModel::T265;
+  } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
+    device_model_ = RealSenseDeviceModel::D435I;
+  } else {
+    AWARN << "The device data is not yet supported for parsing";
   }
 
-  return list.front();
+  // Get default Sensor
+  sensor_ = device_.first<rs2::sensor>();
+
+  // RealSense::getSensorOption(sensor_);
+  sensor_.set_option(RS2_OPTION_FRAMES_QUEUE_SIZE, 0);
+  sensor_.open(sensor_.get_stream_profiles());
+
+  Calibration();
+
+  sensor_.start([this](rs2::frame f) {
+    // enqueue any new frames into q
+    q_.enqueue(std::move(f));
+  });
+
+  // load_wheel_odometery_config
+  WheelOdometry();
 }
 
 /**
@@ -320,7 +308,7 @@ void RealsenseComponent::OnPointCloud(rs2::frame f) {
   // when a frame drops
   rs2::points points;
 
-  //auto depth = f.get_depth_frame();
+  // auto depth = f.get_depth_frame();
 
   // Generate the pointcloud and texture mappings
   points = pc.calculate(f);

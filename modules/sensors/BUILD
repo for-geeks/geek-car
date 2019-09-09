@@ -46,7 +46,7 @@ cc_library(
         "-lrealsense2",
     ],
     deps = [
-	"//cyber",
+        "//cyber",
         "@pcl",
     ],
 )
@@ -75,6 +75,20 @@ cc_binary(
         "//cyber",
         "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
+    ],
+)
+
+cc_binary(
+    name = "realsense_motion",
+    srcs = ["realsense_motion.cc"],
+    linkopts = [
+        "-lopencv_core",
+        "-lrealsense2",
+    ],
+    deps = [
+        "//cyber",
+        "//modules/sensors/proto:sensors_cc_proto",
+        "@eigen",
     ],
 )
 

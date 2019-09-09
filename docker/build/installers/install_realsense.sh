@@ -38,7 +38,7 @@ elif [ "$ARCH" == "aarch64" ]; then
 	pushd installLibrealsense
 	# The scripts default to building with CUDA support.
 	# To build and install librealsense WITHOUT CUDA support:
-	bash installLibrealsense.sh -nc
+	bash installLibrealsense.sh
 	# patches kernel modules and installs them to support the RealSense cameras.
 	bash patchUbuntu.sh
 	popd

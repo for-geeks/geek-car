@@ -24,6 +24,9 @@ cc_library(
         "unsupported/Eigen/**/*.h",
     ]),
     defines = ["EIGEN_MPL2_ONLY"],
-    includes = [".", "/usr/include/eigen3"],
+    includes = [
+        ".",
+        "/usr/local/include",
+    ],
     visibility = ["//visibility:public"],
 )
