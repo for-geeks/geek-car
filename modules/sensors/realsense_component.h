@@ -25,12 +25,13 @@
 
 #include <memory>
 #include <string>
-#include "cyber/class_loader/class_loader.h"
-#include "cyber/component/component.h"
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
+
+#include "cyber/class_loader/class_loader.h"
+#include "cyber/component/component.h"
 
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
@@ -56,13 +57,13 @@ class RealsenseComponent : public Component<> {
   void InitDeviceAndSensor();
   void Calibration();
   void WheelOdometry();
-  void OnImage(cv::Mat dst, uint64 frame_no);
+  void OnImage(rs2::frame f);
   void OnDepthImage(cv::Mat mat, uint64 frame_no);
+  void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
   void OnPointCloud(rs2::frame f);
-  void OnPose(rs2_pose pose_data, uint64 frame_no);
-  void OnAcc(rs2_vector acc, uint64 frame_no);
-  void OnGyro(rs2_vector gyro, uint64 frame_no);
-  void CompressedImage(cv::Mat raw_image, uint64 frame_no);
+  void OnPose(rs2::frame f);
+  void OnAcc(rs2::frame f);
+  void OnGyro(rs2::frame f);
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
@@ -99,6 +100,8 @@ class RealsenseComponent : public Component<> {
 
   cv::Mat map1_;
   cv::Mat map2_;
+
+  double norm_max = 0;
 };
 
 CYBER_REGISTER_COMPONENT(RealsenseComponent)

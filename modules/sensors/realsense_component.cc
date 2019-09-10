@@ -100,7 +100,7 @@ bool RealsenseComponent::Init() {
 }
 
 void RealsenseComponent::InitDeviceAndSensor() {
-  device_ = GetFirstConnectedDevice();
+  device_ = first_connected_device();
 
   // Print device information
   RealSense::printDeviceInformation(device_);
@@ -120,15 +120,16 @@ void RealsenseComponent::InitDeviceAndSensor() {
   sensor_.set_option(RS2_OPTION_FRAMES_QUEUE_SIZE, 0);
   sensor_.open(sensor_.get_stream_profiles());
 
-  Calibration();
-
   sensor_.start([this](rs2::frame f) {
     // enqueue any new frames into q
     q_.enqueue(std::move(f));
   });
 
   // load_wheel_odometery_config
-  WheelOdometry();
+  if (device_model_ == RealSenseDeviceModel::T265) {
+    Calibration();
+    WheelOdometry();
+  }
 }
 
 /**
@@ -136,11 +137,10 @@ void RealsenseComponent::InitDeviceAndSensor() {
  * @return void
  */
 void RealsenseComponent::run() {
-  double norm_max = 0;
   while (!cyber::IsShutdown()) {
     // wait for device is ready. in case of device in busy state
     if (!device_) {
-      device_ = GetFirstConnectedDevice();
+      device_ = first_connected_device();
       continue;
     }
 
@@ -151,37 +151,13 @@ void RealsenseComponent::run() {
     // core of data write to channel
     if (f.get_profile().stream_type() == RS2_STREAM_POSE &&
         FLAGS_publish_pose) {
-      auto pose_frame = f.as<rs2::pose_frame>();
-      auto pose_data = pose_frame.get_pose_data();
-      AINFO << "pose " << pose_data.translation;
-
-      double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
-                         pose_data.translation.y * pose_data.translation.y +
-                         pose_data.translation.z * pose_data.translation.z);
-      if (norm > norm_max) norm_max = norm;
-
-      ADEBUG << "norm_max:" << norm_max;
-
-      auto wo_sensor = device_.first<rs2::wheel_odometer>();
-      // send vehicle speed to wheel odometry
-      if (!wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0})) {
-        AERROR << "Failed to send wheel odometry";
-      }
-      if (pose_frame.get_frame_number() % 5 == 0) {
-        OnPose(pose_data, pose_frame.get_frame_number());
-      }
+      OnPose(f);
     } else if (f.get_profile().stream_type() == RS2_STREAM_GYRO &&
                FLAGS_publish_gyro) {
-      auto gyro_frame = f.as<rs2::motion_frame>();
-      rs2_vector gyro = gyro_frame.get_motion_data();
-      AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
-      OnGyro(gyro, gyro_frame.get_frame_number());
+      OnGyro(f);
     } else if (f.get_profile().stream_type() == RS2_STREAM_ACCEL &&
                FLAGS_publish_acc) {
-      auto accel_frame = f.as<rs2::motion_frame>();
-      rs2_vector accel = accel_frame.get_motion_data();
-      AINFO << "Accel:" << accel.x << ", " << accel.y << ", " << accel.z;
-      OnAcc(accel, accel_frame.get_frame_number());
+      OnAcc(f);
     } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
                f.get_profile().stream_index() == 1) {
       // left fisheye
@@ -209,8 +185,7 @@ void RealsenseComponent::run() {
       OnImage(color_image, color_frame.get_frame_number());
 
     } else if (f.get_profile().stream_type() == RS2_STREAM_DEPTH) {
-      auto depth_frame = f.as<rs2::depth_frame>();
-      OnPointCloud(depth_frame);
+      OnPointCloud(f);
       // cv::Mat depth_image = frame_to_mat(depth_frame);
       // OnDepthImage(depth_image, depth_frame.get_frame_number());
     }
@@ -218,31 +193,27 @@ void RealsenseComponent::run() {
 }
 
 void RealsenseComponent::Calibration() {
-  if (device_model_ == RealSenseDeviceModel::T265) {
-    cv::Mat intrinsicsL;
-    cv::Mat distCoeffsL;
-    rs2_intrinsics left = sensor_.get_stream_profiles()[0]
-                              .as<rs2::video_stream_profile>()
-                              .get_intrinsics();
-    ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
-           << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
-    intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
-                   left.ppy, 0, 0, 1);
-    distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
-    cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
-    cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
-                 left.ppy, 0, 0, 0, 1, 0);
+  cv::Mat intrinsicsL;
+  cv::Mat distCoeffsL;
+  rs2_intrinsics left = sensor_.get_stream_profiles()[0]
+                            .as<rs2::video_stream_profile>()
+                            .get_intrinsics();
+  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
+         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
+  intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
+                 left.ppy, 0, 0, 1);
+  distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
+  cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
+  cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
+               left.ppy, 0, 0, 0, 1, 0);
 
-    cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
-                                         cv::Size(848, 816), CV_16SC2, map1_,
-                                         map2_);
-  } else if (device_model_ == RealSenseDeviceModel::D435I) {
-    // no need to calibration 435I
-  }
+  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
+                                       cv::Size(848, 816), CV_16SC2, map1_,
+                                       map2_);
 }
 
 void RealsenseComponent::WheelOdometry() {
-  auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
+  wheel_odometry_sensor_ = device_.first<rs2::wheel_odometer>();
   std::string calibration_file_path =
       GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
   std::ifstream calibrationFile(calibration_file_path);
@@ -250,7 +221,7 @@ void RealsenseComponent::WheelOdometry() {
                              std::istreambuf_iterator<char>());
   const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
 
-  if (!wheel_odometry_sensor.load_wheel_odometery_config(wo_calib)) {
+  if (!wheel_odometry_sensor_.load_wheel_odometery_config(wo_calib)) {
     AERROR << "Failed to load wheel odometry config file.";
   }
 }
@@ -280,7 +251,7 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
     image_writer_->Write(image_proto);
   }
   if (FLAGS_publish_compressed_image) {
-    CompressedImage(dst, frame_no);
+    OnCompressedImage(dst, frame_no);
   }
 }
 
@@ -302,6 +273,7 @@ void RealsenseComponent::OnDepthImage(cv::Mat mat, uint64 frame_no) {
 }
 
 void RealsenseComponent::OnPointCloud(rs2::frame f) {
+  auto depth_frame = f.as<rs2::depth_frame>();
   // Declare pointcloud object, for calculating pointclouds and texture mappings
   rs2::pointcloud pc;
   // We want the points object to be persistent so we can display the last cloud
@@ -311,7 +283,7 @@ void RealsenseComponent::OnPointCloud(rs2::frame f) {
   // auto depth = f.get_depth_frame();
 
   // Generate the pointcloud and texture mappings
-  points = pc.calculate(f);
+  points = pc.calculate(depth_frame);
 
   auto pcl_points = points_to_pcl(points);
 
@@ -363,37 +335,60 @@ void RealsenseComponent::OnPointCloud(rs2::frame f) {
  * @return true
  * @return false
  */
-void RealsenseComponent::OnPose(rs2_pose pose_data, uint64 frame_no) {
-  auto pose_proto = std::make_shared<Pose>();
-  pose_proto->set_frame_no(frame_no);
-  pose_proto->set_tracker_confidence(pose_data.tracker_confidence);
-  pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
+void RealsenseComponent::OnPose(rs2::frame f) {
+  auto pose_frame = f.as<rs2::pose_frame>();
+  if (pose_frame.get_frame_number() % 5 == 0) {
+    auto pose_data = pose_frame.get_pose_data();
+    AINFO << "pose " << pose_data.translation;
+    double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
+                       pose_data.translation.y * pose_data.translation.y +
+                       pose_data.translation.z * pose_data.translation.z);
+    if (norm > norm_max) {
+      norm_max = norm;
+    }
 
-  auto translation = pose_proto->mutable_translation();
-  translation->set_x(pose_data.translation.x);
-  translation->set_y(pose_data.translation.y);
-  translation->set_z(pose_data.translation.z);
+    ADEBUG << "norm_max:" << norm_max;
 
-  auto velocity = pose_proto->mutable_velocity();
-  velocity->set_x(pose_data.velocity.x);
-  velocity->set_y(pose_data.velocity.y);
-  velocity->set_z(pose_data.velocity.z);
+    // send vehicle speed to wheel odometry
+    if (!wheel_odometry_sensor_.send_wheel_odometry(0, 0,
+                                                    {chassis_.speed(), 0, 0})) {
+      AERROR << "Failed to send wheel odometry";
+    }
 
-  auto rotation = pose_proto->mutable_rotation();
-  rotation->set_x(pose_data.rotation.x);
-  rotation->set_y(pose_data.rotation.y);
-  rotation->set_z(pose_data.rotation.z);
-  rotation->set_w(pose_data.rotation.w);
+    auto pose_proto = std::make_shared<Pose>();
+    pose_proto->set_frame_no(pose_frame.get_frame_number());
+    pose_proto->set_tracker_confidence(pose_data.tracker_confidence);
+    pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
 
-  auto angular_velocity = pose_proto->mutable_angular_velocity();
-  angular_velocity->set_x(pose_data.angular_velocity.x);
-  angular_velocity->set_y(pose_data.angular_velocity.y);
-  angular_velocity->set_z(pose_data.angular_velocity.z);
+    auto translation = pose_proto->mutable_translation();
+    translation->set_x(pose_data.translation.x);
+    translation->set_y(pose_data.translation.y);
+    translation->set_z(pose_data.translation.z);
 
-  pose_writer_->Write(pose_proto);
+    auto velocity = pose_proto->mutable_velocity();
+    velocity->set_x(pose_data.velocity.x);
+    velocity->set_y(pose_data.velocity.y);
+    velocity->set_z(pose_data.velocity.z);
+
+    auto rotation = pose_proto->mutable_rotation();
+    rotation->set_x(pose_data.rotation.x);
+    rotation->set_y(pose_data.rotation.y);
+    rotation->set_z(pose_data.rotation.z);
+    rotation->set_w(pose_data.rotation.w);
+
+    auto angular_velocity = pose_proto->mutable_angular_velocity();
+    angular_velocity->set_x(pose_data.angular_velocity.x);
+    angular_velocity->set_y(pose_data.angular_velocity.y);
+    angular_velocity->set_z(pose_data.angular_velocity.z);
+
+    pose_writer_->Write(pose_proto);
+  }
 }
 
-void RealsenseComponent::OnAcc(rs2_vector acc, uint64 frame_no) {
+void RealsenseComponent::OnAcc(rs2::frame f) {
+  auto accel_frame = f.as<rs2::motion_frame>();
+  rs2_vector accel = accel_frame.get_motion_data();
+  AINFO << "Accel:" << accel.x << ", " << accel.y << ", " << accel.z;
   auto proto_accel = std::make_shared<Acc>();
   proto_accel->mutable_acc()->set_x(acc.x);
   proto_accel->mutable_acc()->set_y(acc.y);
@@ -402,7 +397,10 @@ void RealsenseComponent::OnAcc(rs2_vector acc, uint64 frame_no) {
   acc_writer_->Write(proto_accel);
 }
 
-void RealsenseComponent::OnGyro(rs2_vector gyro, uint64 frame_no) {
+void RealsenseComponent::OnGyro(rs2::frame f) {
+  auto gyro_frame = f.as<rs2::motion_frame>();
+  rs2_vector gyro = gyro_frame.get_motion_data();
+  AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
   auto proto_gyro = std::make_shared<Gyro>();
   proto_gyro->mutable_gyro()->set_x(gyro.x);
   proto_gyro->mutable_gyro()->set_y(gyro.y);
@@ -411,7 +409,7 @@ void RealsenseComponent::OnGyro(rs2_vector gyro, uint64 frame_no) {
   gyro_writer_->Write(proto_gyro);
 }
 
-void RealsenseComponent::CompressedImage(cv::Mat raw_image, uint64 frame_no) {
+void RealsenseComponent::OnCompressedImage(cv::Mat raw_image, uint64 frame_no) {
   std::vector<uchar> data_encode;
   std::vector<int> param = std::vector<int>(2);
   param[0] = CV_IMWRITE_JPEG_QUALITY;

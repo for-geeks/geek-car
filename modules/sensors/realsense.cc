@@ -30,7 +30,7 @@
 namespace apollo {
 namespace sensors {
 
-rs2::device GetFirstConnectedDevice() {
+rs2::device first_connected_device() {
   rs2::context ctx;
   auto list = ctx.query_devices();
   // Get a snapshot of currently connected devices

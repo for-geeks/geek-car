@@ -34,11 +34,12 @@ if [ "$ARCH" == "x86_64" ]; then
 
 	export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 elif [ "$ARCH" == "aarch64" ]; then
+	# https://www.jetsonhacks.com/2019/05/16/jetson-nano-realsense-depth-camera/
 	git clone https://github.com/JetsonHacksNano/installLibrealsense
 	pushd installLibrealsense
 	# The scripts default to building with CUDA support.
 	# To build and install librealsense WITHOUT CUDA support:
-	bash installLibrealsense.sh
+	bash installLibrealsense.sh -nc
 	# patches kernel modules and installs them to support the RealSense cameras.
 	bash patchUbuntu.sh
 	popd
