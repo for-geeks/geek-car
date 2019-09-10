@@ -27,10 +27,10 @@ ARCH=$(uname -m)
 if [ "$ARCH" == "x86_64" ]; then
 	apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
 	add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
-	apt install librealsense2-dkms
-	apt install librealsense2-utils
-	apt install librealsense2-dev
-	apt install librealsense2-dbg
+	apt install librealsense2-dkms -y
+	apt install librealsense2-utils -y
+	apt install librealsense2-dev -y
+	apt install librealsense2-dbg -y
 
 	export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 elif [ "$ARCH" == "aarch64" ]; then
