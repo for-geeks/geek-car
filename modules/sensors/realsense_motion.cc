@@ -168,11 +168,32 @@ int main() {
   // Declare object that handles camera pose calculations
   rotation_estimator algo;
 
-  auto acc_reader = node->CreateReader<apollo::sensors::Acc>(
-      FLAGS_acc_channel, algo.process_accel);
+  apollo::cyber::ReaderConfig reader_config;
+  reader_config.channel_name = FLAGS_acc_channel;
+  reader_config.pending_queue_size = 1;
+
+  // std::function<void(const std::shared_ptr<drivers::PointCloud>&)>
+  //     lidar_register_call = std::bind(&MSFLocalization::OnPointCloud,
+  //                                     &localization_, std::placeholders::_1);
+
+  // lidar_listener_ = this->node_->CreateReader<drivers::PointCloud>(
+  //     reader_config, lidar_register_call);
+
+  std::function<void(const std::shared_ptr<apollo::sensors::Acc>&)>
+      acc_register_call = std::bind(&rotation_estimator::process_accel,
+                                    &localization_, std::placeholders::_1);
+
+  auto acc_reader = node->CreateReader<apollo::sensors::Acc>(reader_config,
+                                                             acc_register_call);
+
+  reader_config.channel_name = FLAGS_gyro_channel;
+
+  std::function<void(const std::shared_ptr<apollo::sensors::Gyro>&)>
+      gyro_register_call = std::bind(&rotation_estimator::process_accel,
+                                     &localization_, std::placeholders::_1);
 
   auto gyro_reader = node->CreateReader<apollo::sensors::Gyro>(
-      FLAGS_gyro_channel, algo.process_gyro);
+      reader_config, gyro_register_call);
 
   // Main loop
   while (!apollo::cyber::IsShutdown()) {
