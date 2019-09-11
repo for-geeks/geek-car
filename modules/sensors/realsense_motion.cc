@@ -28,17 +28,15 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
-#include <map>
 #include <mutex>
-#include <queue>
 #include <sstream>
 #include <string>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
-#include "opencv2/opencv.hpp"
 #include "librealsense2/rs.hpp"
+#include "opencv2/opencv.hpp"
 
 #include "cyber/cyber.h"
 #include "cyber/task/task.h"
@@ -52,25 +50,25 @@ struct short3 {
   uint16_t x, y, z;
 };
 
-struct float3 {
-  float x, y, z;
-  float3 operator*(float t) { return {x * t, y * t, z * t}; }
+struct double3 {
+  double x, y, z;
+  double3 operator*(double t) { return {x * t, y * t, z * t}; }
 
-  float3 operator-(float t) { return {x - t, y - t, z - t}; }
+  double3 operator-(double t) { return {x - t, y - t, z - t}; }
 
-  void operator*=(float t) {
+  void operator*=(double t) {
     x = x * t;
     y = y * t;
     z = z * t;
   }
 
-  void operator=(float3 other) {
+  void operator=(double3 other) {
     x = other.x;
     y = other.y;
     z = other.z;
   }
 
-  void add(float t1, float t2, float t3) {
+  void add(double t1, double t2, double t3) {
     x += t1;
     y += t2;
     z += t3;
@@ -81,13 +79,13 @@ struct float3 {
 
 class rotation_estimator {
   // theta is the angle of camera rotation in x, y and z components
-  float3 theta;
+  double3 theta;
   std::mutex theta_mtx;
   /* alpha indicates the part that gyro and accelerometer take in computation of
   theta; higher alpha gives more weight to gyro, but too high values cause
   drift; lower alpha gives more weight to accelerometer, which is more sensitive
   to disturbances */
-  float alpha = 0.98;
+  double alpha = 0.98;
   bool first = true;
   // Keeps the arrival time of previous gyro frame
   double last_ts_gyro = 0;
@@ -102,7 +100,7 @@ class rotation_estimator {
       return;
     }
     // Holds the change in angle, as calculated from gyro
-    float3 gyro_angle;
+    double3 gyro_angle;
 
     // Initialize gyro_angle with data from gyro
     gyro_angle.x = gyro_data.x;  // Pitch
@@ -124,7 +122,7 @@ class rotation_estimator {
 
   void process_accel(rs2_vector accel_data) {
     // Holds the angle as calculated from accelerometer data
-    float3 accel_angle;
+    double3 accel_angle;
 
     // Calculate rotation angle from accelerometer data
     accel_angle.z = atan2(accel_data.y, accel_data.z);
@@ -155,7 +153,7 @@ class rotation_estimator {
   }
 
   // Returns the current rotation angle
-  float3 get_theta() {
+  double3 get_theta() {
     std::lock_guard<std::mutex> lock(theta_mtx);
     return theta;
   }
@@ -177,9 +175,9 @@ int main() {
       FLAGS_gyro_channel, algo.process_gyro);
 
   // Main loop
-  while (!cyber::IsShutdown()) {
+  while (!apollo::cyber::IsShutdown()) {
     auto angle = algo.get_theta();
-    Eigen::Matrix4f transform_1 = Eigen::Matrix4f::Identity();
+    Eigen::Matrix3f transform_1 = Eigen::Matrix3f::Identity();
     ::Eigen::Vector3d ea0(0, angle.x, angle.z);
     ::Eigen::Matrix3d R;
     R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
