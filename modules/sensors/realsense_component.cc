@@ -213,7 +213,7 @@ void RealsenseComponent::Calibration() {
 }
 
 void RealsenseComponent::WheelOdometry() {
-  wheel_odometry_sensor_ = device_.first<rs2::wheel_odometer>();
+  auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
   std::string calibration_file_path =
       GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
   std::ifstream calibrationFile(calibration_file_path);
@@ -221,7 +221,7 @@ void RealsenseComponent::WheelOdometry() {
                              std::istreambuf_iterator<char>());
   const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
 
-  if (!wheel_odometry_sensor_.load_wheel_odometery_config(wo_calib)) {
+  if (!wheel_odometry_sensor.load_wheel_odometery_config(wo_calib)) {
     AERROR << "Failed to load wheel odometry config file.";
   }
 }
@@ -350,7 +350,8 @@ void RealsenseComponent::OnPose(rs2::frame f) {
     ADEBUG << "norm_max:" << norm_max;
 
     // send vehicle speed to wheel odometry
-    if (!wheel_odometry_sensor_.send_wheel_odometry(0, 0,
+    auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
+    if (!wheel_odometry_sensor.send_wheel_odometry(0, 0,
                                                     {chassis_.speed(), 0, 0})) {
       AERROR << "Failed to send wheel odometry";
     }
@@ -387,8 +388,8 @@ void RealsenseComponent::OnPose(rs2::frame f) {
 
 void RealsenseComponent::OnAcc(rs2::frame f) {
   auto accel_frame = f.as<rs2::motion_frame>();
-  rs2_vector accel = accel_frame.get_motion_data();
-  AINFO << "Accel:" << accel.x << ", " << accel.y << ", " << accel.z;
+  rs2_vector acc = accel_frame.get_motion_data();
+  AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
   auto proto_accel = std::make_shared<Acc>();
   proto_accel->mutable_acc()->set_x(acc.x);
   proto_accel->mutable_acc()->set_y(acc.y);

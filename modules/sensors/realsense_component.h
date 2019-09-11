@@ -57,7 +57,7 @@ class RealsenseComponent : public Component<> {
   void InitDeviceAndSensor();
   void Calibration();
   void WheelOdometry();
-  void OnImage(rs2::frame f);
+  void OnImage(cv::Mat raw_image, uint64 frame_no);
   void OnDepthImage(cv::Mat mat, uint64 frame_no);
   void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
   void OnPointCloud(rs2::frame f);
@@ -82,7 +82,7 @@ class RealsenseComponent : public Component<> {
   rs2::device device_;     // realsense device
   rs2::sensor sensor_;     // sensor include imu and camera;
   uint32_t device_model_;  // realsense device model like T265 OR D435I
-  rs2::sensor wheel_odometry_sensor_;
+  // rs2::wheel_odometer wheel_odometry_sensor_;
 
   uint32_t device_wait_ = 2000;  // ms
   uint32_t spin_rate_ = 200;     // ms
