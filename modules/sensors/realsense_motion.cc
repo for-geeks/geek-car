@@ -38,6 +38,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include "opencv2/opencv.hpp"
+#include "librealsense2/rs.hpp"
 
 #include "cyber/cyber.h"
 #include "cyber/task/task.h"
