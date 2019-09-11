@@ -79,7 +79,7 @@ void MonitorComponent::Realsense() {
       selected_device = devices.front();
 
       // print device_info
-      RealSense::printDeviceInformation(selected_device);
+      // RealSense::printDeviceInformation(selected_device);
 
       realsense->set_connection_status(true);
       realsense->set_message("Everything is ok");

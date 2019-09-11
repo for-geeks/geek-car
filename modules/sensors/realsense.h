@@ -34,10 +34,13 @@
 
 #include "cyber/common/log.h"
 
+namespace apollo {
+namespace sensors {
+
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 rs2::device first_connected_device();
-cv::Mat frame_to_mat(const rs2::frame& f);
+cv::Mat frame_to_mat(rs2::frame f);
 cv::Mat depth_frame_to_meters(const rs2::pipeline& pipe,
                               const rs2::depth_frame& f);
 pcl_ptr points_to_pcl(const rs2::points& points);
@@ -515,3 +518,5 @@ class RealSense {
     sensor.close();
   }
 };
+}
+}

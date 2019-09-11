@@ -87,6 +87,7 @@ cc_binary(
     ],
     deps = [
         "//cyber",
+	"//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
         "@eigen",
     ],

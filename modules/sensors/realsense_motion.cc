@@ -178,7 +178,7 @@ int main() {
 
   // lidar_listener_ = this->node_->CreateReader<drivers::PointCloud>(
   //     reader_config, lidar_register_call);
-
+#if 0
   std::function<void(const std::shared_ptr<apollo::sensors::Acc>&)>
       acc_register_call = std::bind(&rotation_estimator::process_accel,
                                     &localization_, std::placeholders::_1);
@@ -218,6 +218,7 @@ int main() {
     // use transform_1 as transform input param
 
     apollo::cyber::WaitForShutdown();
-
+#endif
     return 0;
   }
+

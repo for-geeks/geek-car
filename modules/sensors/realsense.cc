@@ -41,7 +41,7 @@ rs2::device first_connected_device() {
   return list.front();
 }
 // Convert rs2::frame to cv::Mat
-cv::Mat frame_to_mat(const rs2::frame& f) {
+cv::Mat frame_to_mat(rs2::frame f) {
   auto vf = f.as<rs2::video_frame>();
   const int w = vf.get_width();
   const int h = vf.get_height();
