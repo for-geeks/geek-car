@@ -44,6 +44,7 @@ cv::Mat frame_to_mat(rs2::frame f);
 cv::Mat depth_frame_to_meters(const rs2::pipeline& pipe,
                               const rs2::depth_frame& f);
 pcl_ptr points_to_pcl(const rs2::points& points);
+
 /**
  * https://github.com/IntelRealSense/librealsense/blob/master/examples/sensor-control/api_how_to.h
  * The RealSense class provides several functions for common usages of the
@@ -518,5 +519,5 @@ class RealSense {
     sensor.close();
   }
 };
-}
-}
+}  // namespace sensors
+}  // namespace apollo

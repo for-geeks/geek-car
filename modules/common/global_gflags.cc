@@ -27,16 +27,21 @@
 DEFINE_string(device_name, "ttyACM0", "Arduino device name ");
 
 // Realsense
-DEFINE_string(device_model, "T265", "T265 model");
-DEFINE_string(serial_number, "908412111198", "T265 serial no");
+DEFINE_string(device_model, "T265", "RealSense Device Model Name");
+DEFINE_string(serial_number, "908412111198", "RealSense serial number");
 DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
-DEFINE_string(raw_image_channel, "/realsense/raw_image", "raw image");
+DEFINE_string(raw_gray_image_channel, "/realsense/gray_image", "raw image");
+DEFINE_string(depth_image_channel, "/realsense/color_image", "raw image Y16 ");
 DEFINE_string(depth_image_channel, "/realsense/depth_image", "raw image Y16 ");
 DEFINE_string(point_cloud_channel, "/realsense/point_cloud", "points object ");
-DEFINE_string(compressed_image_channel, "/realsense/compressed_image",
-              "compressed image");
-DEFINE_string(acc_channel, "/realsense/acc", "acc data from T265");
-DEFINE_string(gyro_channel, "/realsense/gyro", "gyro data from T265");
+DEFINE_string(compressed_gray_image_channel, "/realsense/compressed_gray_image",
+              "compressed gray format image");
+DEFINE_string(compressed_color_image_channel,
+              "/realsense/compressed_color_image", "compressed color image");
+DEFINE_string(acc_channel, "/realsense/acc", "acc data from RealSense Device");
+DEFINE_string(gyro_channel, "/realsense/gyro",
+              "gyro data from RealSense Device");
+
 DEFINE_string(tags_channel, "/localization/tag", "localization tag result");
 DEFINE_string(routing_channel, "/planning/target",
               "planning routing information");
@@ -54,10 +59,12 @@ DEFINE_string(control_coefficient, "/control_coefficient",
 DEFINE_bool(publish_acc, false, "publish acc data");
 DEFINE_bool(publish_gyro, false, "publish gyro data");
 DEFINE_bool(publish_pose, true, "publish pose data");
-DEFINE_bool(publish_raw_image, false, "publish raw gray image data");
-DEFINE_bool(publish_compressed_image, true, "publish raw gray image data");
+DEFINE_bool(publish_raw_gray_image, false, "publish raw gray image data");
+DEFINE_bool(publish_compressed_gray_image, true, "publish raw gray image data");
 DEFINE_bool(use_compressed_image_to_detect_tag, false,
             "use compressed_image_channel to detect apriltag data");
+DEFINE_bool(publish_color_image, true, "color image from d435i");
+DEFINE_bool(publish_compressed_color_image, true, "compressed color image");
 DEFINE_bool(publish_depth_image, true, "depth image from d435");
 DEFINE_bool(publish_point_cloud, true, "publish point cloud for 435I");
 
@@ -76,7 +83,7 @@ DEFINE_double(left_cy, 200.011, "cy");
 DEFINE_double(speed_feedback, -2, "chassis speed feedback coefficient");
 
 // IMAGE
-DEFINE_int32(compress_rate, 30, "compressed image rate");
+DEFINE_int32(compress_rate, 30, "image compressed rate");
 
 // TOOLS
 DEFINE_string(image_export_dir, "/home/geek-car/out_test/",

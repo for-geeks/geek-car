@@ -59,13 +59,13 @@ bool RealsenseComponent::Init() {
   if (FLAGS_publish_pose && device_model_ == RealSenseDeviceModel::T265) {
     pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
   }
-  if (FLAGS_publish_raw_image) {
+  if (FLAGS_publish_raw_gray_image) {
     image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
   }
 
-  if (FLAGS_publish_depth_image &&
+  if (FLAGS_publish_color_image &&
       device_model_ == RealSenseDeviceModel::D435I) {
-    depth_image_writer_ = node_->CreateWriter<Image>(FLAGS_depth_image_channel);
+    color_image_writer_ = node_->CreateWriter<Image>(FLAGS_color_image_channel);
   }
 
   // Point cloud channel
@@ -121,7 +121,7 @@ void RealsenseComponent::InitDeviceAndSensor() {
 
   // Instruct pipeline to start streaming with the requested configuration
   pipe.start(cfg);
-  AINFO << "set sensor start option";
+  AINFO << "Set sensor start option.";
 
   // load_wheel_odometery_config
   if (device_model_ == RealSenseDeviceModel::T265) {
@@ -159,7 +159,7 @@ void RealsenseComponent::run() {
 
     // const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
     // auto fisheye_frame = frames.get_fisheye_frame(1);
-    //OnGrayImage(fisheye_frame);
+    // OnGrayImage(fisheye_frame);
   }
 }
 
@@ -235,7 +235,7 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
   if (FLAGS_publish_compressed_image) {
     OnCompressedImage(dst, fisheye_frame.get_frame_number());
   }
-}  // namespace sensors
+}
 
 void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   // Creating OpenCV Matrix from a color image
@@ -313,60 +313,51 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
 #endif
 }
 
-/**
- * @brief callback of Pose data
- *
- * @param pose_data
- * @return true
- * @return false
- */
 void RealsenseComponent::OnPose(rs2::pose_frame pose_frame) {
-  if (pose_frame.get_frame_number() % 5 == 0) {
-    auto pose_data = pose_frame.get_pose_data();
-    AINFO << "pose " << pose_data.translation;
-    double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
-                       pose_data.translation.y * pose_data.translation.y +
-                       pose_data.translation.z * pose_data.translation.z);
-    if (norm > norm_max) {
-      norm_max = norm;
-    }
-
-    ADEBUG << "norm_max:" << norm_max;
-
-    // send vehicle speed to wheel odometry
-    auto wo_sensor = device_.first<rs2::wheel_odometer>();
-    if (!wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0})) {
-      AERROR << "Failed to send wheel odometry";
-    }
-
-    auto pose_proto = std::make_shared<Pose>();
-    pose_proto->set_frame_no(pose_frame.get_frame_number());
-    pose_proto->set_tracker_confidence(pose_data.tracker_confidence);
-    pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
-
-    auto translation = pose_proto->mutable_translation();
-    translation->set_x(pose_data.translation.x);
-    translation->set_y(pose_data.translation.y);
-    translation->set_z(pose_data.translation.z);
-
-    auto velocity = pose_proto->mutable_velocity();
-    velocity->set_x(pose_data.velocity.x);
-    velocity->set_y(pose_data.velocity.y);
-    velocity->set_z(pose_data.velocity.z);
-
-    auto rotation = pose_proto->mutable_rotation();
-    rotation->set_x(pose_data.rotation.x);
-    rotation->set_y(pose_data.rotation.y);
-    rotation->set_z(pose_data.rotation.z);
-    rotation->set_w(pose_data.rotation.w);
-
-    auto angular_velocity = pose_proto->mutable_angular_velocity();
-    angular_velocity->set_x(pose_data.angular_velocity.x);
-    angular_velocity->set_y(pose_data.angular_velocity.y);
-    angular_velocity->set_z(pose_data.angular_velocity.z);
-
-    pose_writer_->Write(pose_proto);
+  auto pose_data = pose_frame.get_pose_data();
+  AINFO << "Pose: " << pose_data;
+  double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
+                     pose_data.translation.y * pose_data.translation.y +
+                     pose_data.translation.z * pose_data.translation.z);
+  if (norm > norm_max) {
+    norm_max = norm;
   }
+
+  ADEBUG << "norm_max:" << norm_max;
+
+  // send vehicle speed to wheel odometry
+  auto wo_sensor = device_.first<rs2::wheel_odometer>();
+  if (!wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0})) {
+    AERROR << "Failed to send wheel odometry";
+  }
+
+  auto pose_proto = std::make_shared<Pose>();
+  pose_proto->set_frame_no(pose_frame.get_frame_number());
+  pose_proto->set_tracker_confidence(pose_data.tracker_confidence);
+  pose_proto->set_mapper_confidence(pose_data.mapper_confidence);
+
+  auto translation = pose_proto->mutable_translation();
+  translation->set_x(pose_data.translation.x);
+  translation->set_y(pose_data.translation.y);
+  translation->set_z(pose_data.translation.z);
+
+  auto velocity = pose_proto->mutable_velocity();
+  velocity->set_x(pose_data.velocity.x);
+  velocity->set_y(pose_data.velocity.y);
+  velocity->set_z(pose_data.velocity.z);
+
+  auto rotation = pose_proto->mutable_rotation();
+  rotation->set_x(pose_data.rotation.x);
+  rotation->set_y(pose_data.rotation.y);
+  rotation->set_z(pose_data.rotation.z);
+  rotation->set_w(pose_data.rotation.w);
+
+  auto angular_velocity = pose_proto->mutable_angular_velocity();
+  angular_velocity->set_x(pose_data.angular_velocity.x);
+  angular_velocity->set_y(pose_data.angular_velocity.y);
+  angular_velocity->set_z(pose_data.angular_velocity.z);
+
+  pose_writer_->Write(pose_proto);
 }
 
 void RealsenseComponent::OnAcc(rs2::motion_frame accel_frame) {

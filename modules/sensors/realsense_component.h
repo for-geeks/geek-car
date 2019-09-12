@@ -68,7 +68,7 @@ class RealsenseComponent : public Component<> {
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
-  std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
+  std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
@@ -82,7 +82,6 @@ class RealsenseComponent : public Component<> {
   rs2::device device_;     // realsense device
   rs2::sensor sensor_;     // sensor include imu and camera;
   uint32_t device_model_;  // realsense device model like T265 OR D435I
-  // rs2::wheel_odometer wheel_odometry_sensor_;
 
   // Contruct a pipeline which abstracts the device
   rs2::pipeline pipe;
@@ -90,20 +89,6 @@ class RealsenseComponent : public Component<> {
   // Create a configuration for configuring the pipeline with a non default
   // profile
   rs2::config cfg;
-
-  uint32_t device_wait_ = 2000;  // ms
-  uint32_t spin_rate_ = 200;     // ms
-
-  // frame queue
-  rs2::frame_queue q_;
-
-  /**
-   * @brief from RS2_OPTION_FRAMES_QUEUE_SIZE
-   * you are telling the SDK not to recycle frames for this sensor.
-   * < Number of frames the user is allowed to keep per stream. Trying to
-   * hold-on to more frames will cause frame-drops.
-   * */
-  float queue_size_ = 16.0;  // queue size
 
   cv::Mat map1_;
   cv::Mat map2_;
