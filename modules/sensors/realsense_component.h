@@ -84,6 +84,12 @@ class RealsenseComponent : public Component<> {
   uint32_t device_model_;  // realsense device model like T265 OR D435I
   // rs2::wheel_odometer wheel_odometry_sensor_;
 
+    // Contruct a pipeline which abstracts the device
+  rs2::pipeline pipe;
+
+  //Create a configuration for configuring the pipeline with a non default profile
+  rs2::config cfg;
+
   uint32_t device_wait_ = 2000;  // ms
   uint32_t spin_rate_ = 200;     // ms
 

@@ -100,36 +100,20 @@ bool RealsenseComponent::Init() {
 }
 
 void RealsenseComponent::InitDeviceAndSensor() {
-  device_ = first_connected_device();
+  // device_ = first_connected_device();
 
-  // Print device information
-  RealSense::printDeviceInformation(device_);
+    //Add desired streams to configuration
+  cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
 
-  if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
-    device_model_ = RealSenseDeviceModel::T265;
-  } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
-    device_model_ = RealSenseDeviceModel::D435I;
-  } else {
-    AWARN << "The device data is not yet supported for parsing";
-  }
-
-  // Get default Sensor
-  sensor_ = device_.first<rs2::sensor>();
-
-  // RealSense::getSensorOption(sensor_);
-  sensor_.set_option(RS2_OPTION_FRAMES_QUEUE_SIZE, 0);
-  sensor_.open(sensor_.get_stream_profiles());
-
-  sensor_.start([this](rs2::frame f) {
-    // enqueue any new frames into q
-    q_.enqueue(std::move(f));
-  });
+    //Instruct pipeline to start streaming with the requested configuration
+  pipe.start(cfg);
+  AINFO << "set sensor start option";
 
   // load_wheel_odometery_config
-  if (device_model_ == RealSenseDeviceModel::T265) {
-    Calibration();
-    WheelOdometry();
-  }
+  // if (device_model_ == RealSenseDeviceModel::T265) {
+  //   Calibration();
+  //   WheelOdometry();
+  // }
 }
 
 /**
@@ -137,17 +121,28 @@ void RealsenseComponent::InitDeviceAndSensor() {
  * @return void
  */
 void RealsenseComponent::run() {
-  while (!cyber::IsShutdown()) {
-    // wait for device is ready. in case of device in busy state
-    if (!device_) {
-      device_ = first_connected_device();
-      continue;
+  AINFO << "ENTER REALSENSE_COMPONENT::RUN()";
+  while (!apollo::cyber::IsShutdown()) {
+
+    // Camera warmup - dropping several first frames to let auto-exposure stabilize
+    rs2::frameset frames;
+    for(int i = 0; i < 30; i++)
+    {
+        //Wait for all configured streams to produce a frame
+        frames = pipe.wait_for_frames();
     }
+
+    rs2::frame color_frame = frames.get_color_frame();
+    AINFO << "RECEIVED FRAME F:" << color_frame.get_profile().stream_type();
+    // Creating OpenCV Matrix from a color image
+    cv::Mat color(cv::Size(640, 480), CV_8UC3, (void*)color_frame.get_data(), cv::Mat::AUTO_STEP);
 
     // wait until new frame is available and dequeue it
     // handle frames in the main event loop
-    rs2::frame f = q_.wait_for_frame();
-
+    // rs2::frame f = q_.wait_for_frame();
+    
+    OnImage(color, color_frame.get_frame_number());
+#if 0
     // core of data write to channel
     if (f.get_profile().stream_type() == RS2_STREAM_POSE &&
         FLAGS_publish_pose) {
@@ -155,9 +150,11 @@ void RealsenseComponent::run() {
     } else if (f.get_profile().stream_type() == RS2_STREAM_GYRO &&
                FLAGS_publish_gyro) {
       OnGyro(f);
+      AINFO << "ON GYRO";
     } else if (f.get_profile().stream_type() == RS2_STREAM_ACCEL &&
                FLAGS_publish_acc) {
       OnAcc(f);
+      AINFO << "ON GYRO";
     } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
                f.get_profile().stream_index() == 1) {
       // left fisheye
@@ -183,12 +180,15 @@ void RealsenseComponent::run() {
       auto color_frame = f.as<rs2::video_frame>();
       cv::Mat color_image = frame_to_mat(color_frame);
       OnImage(color_image, color_frame.get_frame_number());
+      AINFO << "ON IMAGE";
 
     } else if (f.get_profile().stream_type() == RS2_STREAM_DEPTH) {
       OnPointCloud(f);
+      AINFO << "ON POINTCLOUD";
       // cv::Mat depth_image = frame_to_mat(depth_frame);
       // OnDepthImage(depth_image, depth_frame.get_frame_number());
     }
+    #endif
   }
 }
 
@@ -243,7 +243,7 @@ void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
     if (device_model_ == RealSenseDeviceModel::T265) {
       image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
     } else if (device_model_ == RealSenseDeviceModel::D435I) {
-      image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_RGBA8));
+      image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_BGR8));
     }
     image_proto->set_measurement_time(Time::Now().ToSecond());
     auto m_size = dst.rows * dst.cols * dst.elemSize();
