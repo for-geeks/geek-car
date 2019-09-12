@@ -25,8 +25,8 @@ source "${DIR}/apollo_base.sh"
 
 function start() {
     LOG="${APOLLO_ROOT_DIR}/data/log/sensors.out"
-    CMD="cyber_launch start ${APOLLO_ROOT_DIR}/modules/sensors/launch/exercise1.launch"
-    NUM_PROCESSES="$(pgrep -c -f "${APOLLO_ROOT_DIR}/modules/sensors/dag/exercise1.dag")"
+    CMD="cyber_launch start ${APOLLO_ROOT_DIR}/modules/sensors/launch/exercise_one.launch"
+    NUM_PROCESSES="$(pgrep -c -f "${APOLLO_ROOT_DIR}/modules/sensors/dag/exercise_one.dag")"
     if [ "${NUM_PROCESSES}" -eq 0 ]; then
        eval "nohup ${CMD} </dev/null >${LOG} 2>&1 &"
     fi

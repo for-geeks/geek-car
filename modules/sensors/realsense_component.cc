@@ -100,20 +100,34 @@ bool RealsenseComponent::Init() {
 }
 
 void RealsenseComponent::InitDeviceAndSensor() {
-  // device_ = first_connected_device();
+  device_ = first_connected_device();
 
-    //Add desired streams to configuration
+  if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
+    device_model_ = RealSenseDeviceModel::T265;
+  } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
+    device_model_ = RealSenseDeviceModel::D435I;
+  } else {
+    AWARN << "The device data is not yet supported for parsing";
+  }
+
+  // D435I
+  // Add desired streams to configuration
   cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+  // Use a configuration object to request only depth from the pipeline
+  cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+  // Add streams of gyro and accelerometer to configuration
+  cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
+  cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
 
-    //Instruct pipeline to start streaming with the requested configuration
+  // Instruct pipeline to start streaming with the requested configuration
   pipe.start(cfg);
   AINFO << "set sensor start option";
 
   // load_wheel_odometery_config
-  // if (device_model_ == RealSenseDeviceModel::T265) {
-  //   Calibration();
-  //   WheelOdometry();
-  // }
+  if (device_model_ == RealSenseDeviceModel::T265) {
+    Calibration();
+    WheelOdometry();
+  }
 }
 
 /**
@@ -123,72 +137,29 @@ void RealsenseComponent::InitDeviceAndSensor() {
 void RealsenseComponent::run() {
   AINFO << "ENTER REALSENSE_COMPONENT::RUN()";
   while (!apollo::cyber::IsShutdown()) {
-
-    // Camera warmup - dropping several first frames to let auto-exposure stabilize
+    // Camera warmup - dropping several first frames to let auto-exposure
+    // stabilize
     rs2::frameset frames;
-    for(int i = 0; i < 30; i++)
-    {
-        //Wait for all configured streams to produce a frame
-        frames = pipe.wait_for_frames();
-    }
+    // Wait for all configured streams to produce a frame
+    frames = pipe.wait_for_frames();
 
     rs2::frame color_frame = frames.get_color_frame();
+
     AINFO << "RECEIVED FRAME F:" << color_frame.get_profile().stream_type();
-    // Creating OpenCV Matrix from a color image
-    cv::Mat color(cv::Size(640, 480), CV_8UC3, (void*)color_frame.get_data(), cv::Mat::AUTO_STEP);
+    OnColorImage(color_frame);
 
-    // wait until new frame is available and dequeue it
-    // handle frames in the main event loop
-    // rs2::frame f = q_.wait_for_frame();
-    
-    OnImage(color, color_frame.get_frame_number());
-#if 0
-    // core of data write to channel
-    if (f.get_profile().stream_type() == RS2_STREAM_POSE &&
-        FLAGS_publish_pose) {
-      OnPose(f);
-    } else if (f.get_profile().stream_type() == RS2_STREAM_GYRO &&
-               FLAGS_publish_gyro) {
-      OnGyro(f);
-      AINFO << "ON GYRO";
-    } else if (f.get_profile().stream_type() == RS2_STREAM_ACCEL &&
-               FLAGS_publish_acc) {
-      OnAcc(f);
-      AINFO << "ON GYRO";
-    } else if (f.get_profile().stream_type() == RS2_STREAM_FISHEYE &&
-               f.get_profile().stream_index() == 1) {
-      // left fisheye
-      auto fisheye_frame = f.as<rs2::video_frame>();
+    rs2::frame depth_frame = frames.get_depth_frame();
+    OnPointCloud(depth_frame);
 
-      AINFO << "fisheye " << f.get_profile().stream_index() << ", "
-            << fisheye_frame.get_width() << "x" << fisheye_frame.get_height();
+    rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
+    OnAcc(accel_frame);
 
-      cv::Mat image = frame_to_mat(fisheye_frame);
-      cv::Mat dst;
-      cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
-      cv::Size dsize = cv::Size(static_cast<int>(dst.cols * 0.5),
-                                static_cast<int>(dst.rows * 0.5));
-      cv::Mat new_size_img(dsize, CV_8U);
-      cv::resize(dst, new_size_img, dsize);
-      if (fisheye_frame.get_frame_number() % 2 == 0) {
-        OnImage(new_size_img, fisheye_frame.get_frame_number());
-      }
-    } else if (f.get_profile().stream_type() == RS2_STREAM_COLOR) {
-      // Notice that the color frame is of type `rs2::video_frame` and the depth
-      // frame if of type `rs2::depth_frame` (which derives from
-      // `rs2::video_frame` and adds special depth related functionality).
-      auto color_frame = f.as<rs2::video_frame>();
-      cv::Mat color_image = frame_to_mat(color_frame);
-      OnImage(color_image, color_frame.get_frame_number());
-      AINFO << "ON IMAGE";
+    rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
+    OnGyro(gyro_frame);
 
-    } else if (f.get_profile().stream_type() == RS2_STREAM_DEPTH) {
-      OnPointCloud(f);
-      AINFO << "ON POINTCLOUD";
-      // cv::Mat depth_image = frame_to_mat(depth_frame);
-      // OnDepthImage(depth_image, depth_frame.get_frame_number());
-    }
-    #endif
+    // const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
+    auto fisheye_frame = frames.get_fisheye_frame(1);
+    OnGrayImage(fisheye_frame);
   }
 }
 
@@ -233,54 +204,68 @@ void RealsenseComponent::WheelOdometry() {
  * @return true
  * @return false
  */
-void RealsenseComponent::OnImage(cv::Mat dst, uint64 frame_no) {
-  if (FLAGS_publish_raw_image) {
-    auto image_proto = std::make_shared<Image>();
-    image_proto->set_frame_no(frame_no);
-    image_proto->set_height(dst.rows);
-    image_proto->set_width(dst.cols);
-    // encodings
-    if (device_model_ == RealSenseDeviceModel::T265) {
-      image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
-    } else if (device_model_ == RealSenseDeviceModel::D435I) {
-      image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_BGR8));
-    }
-    image_proto->set_measurement_time(Time::Now().ToSecond());
-    auto m_size = dst.rows * dst.cols * dst.elemSize();
-    image_proto->set_data(dst.data, m_size);
-    image_writer_->Write(image_proto);
+void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
+  if (!FLAGS_publish_raw_image) {
+    AINFO << "Turn off the raw gray image";
+    return;
   }
+
+  AINFO << "fisheye " << fisheye_frame.get_profile().stream_index() << ", "
+        << fisheye_frame.get_width() << "x" << fisheye_frame.get_height();
+
+  cv::Mat image = frame_to_mat(fisheye_frame);
+  cv::Mat dst;
+  cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
+  cv::Size dsize = cv::Size(static_cast<int>(dst.cols * 0.5),
+                            static_cast<int>(dst.rows * 0.5));
+  cv::Mat new_size_img(dsize, CV_8U);
+  cv::resize(dst, new_size_img, dsize);
+
+  auto image_proto = std::make_shared<Image>();
+  image_proto->set_frame_no(fisheye_frame.get_frame_number());
+  image_proto->set_height(dst.rows);
+  image_proto->set_width(dst.cols);
+  // encodings
+  image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+  image_proto->set_measurement_time(Time::Now().ToSecond());
+  auto m_size = dst.rows * dst.cols * dst.elemSize();
+  image_proto->set_data(dst.data, m_size);
+  image_writer_->Write(image_proto);
+
   if (FLAGS_publish_compressed_image) {
     OnCompressedImage(dst, frame_no);
   }
-}
+}  // namespace sensors
 
-void RealsenseComponent::OnDepthImage(cv::Mat mat, uint64 frame_no) {
-  if (FLAGS_publish_depth_image) {
-    auto image_proto = std::make_shared<Image>();
-    image_proto->set_frame_no(frame_no);
-    image_proto->set_height(mat.rows);
-    image_proto->set_width(mat.cols);
-    // encoding /**< 16-bit linear depth values. The depth is meters is equal to
-    // depth scale * pixel value. */
-    image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Z16));
+void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
+  // Creating OpenCV Matrix from a color image
+  cv::Mat mat(cv::Size(640, 480), CV_8UC3, (void*)color_frame.get_data(),
+              cv::Mat::AUTO_STEP);
+  auto image_proto = std::make_shared<Image>();
+  image_proto->set_frame_no(color_frame.get_frame_number());
+  image_proto->set_height(mat.rows);
+  image_proto->set_width(mat.cols);
+  // encoding /**< 16-bit linear depth values. The depth is meters is equal to
+  // depth scale * pixel value. */
+  image_proto->set_encoding(
+      rs2_format_to_string(color_frame.get_profile().format()));
 
-    image_proto->set_measurement_time(Time::Now().ToSecond());
-    auto m_size = mat.rows * mat.cols * mat.elemSize();
-    image_proto->set_data(mat.data, m_size);
-    image_writer_->Write(image_proto);
+  image_proto->set_measurement_time(Time::Now().ToSecond());
+  auto m_size = mat.rows * mat.cols * mat.elemSize();
+  image_proto->set_data(mat.data, m_size);
+  image_writer_->Write(image_proto);
+
+  if (FLAGS_publish_compressed_image) {
+    OnCompressedImage(mat, color_frame.get_frame_number());
   }
 }
 
-void RealsenseComponent::OnPointCloud(rs2::frame f) {
-  auto depth_frame = f.as<rs2::depth_frame>();
+void RealsenseComponent::OnPointCloud(rs2::depth_frame depth_frame) {
   // Declare pointcloud object, for calculating pointclouds and texture mappings
   rs2::pointcloud pc;
   // We want the points object to be persistent so we can display the last cloud
   // when a frame drops
   rs2::points points;
-
-  // auto depth = f.get_depth_frame();
 
   // Generate the pointcloud and texture mappings
   points = pc.calculate(depth_frame);
@@ -335,8 +320,7 @@ void RealsenseComponent::OnPointCloud(rs2::frame f) {
  * @return true
  * @return false
  */
-void RealsenseComponent::OnPose(rs2::frame f) {
-  auto pose_frame = f.as<rs2::pose_frame>();
+void RealsenseComponent::OnPose(rs2::pose_frame pose_frame) {
   if (pose_frame.get_frame_number() % 5 == 0) {
     auto pose_data = pose_frame.get_pose_data();
     AINFO << "pose " << pose_data.translation;
@@ -350,9 +334,8 @@ void RealsenseComponent::OnPose(rs2::frame f) {
     ADEBUG << "norm_max:" << norm_max;
 
     // send vehicle speed to wheel odometry
-    auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
-    if (!wheel_odometry_sensor.send_wheel_odometry(0, 0,
-                                                    {chassis_.speed(), 0, 0})) {
+    auto wo_sensor = device_.first<rs2::wheel_odometer>();
+    if (!wo_sensor.send_wheel_odometry(0, 0, {chassis_.speed(), 0, 0})) {
       AERROR << "Failed to send wheel odometry";
     }
 
@@ -386,8 +369,7 @@ void RealsenseComponent::OnPose(rs2::frame f) {
   }
 }
 
-void RealsenseComponent::OnAcc(rs2::frame f) {
-  auto accel_frame = f.as<rs2::motion_frame>();
+void RealsenseComponent::OnAcc(rs2::motion_frame accel_frame) {
   rs2_vector acc = accel_frame.get_motion_data();
   AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
   auto proto_accel = std::make_shared<Acc>();
@@ -398,8 +380,7 @@ void RealsenseComponent::OnAcc(rs2::frame f) {
   acc_writer_->Write(proto_accel);
 }
 
-void RealsenseComponent::OnGyro(rs2::frame f) {
-  auto gyro_frame = f.as<rs2::motion_frame>();
+void RealsenseComponent::OnGyro(rs2::motion_frame gyro_frame) {
   rs2_vector gyro = gyro_frame.get_motion_data();
   AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
   auto proto_gyro = std::make_shared<Gyro>();
@@ -426,7 +407,7 @@ void RealsenseComponent::OnCompressedImage(cv::Mat raw_image, uint64 frame_no) {
   if (device_model_ == RealSenseDeviceModel::T265) {
     compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
   } else if (device_model_ == RealSenseDeviceModel::D435I) {
-    compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_RGBA8));
+    compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_BGR8));
   }
   compressedimage->set_measurement_time(Time::Now().ToSecond());
   compressedimage->set_data(str_encode);

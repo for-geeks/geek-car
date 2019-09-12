@@ -57,13 +57,13 @@ class RealsenseComponent : public Component<> {
   void InitDeviceAndSensor();
   void Calibration();
   void WheelOdometry();
-  void OnImage(cv::Mat raw_image, uint64 frame_no);
-  void OnDepthImage(cv::Mat mat, uint64 frame_no);
+  void OnGrayImage(rs2::frame fisheye_frame);
+  void OnColorImage(rs2::frame f);
   void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
   void OnPointCloud(rs2::frame f);
-  void OnPose(rs2::frame f);
-  void OnAcc(rs2::frame f);
-  void OnGyro(rs2::frame f);
+  void OnPose(rs2::pose_frame pose_frame);
+  void OnAcc(rs2::motion_frame accel_frame);
+  void OnGyro(rs2::motion_frame gyro_frame);
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
@@ -84,10 +84,11 @@ class RealsenseComponent : public Component<> {
   uint32_t device_model_;  // realsense device model like T265 OR D435I
   // rs2::wheel_odometer wheel_odometry_sensor_;
 
-    // Contruct a pipeline which abstracts the device
+  // Contruct a pipeline which abstracts the device
   rs2::pipeline pipe;
 
-  //Create a configuration for configuring the pipeline with a non default profile
+  // Create a configuration for configuring the pipeline with a non default
+  // profile
   rs2::config cfg;
 
   uint32_t device_wait_ = 2000;  // ms

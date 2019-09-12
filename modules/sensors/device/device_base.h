@@ -21,41 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "modules/sensors/device/device_base.h"
 
 #include <memory>
 
-#include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 
 namespace apollo {
 namespace sensors {
 
-class T265 : public DeviceBase {
+class DeviceBase {
  public:
-  T265();
-  ~T265();
-
+  /**
+   * @brief
+   * Init device and sensors
+   */
   void Init();
 
-  void Calibration();
-  void WheelOdometry();
-  void OnPose(rs2::frame f);
+  void OnImage(cv::Mat raw_image, uint64 frame_no);
+  void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
+  void OnAcc(rs2::frame f);
+  void OnGyro(rs2::frame f);
 
  private:
-  rs2::device device_;  // realsense device
-  rs2::sensor sensor_;  // sensor include imu and camera;
+  std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
+  std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
+  std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
+  std::shared_ptr<Writer<Image>> compressed_image_writer_ = nullptr;
 
-  std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
-  std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
+  std::future<void> async_result_;
+  rs2::device device_;     // realsense device
+  rs2::sensor sensor_;     // sensor include imu and camera;
+  uint32_t device_model_;  // realsense device model like T265 OR D435I
 
-  Chassis chassis_;
+  uint32_t device_wait_ = 2000;  // ms
+  uint32_t spin_rate_ = 200;     // ms
 
-  // fisheye calibration map
-  cv::Mat map1_;
-  cv::Mat map2_;
+  // frame queue
+  rs2::frame_queue q_;
 
-  double norm_max = 0;
+  /**
+   * @brief from RS2_OPTION_FRAMES_QUEUE_SIZE
+   * you are telling the SDK not to recycle frames for this sensor.
+   * < Number of frames the user is allowed to keep per stream. Trying to
+   * hold-on to more frames will cause frame-drops.
+   * */
+  float queue_size_ = 16.0;  // queue size
 };
 }  // namespace sensors
 }  // namespace apollo
