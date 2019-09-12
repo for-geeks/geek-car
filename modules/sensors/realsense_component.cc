@@ -158,8 +158,8 @@ void RealsenseComponent::run() {
     OnGyro(gyro_frame);
 
     // const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
-    auto fisheye_frame = frames.get_fisheye_frame(1);
-    OnGrayImage(fisheye_frame);
+    // auto fisheye_frame = frames.get_fisheye_frame(1);
+    //OnGrayImage(fisheye_frame);
   }
 }
 
@@ -210,8 +210,8 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
     return;
   }
 
-  AINFO << "fisheye " << fisheye_frame.get_profile().stream_index() << ", "
-        << fisheye_frame.get_width() << "x" << fisheye_frame.get_height();
+  // AINFO << "fisheye " << fisheye_frame.get_profile().stream_index() << ", "
+  //       << fisheye_frame.get_width() << "x" << fisheye_frame.get_height();
 
   cv::Mat image = frame_to_mat(fisheye_frame);
   cv::Mat dst;
@@ -233,7 +233,7 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
   image_writer_->Write(image_proto);
 
   if (FLAGS_publish_compressed_image) {
-    OnCompressedImage(dst, frame_no);
+    OnCompressedImage(dst, fisheye_frame.get_frame_number());
   }
 }  // namespace sensors
 
@@ -260,7 +260,7 @@ void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   }
 }
 
-void RealsenseComponent::OnPointCloud(rs2::depth_frame depth_frame) {
+void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   // Declare pointcloud object, for calculating pointclouds and texture mappings
   rs2::pointcloud pc;
   // We want the points object to be persistent so we can display the last cloud
