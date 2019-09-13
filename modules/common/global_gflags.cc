@@ -31,8 +31,8 @@ DEFINE_string(device_model, "T265", "RealSense Device Model Name");
 DEFINE_string(serial_number, "908412111198", "RealSense serial number");
 DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
 DEFINE_string(raw_gray_image_channel, "/realsense/gray_image", "raw image");
-DEFINE_string(depth_image_channel, "/realsense/color_image", "raw image Y16 ");
-DEFINE_string(depth_image_channel, "/realsense/depth_image", "raw image Y16 ");
+DEFINE_string(color_image_channel, "/realsense/color_image", "raw color image");
+DEFINE_string(depth_image_channel, "/realsense/depth_image", "raw depth image");
 DEFINE_string(point_cloud_channel, "/realsense/point_cloud", "points object ");
 DEFINE_string(compressed_gray_image_channel, "/realsense/compressed_gray_image",
               "compressed gray format image");

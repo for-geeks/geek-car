@@ -83,7 +83,7 @@ bool RealsenseComponent::Init() {
     gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
   }
 
-  if (FLAGS_publish_compressed_image) {
+  if (FLAGS_publish_compressed_color_image) {
     compressed_image_writer_ =
         node_->CreateWriter<Image>(FLAGS_compressed_image_channel);
   }
@@ -205,7 +205,7 @@ void RealsenseComponent::WheelOdometry() {
  * @return false
  */
 void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
-  if (!FLAGS_publish_raw_image) {
+  if (!FLAGS_publish_raw_gray_image) {
     AINFO << "Turn off the raw gray image";
     return;
   }
@@ -232,7 +232,7 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
   image_proto->set_data(dst.data, m_size);
   image_writer_->Write(image_proto);
 
-  if (FLAGS_publish_compressed_image) {
+  if (FLAGS_publish_compressed_gray_image) {
     OnCompressedImage(dst, fisheye_frame.get_frame_number());
   }
 }
@@ -255,7 +255,7 @@ void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   image_proto->set_data(mat.data, m_size);
   image_writer_->Write(image_proto);
 
-  if (FLAGS_publish_compressed_image) {
+  if (FLAGS_publish_compressed_color_image) {
     OnCompressedImage(mat, color_frame.get_frame_number());
   }
 }
