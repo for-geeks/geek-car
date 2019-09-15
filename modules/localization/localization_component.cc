@@ -72,8 +72,8 @@ bool LocalizationComponent::Init() {
   apriltag_detector_add_family(td_, tf_);
 
   std::string image_to_detect = FLAGS_use_compressed_image_to_detect_tag
-                                    ? FLAGS_compressed_image_channel
-                                    : FLAGS_raw_image_channel;
+                                    ? FLAGS_compressed_gray_image_channel
+                                    : FLAGS_raw_gray_image_channel;
 
   image_reader_ = node_->CreateReader<Image>(
       image_to_detect, [this](const std::shared_ptr<Image>& image) {

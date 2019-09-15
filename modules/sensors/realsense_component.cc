@@ -60,7 +60,7 @@ bool RealsenseComponent::Init() {
     pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
   }
   if (FLAGS_publish_raw_gray_image) {
-    image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_image_channel);
+    image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_gray_image_channel);
   }
 
   if (FLAGS_publish_color_image &&
@@ -85,7 +85,7 @@ bool RealsenseComponent::Init() {
 
   if (FLAGS_publish_compressed_color_image) {
     compressed_image_writer_ =
-        node_->CreateWriter<Image>(FLAGS_compressed_image_channel);
+        node_->CreateWriter<Image>(FLAGS_compressed_color_image_channel);
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
