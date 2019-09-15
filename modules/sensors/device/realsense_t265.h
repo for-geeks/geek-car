@@ -36,7 +36,7 @@ class T265 : public DeviceBase {
   T265();
   ~T265();
 
-  void Init();
+  bool Init();
 
   void Calibration();
   void WheelOdometry();

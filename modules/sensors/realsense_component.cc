@@ -110,7 +110,6 @@ void RealsenseComponent::InitDeviceAndSensor() {
     AWARN << "The device data is not yet supported for parsing";
   }
 
-  // D435I
   // Add desired streams to configuration
   cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
   // Use a configuration object to request only depth from the pipeline
@@ -121,7 +120,6 @@ void RealsenseComponent::InitDeviceAndSensor() {
 
   // Instruct pipeline to start streaming with the requested configuration
   pipe.start(cfg);
-  AINFO << "Set sensor start option.";
 
   // load_wheel_odometery_config
   if (device_model_ == RealSenseDeviceModel::T265) {
@@ -143,19 +141,25 @@ void RealsenseComponent::run() {
     // Wait for all configured streams to produce a frame
     frames = pipe.wait_for_frames();
 
-    rs2::frame color_frame = frames.get_color_frame();
+    if (FLAGS_publish_color_image) {
+      rs2::frame color_frame = frames.get_color_frame();
+      OnColorImage(color_frame);
+    }
 
-    AINFO << "RECEIVED FRAME F:" << color_frame.get_profile().stream_type();
-    OnColorImage(color_frame);
+    if (FLAGS_publish_point_cloud) {
+      rs2::frame depth_frame = frames.get_depth_frame();
+      OnPointCloud(depth_frame);
+    }
 
-    rs2::frame depth_frame = frames.get_depth_frame();
-    OnPointCloud(depth_frame);
+    if (FLAGS_publish_acc) {
+      rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
+      OnAcc(accel_frame);
+    }
 
-    rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
-    OnAcc(accel_frame);
-
-    rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
-    OnGyro(gyro_frame);
+    if (FLAGS_publish_gyro) {
+      rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
+      OnGyro(gyro_frame);
+    }
 
     // const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
     // auto fisheye_frame = frames.get_fisheye_frame(1);
@@ -198,7 +202,7 @@ void RealsenseComponent::WheelOdometry() {
 }
 
 /**
- * @brief callback of Image data
+ * @brief callback of Gray Image data
  *
  * @param dst
  * @return true

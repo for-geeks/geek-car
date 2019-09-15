@@ -30,7 +30,18 @@
 
 namespace apollo {
 namespace sensors {
-void T265::Init() {}
+bool T265::Init() {
+  cfg.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
+  cfg.enable_stream(RS2_STREAM_FISHEYE, 1);
+  cfg.enable_stream(RS2_STREAM_FISHEYE, 2);
+  // Add streams of gyro and accelerometer to configuration
+  cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
+  cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
+
+  // Instruct pipeline to start streaming with the requested configuration
+  pipe.start(cfg);
+  return true;
+}
 
 void T265::Calibration() {
   cv::Mat intrinsicsL;

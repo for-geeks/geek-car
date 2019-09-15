@@ -30,7 +30,7 @@ class D435I : public DeviceBase {
   D435I();
   ~D435I();
 
-  void Init();
+  bool Init();
 
   void OnDepthImage(cv::Mat mat, uint64 frame_no);
   void OnPointCloud(rs2::frame f);

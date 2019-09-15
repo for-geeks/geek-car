@@ -24,7 +24,21 @@
 
 #include "modules/sensors/device/realsense_d435i.h"
 
-void D435I::Init() {}
+#include <memory>
+
+bool D435I::Init() {
+  // Add desired streams to configuration
+  cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+  // Use a configuration object to request only depth from the pipeline
+  cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+  // Add streams of gyro and accelerometer to configuration
+  cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
+  cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
+
+  // Instruct pipeline to start streaming with the requested configuration
+  pipe.start(cfg);
+  return true;
+}
 
 void D435I::OnDepthImage(cv::Mat mat, uint64 frame_no) {
   if (FLAGS_publish_depth_image) {

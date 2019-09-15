@@ -31,11 +31,7 @@ namespace sensors {
 
 class DeviceBase {
  public:
-  /**
-   * @brief
-   * Init device and sensors
-   */
-  void Init();
+  bool Init();
 
   void OnImage(cv::Mat raw_image, uint64 frame_no);
   void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
@@ -53,19 +49,12 @@ class DeviceBase {
   rs2::sensor sensor_;     // sensor include imu and camera;
   uint32_t device_model_;  // realsense device model like T265 OR D435I
 
-  uint32_t device_wait_ = 2000;  // ms
-  uint32_t spin_rate_ = 200;     // ms
+  // Contruct a pipeline which abstracts the device
+  rs2::pipeline pipe;
 
-  // frame queue
-  rs2::frame_queue q_;
-
-  /**
-   * @brief from RS2_OPTION_FRAMES_QUEUE_SIZE
-   * you are telling the SDK not to recycle frames for this sensor.
-   * < Number of frames the user is allowed to keep per stream. Trying to
-   * hold-on to more frames will cause frame-drops.
-   * */
-  float queue_size_ = 16.0;  // queue size
+  // Create a configuration for configuring the pipeline with a non default
+  // profile
+  rs2::config cfg;
 };
 }  // namespace sensors
 }  // namespace apollo
