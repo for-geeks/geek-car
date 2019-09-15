@@ -447,6 +447,8 @@ fi
 check_in_docker
 create_data_dir
 
+sudo ln -s $APOLLO_ROOT_DIR /apollo
+
 if [ -z $APOLLO_BASE_SOURCED ]; then
   set_lib_path
   determine_bin_prefix
