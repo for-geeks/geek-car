@@ -315,7 +315,7 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
 
 void RealsenseComponent::OnPose(rs2::pose_frame pose_frame) {
   auto pose_data = pose_frame.get_pose_data();
-  AINFO << "Pose: " << pose_data;
+  AINFO << "Pose: " << pose_data.translation;
   double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
                      pose_data.translation.y * pose_data.translation.y +
                      pose_data.translation.z * pose_data.translation.z);
