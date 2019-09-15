@@ -59,6 +59,10 @@ apt update -y && \
     openjdk-8-jdk \
     software-properties-common
 
+# move eigen include
+cp -r /usr/include/eigen3/Eigen /usr/local/include/
+cp -r /usr/include/eigen3/unsupported /usr/local/include/
+
 rm -f /usr/bin/gcc
 ln -s /usr/bin/gcc-5 /etc/alternatives/gcc
 ln -s /etc/alternatives/gcc /usr/bin/gcc
@@ -121,6 +125,8 @@ ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.aarch6
 
 # intel realsense
 bash /tmp/installers/install_realsense.sh
+# install fast-rtps
 bash /tmp/installers/install_fast-rtps.sh
-bash /tmp/installers/install_pcl.sh build
 rm -fr /tmp/*
+# install pcl 1.8
+apt install libpcl-dev -y

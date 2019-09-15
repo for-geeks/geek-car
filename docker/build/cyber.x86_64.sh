@@ -40,6 +40,10 @@ apt update -y && \
     libopenni2-dev \
     software-properties-common
 
+# move eigen include
+cp -r /usr/include/eigen3/Eigen /usr/local/include/
+cp -r /usr/include/eigen3/unsupported /usr/local/include/
+
 #install gcc 4.8.5
 rm -f /usr/bin/gcc
 ln -s /usr/bin/gcc-4.8 /etc/alternatives/gcc
@@ -115,6 +119,8 @@ bash /tmp/installers/install_realsense.sh
 
 # fastrtps
 bash /tmp/installers/install_fast-rtps.sh
-bash /tmp/installers/install_pcl.sh build
+# bash /tmp/installers/install_pcl.sh build
 
 rm -fr /tmp/*
+# install pcl 1.8
+apt install libpcl-dev -y
