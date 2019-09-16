@@ -81,6 +81,7 @@ bash /tmp/installers/install_python_modules.sh
 bash /tmp/installers/install_google_styleguide.sh
 bash /tmp/installers/install_osqp.sh download
 bash /tmp/installers/install_apriltag.sh
+bash /tmp/installers/install_qt.sh
 
 apt update -y
 apt install -y --allow-downgrades \
