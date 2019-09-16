@@ -34,7 +34,7 @@ DECLARE_string(device_model);
 DECLARE_string(serial_number);
 
 DECLARE_string(pose_channel);
-DECLARE_string(raw_gray_image_channel);
+DECLARE_string(gray_image_channel);
 DECLARE_string(color_image_channel);
 DECLARE_string(depth_image_channel);
 DECLARE_string(point_cloud_channel);

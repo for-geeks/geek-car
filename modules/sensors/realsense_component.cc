@@ -60,7 +60,7 @@ bool RealsenseComponent::Init() {
     pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
   }
   if (FLAGS_publish_raw_gray_image) {
-    image_writer_ = node_->CreateWriter<Image>(FLAGS_raw_gray_image_channel);
+    image_writer_ = node_->CreateWriter<Image>(FLAGS_gray_image_channel);
   }
 
   if (FLAGS_publish_color_image &&
@@ -167,40 +167,6 @@ void RealsenseComponent::run() {
   }
 }
 
-void RealsenseComponent::Calibration() {
-  cv::Mat intrinsicsL;
-  cv::Mat distCoeffsL;
-  rs2_intrinsics left = sensor_.get_stream_profiles()[0]
-                            .as<rs2::video_stream_profile>()
-                            .get_intrinsics();
-  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
-         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
-  intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
-                 left.ppy, 0, 0, 1);
-  distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
-  cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
-  cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
-               left.ppy, 0, 0, 0, 1, 0);
-
-  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
-                                       cv::Size(848, 816), CV_16SC2, map1_,
-                                       map2_);
-}
-
-void RealsenseComponent::WheelOdometry() {
-  auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
-  std::string calibration_file_path =
-      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
-  std::ifstream calibrationFile(calibration_file_path);
-  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
-                             std::istreambuf_iterator<char>());
-  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
-
-  if (!wheel_odometry_sensor.load_wheel_odometery_config(wo_calib)) {
-    AERROR << "Failed to load wheel odometry config file.";
-  }
-}
-
 /**
  * @brief callback of Gray Image data
  *
@@ -245,6 +211,7 @@ void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   // Creating OpenCV Matrix from a color image
   cv::Mat mat(cv::Size(640, 480), CV_8UC3, (void*)color_frame.get_data(),
               cv::Mat::AUTO_STEP);
+  AINFO << "FRAME NUMBER:" << color_frame.get_frame_number();
   auto image_proto = std::make_shared<Image>();
   image_proto->set_frame_no(color_frame.get_frame_number());
   image_proto->set_height(mat.rows);
@@ -257,7 +224,7 @@ void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   image_proto->set_measurement_time(Time::Now().ToSecond());
   auto m_size = mat.rows * mat.cols * mat.elemSize();
   image_proto->set_data(mat.data, m_size);
-  image_writer_->Write(image_proto);
+  color_image_writer_->Write(image_proto);
 
   if (FLAGS_publish_compressed_color_image) {
     OnCompressedImage(mat, color_frame.get_frame_number());
@@ -409,9 +376,45 @@ void RealsenseComponent::OnCompressedImage(cv::Mat raw_image, uint64 frame_no) {
   compressed_image_writer_->Write(compressedimage);
 }
 
+void RealsenseComponent::Calibration() {
+  cv::Mat intrinsicsL;
+  cv::Mat distCoeffsL;
+  rs2_intrinsics left = sensor_.get_stream_profiles()[0]
+                            .as<rs2::video_stream_profile>()
+                            .get_intrinsics();
+  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
+         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
+  intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
+                 left.ppy, 0, 0, 1);
+  distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
+  cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
+  cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
+               left.ppy, 0, 0, 0, 1, 0);
+
+  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
+                                       cv::Size(848, 816), CV_16SC2, map1_,
+                                       map2_);
+}
+
+void RealsenseComponent::WheelOdometry() {
+  auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
+  std::string calibration_file_path =
+      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
+  std::ifstream calibrationFile(calibration_file_path);
+  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
+                             std::istreambuf_iterator<char>());
+  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
+
+  if (!wheel_odometry_sensor.load_wheel_odometery_config(wo_calib)) {
+    AERROR << "Failed to load wheel odometry config file.";
+  }
+}
+
 RealsenseComponent::~RealsenseComponent() {
-  sensor_.stop();
-  sensor_.close();
+  if(sensor_) {
+    sensor_.stop();
+    sensor_.close();
+  }
   async_result_.wait();
 }
 
