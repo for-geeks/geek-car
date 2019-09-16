@@ -60,7 +60,7 @@ http_archive(
 new_local_repository(
     name = "qt",
     build_file = "third_party/qt.BUILD",
-    path = "/usr/local/Qt5.5.1/5.5/gcc_64",
+    path = "/usr/local/Qt5.9.8/5.9/gcc_64",
 )
 
 # PCL 1.7
