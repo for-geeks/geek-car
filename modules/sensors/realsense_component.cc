@@ -266,25 +266,18 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   point_cloud_proto->set_width(sp.width());
   point_cloud_proto->set_height(sp.height());
 
-  auto timestamp = depth_frame.get_timestamp();
-
-  /* this segment actually prints the pointcloud */
   auto vertices = points.get_vertices();  // get vertices
-  auto tex_coords =
-      points.get_texture_coordinates();  // and texture coordinates
+  // from rs-pointcloud Sample, after z axis filter, we can get 130000+ points
   for (size_t i = 0; i < points.size(); i++) {
     if (vertices[i].z) {
       // publish the point/texture coordinates only for points we have depth
       // data for
-      // glVertex3fv(vertices[i]);
-      // glTexCoord2fv(tex_coords[i]);
-      // apollo::sensors::Point p;
       apollo::sensors::PointXYZIT* p = point_cloud_proto->add_point();
       p->set_x(vertices[i].x);
       p->set_y(vertices[i].y);
       p->set_z(vertices[i].z);
-      p->set_intensity(0);
-      p->set_timestamp(timestamp);
+      // p->set_intensity(0);
+      // p->set_timestamp(depth_frame.get_timestamp());
     }
   }
 
