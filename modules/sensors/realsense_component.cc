@@ -83,9 +83,16 @@ bool RealsenseComponent::Init() {
     gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
   }
 
-  if (FLAGS_publish_compressed_color_image) {
+  if (FLAGS_publish_compressed_color_image &&
+      device_model_ == RealSenseDeviceModel::D435I) {
     compressed_image_writer_ =
         node_->CreateWriter<Image>(FLAGS_compressed_color_image_channel);
+  }
+
+  if (FLAGS_publish_compressed_gray_image &&
+      device_model_ == RealSenseDeviceModel::T265) {
+    compressed_image_writer_ =
+        node_->CreateWriter<Image>(FLAGS_compressed_gray_image_channel);
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
@@ -167,13 +174,6 @@ void RealsenseComponent::run() {
   }
 }
 
-/**
- * @brief callback of Gray Image data
- *
- * @param dst
- * @return true
- * @return false
- */
 void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
   if (!FLAGS_publish_raw_gray_image) {
     AINFO << "Turn off the raw gray image";
@@ -197,7 +197,7 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
   image_proto->set_width(dst.cols);
   // encodings
   image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
-  image_proto->set_measurement_time(Time::Now().ToSecond());
+  image_proto->set_measurement_time(fishheye_frame.get_timestamp());
   auto m_size = dst.rows * dst.cols * dst.elemSize();
   image_proto->set_data(dst.data, m_size);
   image_writer_->Write(image_proto);
@@ -221,7 +221,7 @@ void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   image_proto->set_encoding(
       rs2_format_to_string(color_frame.get_profile().format()));
 
-  image_proto->set_measurement_time(Time::Now().ToSecond());
+  image_proto->set_measurement_time(color_frame.get_timestamp());
   auto m_size = mat.rows * mat.cols * mat.elemSize();
   image_proto->set_data(mat.data, m_size);
   color_image_writer_->Write(image_proto);
@@ -241,47 +241,56 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   // Generate the pointcloud and texture mappings
   points = pc.calculate(depth_frame);
 
-  auto pcl_points = points_to_pcl(points);
+  // auto pcl_points = points_to_pcl(points);
 
-  pcl_ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::PassThrough<pcl::PointXYZ> pass;
-  pass.setInputCloud(pcl_points);
-  pass.setFilterFieldName("z");
-  pass.setFilterLimits(0.0, 1.0);
-  pass.filter(*cloud_filtered);
+  // pcl_ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+  // pcl::PassThrough<pcl::PointXYZ> pass;
+  // pass.setInputCloud(pcl_points);
+  // pass.setFilterFieldName("z");
+  // pass.setFilterLimits(0.0, 1.0);
+  // pass.filter(*cloud_filtered);
 
   // Apply an affine transform defined by an Eigen Transform.
   // pcl::transformPointCloud(*source_cloud, *transformed_cloud, transform_1);
 
-  std::vector<pcl_ptr> layers;
-  layers.push_back(pcl_points);
-  layers.push_back(cloud_filtered);
+  // std::vector<pcl_ptr> layers;
+  // layers.push_back(pcl_points);
+  // layers.push_back(cloud_filtered);
 
-#if 0
   auto sp = points.get_profile().as<rs2::video_stream_profile>();
 
   apollo::sensors::PointCloud point_cloud_proto;
   point_cloud_proto->set_frame_id(f.get_frame_number());
   point_cloud_proto->set_is_dense(false);
-  point_cloud_proto->set_measurement_time(Time::Now().ToSecond());
+  point_cloud_proto->set_measurement_time(f.get_timestamp());
   point_cloud_proto->set_width(sp.width());
   point_cloud_proto->set_height(sp.height());
 
+  auto timestamp = f.get_timestamp();
+
+  /* this segment actually prints the pointcloud */
+  auto vertices = points.get_vertices();  // get vertices
+  auto tex_coords =
+      points.get_texture_coordinates();  // and texture coordinates
   for (int i = 0; i < points.size(); i++) {
-    apollo::sensor::Point p;
+    if (vertices[i].z) {
+      // publish the point/texture coordinates only for points we have depth
+      // data for
+      // glVertex3fv(vertices[i]);
+      // glTexCoord2fv(tex_coords[i]);
+      apollo::sensor::Point p;
+      p->set_x(vertices[i].x);
+      p->set_y(vertices[i].y);
+      p->set_z(vertices[i].z);
+      p->set_intensity(false);
+      p->set_timestamp(timestamp);
 
-    p->set_x(nan);
-    p->set_y(nan);
-    p->set_z(nan);
-    p->set_timestamp(timestamp);
-    p->set_intensity(0);
-
-    auto next_point = point_cloud_proto->add_point();
-    next_point->CopyFrom(p);
+      auto next_point = point_cloud_proto->add_point();
+      next_point->CopyFrom(p);
+    }
   }
 
   point_cloud_writer_->Write(point_cloud_proto);
-#endif
 }
 
 void RealsenseComponent::OnPose(rs2::pose_frame pose_frame) {
@@ -411,7 +420,7 @@ void RealsenseComponent::WheelOdometry() {
 }
 
 RealsenseComponent::~RealsenseComponent() {
-  if(sensor_) {
+  if (sensor_) {
     sensor_.stop();
     sensor_.close();
   }

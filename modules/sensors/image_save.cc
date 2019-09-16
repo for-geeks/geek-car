@@ -45,7 +45,7 @@ int main() {
   apollo::cyber::Init("image_save");
   auto node = apollo::cyber::CreateNode("image_save");
   auto reader = node->CreateReader<apollo::sensors::Image>(
-      FLAGS_gray_image_channel, ImageCallback);
+      FLAGS_color_image_channel, ImageCallback);
 
   apollo::cyber::WaitForShutdown();
 
