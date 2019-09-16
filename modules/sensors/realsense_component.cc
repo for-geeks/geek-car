@@ -197,7 +197,7 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
   image_proto->set_width(dst.cols);
   // encodings
   image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
-  image_proto->set_measurement_time(fishheye_frame.get_timestamp());
+  image_proto->set_measurement_time(fisheye_frame.get_timestamp());
   auto m_size = dst.rows * dst.cols * dst.elemSize();
   image_proto->set_data(dst.data, m_size);
   image_writer_->Write(image_proto);
@@ -259,34 +259,32 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
 
   auto sp = points.get_profile().as<rs2::video_stream_profile>();
 
-  apollo::sensors::PointCloud point_cloud_proto;
-  point_cloud_proto->set_frame_id(f.get_frame_number());
+  auto point_cloud_proto = std::make_shared<apollo::sensors::PointCloud>();
+  point_cloud_proto->set_frame_no(depth_frame.get_frame_number());
   point_cloud_proto->set_is_dense(false);
-  point_cloud_proto->set_measurement_time(f.get_timestamp());
+  point_cloud_proto->set_measurement_time(depth_frame.get_timestamp());
   point_cloud_proto->set_width(sp.width());
   point_cloud_proto->set_height(sp.height());
 
-  auto timestamp = f.get_timestamp();
+  auto timestamp = depth_frame.get_timestamp();
 
   /* this segment actually prints the pointcloud */
   auto vertices = points.get_vertices();  // get vertices
   auto tex_coords =
       points.get_texture_coordinates();  // and texture coordinates
-  for (int i = 0; i < points.size(); i++) {
+  for (size_t i = 0; i < points.size(); i++) {
     if (vertices[i].z) {
       // publish the point/texture coordinates only for points we have depth
       // data for
       // glVertex3fv(vertices[i]);
       // glTexCoord2fv(tex_coords[i]);
-      apollo::sensor::Point p;
+      // apollo::sensors::Point p;
+      apollo::sensors::PointXYZIT* p = point_cloud_proto->add_point();
       p->set_x(vertices[i].x);
       p->set_y(vertices[i].y);
       p->set_z(vertices[i].z);
-      p->set_intensity(false);
+      p->set_intensity(0);
       p->set_timestamp(timestamp);
-
-      auto next_point = point_cloud_proto->add_point();
-      next_point->CopyFrom(p);
     }
   }
 

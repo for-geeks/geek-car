@@ -92,6 +92,7 @@ pcl_ptr points_to_pcl(const rs2::points& points) {
   cloud->height = sp.height();
   cloud->is_dense = false;
   cloud->points.resize(points.size());
+  AINFO << "POINTS SIZE IS:" << points.size();
   auto ptr = points.get_vertices();
   for (auto& p : cloud->points) {
     p.x = ptr->x;
