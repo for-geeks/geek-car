@@ -87,7 +87,7 @@ function generate_build_targets() {
     BUILD_TARGETS=`bazel query //modules/... except //modules/perception/... union //cyber/...`
     ;;
   *)
-    BUILD_TARGETS=`bazel query //modules/... union //cyber/... except //modules/tools/visualizer/...`
+    BUILD_TARGETS=`bazel query //modules/... union //cyber/...`
   esac
 
   if [ $? -ne 0 ]; then

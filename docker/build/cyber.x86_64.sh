@@ -38,7 +38,8 @@ apt update -y && \
     libopenni-dev \
     libopenni2-0 \
     libopenni2-dev \
-    software-properties-common
+    software-properties-common \
+    libconsole-bridge-dev
 
 # move eigen include
 cp -r /usr/include/eigen3/Eigen /usr/local/include/
