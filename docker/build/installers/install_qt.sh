@@ -21,8 +21,8 @@ set -e
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-QT_VERSION_A=5.5
-QT_VERSION_B=5.5.1
+QT_VERSION_A=5.9
+QT_VERSION_B=5.9.8
 QT_VERSION_SCRIPT=551
 
 wget https://download.qt.io/archive/qt/${QT_VERSION_A}/${QT_VERSION_B}/qt-opensource-linux-x64-${QT_VERSION_B}.run
