@@ -1,0 +1,64 @@
+syntax = "proto2";
+
+package apollo.localization;
+
+// AprilTag data structure
+message Family {
+  optional uint32 nbits = 1;
+  optional uint32 h = 2;
+}
+// To access the data, use data[i*cols+j] (row-major), or data[i+rows*j]
+// (column-major). For square matrices only one of rows/cols has to be stored.
+// Technically even in the rectangular case protobuf will know the length of the
+// data, and the other value can be derived.
+// Reference link:
+// https://stackoverflow.com/questions/6825196/protocol-buffers-store-an-double-array-1d-2d-and-3d
+message Matrix {
+  optional uint32 rows = 1;
+  optional uint32 cols = 2;
+  // get data element[i*cols+j]
+  repeated double element = 3;
+}
+
+message Pose {
+  optional Matrix r = 1;
+  optional Matrix t = 2;
+  optional double error = 3;
+}
+
+message Tag {
+  optional uint32 id = 1;
+  // hamming: How many error bits were corrected? Note: accepting large numbers
+  // of corrected errors leads to greatly increased false positive rates. NOTE:
+  // As of this implementation, the detector cannot detect tags with a hamming
+  // distance greater than 2.
+  optional uint32 hamming = 2;
+  // margin : margin: A measure of the quality of the binary decoding process:
+  // the average difference between the intensity of a data bit versus the
+  // decision threshold. Higher numbers roughly indicate better decodes. This is
+  // a reasonable measure of detection accuracy only for very small tags-- not
+  // effective for larger tags (where we could have sampled anywhere within a
+  // bit cell and still gotten a good detection.)
+  optional float margin = 3;
+  optional Family family = 4;
+  optional Pose pose = 5;
+}
+
+message Tags {
+  repeated Tag tag = 1;
+}
+
+message localization {
+  optional pos apriltag0 = 1;
+  optional pos apriltag1 = 2;
+  optional pos apriltag = 3;
+  optional pos predict = 4;
+}
+
+message pos {
+  // meters
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double yaw = 4;
+}

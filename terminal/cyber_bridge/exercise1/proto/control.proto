@@ -1,0 +1,32 @@
+syntax = "proto2";
+
+package apollo.control;
+
+message Control_Command {
+  optional float steer_angle = 1;
+  optional float throttle = 2;
+}
+
+message Control_Reference {
+  optional float angular_speed_ref = 1;
+  optional float speed_ref = 2;
+}
+
+message Chassis {
+  optional float steer_angle = 1;
+  optional float throttle = 2;
+  optional float speed = 3;
+}
+
+message LaneInfo {
+  optional Coefficient left_lane = 1;
+  optional Coefficient right_lane = 2;
+  optional Coefficient left_lane_view = 3;
+  optional Coefficient right_lane_view = 4;  
+}
+
+message Coefficient {
+  optional double a = 1;
+  optional double b = 2;
+  optional double c = 3;
+}
