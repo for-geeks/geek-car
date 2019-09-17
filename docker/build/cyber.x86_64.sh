@@ -121,7 +121,6 @@ bash /tmp/installers/install_realsense.sh
 
 # fastrtps
 bash /tmp/installers/install_fast-rtps.sh
-# bash /tmp/installers/install_pcl.sh build
 
 rm -fr /tmp/*
 # install pcl 1.8
