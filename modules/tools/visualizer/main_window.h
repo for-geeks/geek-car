@@ -20,9 +20,10 @@
 #include <QMenu>
 #include <QMutex>
 
-#include "modules/drivers/proto/pointcloud.pb.h"
-#include "modules/drivers/proto/radar.pb.h"
-#include "modules/drivers/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/pointcloud.pb.h"
+#include "modules/sensors/proto/radar.pb.h"
+#include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 #include "modules/tools/visualizer/channel_reader.h"
 #include "modules/tools/visualizer/msg_dialog.h"
 
@@ -93,12 +94,12 @@ class MainWindow : public QMainWindow {
   struct RadarData;
 
   void PointCloudReaderCallback(
-      const std::shared_ptr<const apollo::drivers::PointCloud>& pdata);
+      const std::shared_ptr<const apollo::sensors::PointCloud>& pdata);
   void ImageReaderCallback(
-      const std::shared_ptr<const apollo::drivers::Image>& imgData,
+      const std::shared_ptr<const apollo::sensors::Image>& imgData,
       VideoImgProxy* proxy);
   void ImageReaderCallback(
-      const std::shared_ptr<const apollo::drivers::CompressedImage>& imgData,
+      const std::shared_ptr<const apollo::sensors::CompressedImage>& imgData,
       VideoImgProxy* proxy);
 
   void InsertAllChannelNames(void);
@@ -110,7 +111,7 @@ class MainWindow : public QMainWindow {
   RadarData* createRadarData(void);
   void DoOpenRadarChannel(bool b, RadarData* radarProxy);
   void RadarRenderCallback(
-      const std::shared_ptr<const apollo::drivers::RadarObstacles>& rawData,
+      const std::shared_ptr<const apollo::sensors::RadarObstacles>& rawData,
       RadarData* radar);
 
   Ui::MainWindow* ui_;
@@ -126,7 +127,7 @@ class MainWindow : public QMainWindow {
   QTreeWidgetItem* pointcloud_top_item_;
   QComboBox* pointcloud_comboBox_;
   QPushButton* pointcloud_button_;
-  CyberChannReader<apollo::drivers::PointCloud>* pointcloud_channel_Reader_;
+  CyberChannReader<apollo::sensors::PointCloud>* pointcloud_channel_Reader_;
 
   QMutex pointcloud_reader_mutex_;
 

@@ -2,6 +2,8 @@ syntax = "proto2";
 
 package apollo.sensors;
 
+import "modules/common/proto/header.proto";
+
 message RealSenseDeviceModel {
   enum DeviceModel {
     T265 = 0;
@@ -10,6 +12,7 @@ message RealSenseDeviceModel {
 }
 
 message Image {
+  optional apollo.common.Header header = 1;
   optional uint64 frame_no = 2;
   optional double measurement_time = 3;
 
@@ -19,6 +22,7 @@ message Image {
   optional string encoding = 6;
   optional uint32 step = 7;  // Full row length in bytes
   optional bytes data = 8;   // actual matrix data, size is (step * rows)
+  optional string frame_id = 9;
 }
 
 message Pose {

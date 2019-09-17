@@ -18,7 +18,7 @@
 
 #include <QColor>
 
-#include "modules/drivers/proto/radar.pb.h"
+#include "modules/sensors/proto/radar.pb.h"
 #include "modules/tools/visualizer/renderable_object.h"
 
 class QOpenGLShaderProgram;
@@ -62,7 +62,7 @@ class RadarPoints : public RenderableObject {
   }
 
   bool FillData(
-      const std::shared_ptr<const apollo::drivers::RadarObstacles>& pData);
+      const std::shared_ptr<const apollo::sensors::RadarObstacles>& pData);
 
  protected:
   bool FillVertexBuffer(GLfloat* pBuffer) override;

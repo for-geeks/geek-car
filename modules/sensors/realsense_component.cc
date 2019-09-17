@@ -260,7 +260,7 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   auto sp = points.get_profile().as<rs2::video_stream_profile>();
 
   auto point_cloud_proto = std::make_shared<apollo::sensors::PointCloud>();
-  point_cloud_proto->set_frame_no(depth_frame.get_frame_number());
+  // point_cloud_proto->set_frame_no(depth_frame.get_frame_number());
   point_cloud_proto->set_is_dense(false);
   point_cloud_proto->set_measurement_time(depth_frame.get_timestamp());
   point_cloud_proto->set_width(sp.width());

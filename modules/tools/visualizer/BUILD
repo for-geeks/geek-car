@@ -28,7 +28,7 @@ qt_cc_library(
         ["*.cc"],
     ),
     copts = [
-        "-Imodules/drivers/proto",
+        "-Imodules/sensors/proto",
     ],
     hdr = glob([
         "*.h",
@@ -45,7 +45,7 @@ qt_cc_library(
     ]),
     deps = [
         "//cyber",
-        "//modules/drivers/proto:sensor_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
         "@qt//:qt_gui",
     ],
 )

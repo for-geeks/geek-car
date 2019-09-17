@@ -35,7 +35,7 @@
 
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
-#include "modules/sensors/proto/point_cloud.pb.h"
+#include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {

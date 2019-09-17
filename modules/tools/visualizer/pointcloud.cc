@@ -45,14 +45,14 @@ bool PointCloud::FillVertexBuffer(GLfloat* pBuffer) {
 }
 
 bool PointCloud::FillData(
-    const std::shared_ptr<const apollo::drivers::PointCloud>& pdata) {
+    const std::shared_ptr<const apollo::sensors::PointCloud>& pdata) {
   assert(vertex_count() == pdata->point_size());
   buffer_ = new GLfloat[vertex_count() * vertex_element_count()];
   if (buffer_) {
     GLfloat* tmp = buffer_;
 
     for (int i = 0; i < vertex_count(); ++i, tmp += vertex_element_count()) {
-      const apollo::drivers::PointXYZIT& point = pdata->point(i);
+      const apollo::sensors::PointXYZIT& point = pdata->point(i);
       tmp[0] = point.x();
       tmp[1] = point.z();
       tmp[2] = -point.y();
