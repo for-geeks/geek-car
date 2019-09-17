@@ -1,11 +1,13 @@
-load("//tools/build_rules:qt.bzl", "qt_cc_library", "qt_ui_library")
+load("//tools:qt.bzl", "qt_cc_library", "qt_ui_library")
+
 package(default_visibility = ["//visibility:public"])
+
 cc_binary(
     name = "main",
     srcs = ["main.cpp"],
     #hdrs = ["cyber/cyber.h"],
     copts = [
-        '-fpic -Wall',
+        "-fpic -Wall",
         #"-Icyber/cyber",
     ],
     deps = [
@@ -17,18 +19,18 @@ cc_binary(
 qt_cc_library(
     name = "mainwindow",
     src = "mainwindow.cpp",
-    hdr = "mainwindow.h",
     #normal_hdrs = ["exercise1.h",],
     copts = [
-        '-fpic -Wall',
+        "-fpic -Wall",
         "-Igui_core/exercise1",
     ],
+    hdr = "mainwindow.h",
     deps = [
-        "@qt//:qt_core",
-        "@qt//:qt_widgets",
-        "@qt//:qt_gui",
         ":mainwindowui",
-        "//gui_core/exercise1:exercise1",
+        "//gui_core/exercise1",
+        "@qt//:qt_core",
+        "@qt//:qt_gui",
+        "@qt//:qt_widgets",
     ],
 )
 
@@ -43,10 +45,9 @@ cc_library(
     srcs = ["umb_standard.cpp"],
     hdrs = ["umb_standard.h"],
     copts = [
-        '-fpic -Wall -lnddsc -lnddscore -lumb -ldl -lnsl -lm -lrt',
+        "-fpic -Wall -lnddsc -lnddscore -lumb -ldl -lnsl -lm -lrt",
         #"-Icyber/cyber",
     ],
     deps = [
-
     ],
 )
