@@ -54,7 +54,7 @@ ln -s /usr/bin/g++-4.8 /etc/alternatives/g++
 ln -s /etc/alternatives/g++ /usr/bin/g++
 
 # Run installer
-cp -r installers /tmp/installers
+cp -r docker/build/installers /tmp/installers
 bash /tmp/installers/install_bazel.sh
 bash /tmp/installers/install_gflags_glog.sh
 bash /tmp/installers/install_protobuf.sh
