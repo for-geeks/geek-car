@@ -1,4 +1,4 @@
-# Geek Car, A Sample Framework Based On Cyber RT
+# Geek Car, An Autonomous Application Based On Cyber RT
 
 ![Action Status](https://github.com/mickeyouyou/geek_lite/workflows/Geek%20Style/badge.svg)
 
@@ -19,7 +19,7 @@ Key benefits of using Apollo Cyber RT:
   + Building blocks specifically designed for autonomous driving
   + Plug and play your own AD system
 
-## Environment Build
+## Environment Setup
 
 Let's Install Basical Library and Tools:
 
@@ -34,7 +34,7 @@ X86 Platform:
 sudo bash docker/build/cyber.x86_64.sh
 ```
 
-## Build Framework
+## Build Geek car
 
 ```bash
 bash apollo.sh build

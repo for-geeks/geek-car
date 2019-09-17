@@ -135,12 +135,7 @@ void RealsenseComponent::InitDeviceAndSensor() {
   }
 }
 
-/**
- * Sensor RealSense:: collect frames
- * @return void
- */
 void RealsenseComponent::run() {
-  AINFO << "ENTER REALSENSE_COMPONENT::RUN()";
   while (!apollo::cyber::IsShutdown()) {
     // Camera warmup - dropping several first frames to let auto-exposure
     // stabilize
@@ -179,9 +174,6 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
     AINFO << "Turn off the raw gray image";
     return;
   }
-
-  // AINFO << "fisheye " << fisheye_frame.get_profile().stream_index() << ", "
-  //       << fisheye_frame.get_width() << "x" << fisheye_frame.get_height();
 
   cv::Mat image = frame_to_mat(fisheye_frame);
   cv::Mat dst;
