@@ -10,6 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: install 
-      run: sudo ./docker/build/cyber.x86_64.sh
+      run: sudo bash docker/build/cyber.x86_64.sh
     - name: build
       run: ./apollo.sh build
