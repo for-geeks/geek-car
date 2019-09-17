@@ -37,12 +37,8 @@ chmod +x qt-opensource-linux-x64-${QT_VERSION_B}.run
 # qt.network.ssl: QSslSocket: cannot resolve SSLv2_server_method
 ./qt-opensource-linux-x64-${QT_VERSION_B}.run --script qt-noninteractive.qs  -platform minimal
 
-mkdir /usr/local/Qt{QT_VERSION_B}
-ln -s /qt/{QT_VERSION_B} /usr/local/Qt{QT_VERSION_B}/{QT_VERSION_A}
-
-# this will install to "/qt" so need to symlink to /usr/local/Qt5.9.8
-# as needed in https://github.com/ApolloAuto/apollo/blob/master/tools/qt.bzl
-# ln -s /qt /usr/local/Qt$QT_VERSION_B
+mkdir /usr/local/Qt$QT_VERSION_B
+ln -s /qt/$QT_VERSION_B /usr/local/Qt$QT_VERSION_B/$QT_VERSION_A
 
 # clean up
 rm qt-opensource-linux-x64-${QT_VERSION_B}.run
