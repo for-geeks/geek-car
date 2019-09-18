@@ -25,22 +25,40 @@ QT_VERSION_A=5.9
 QT_VERSION_B=5.9.8
 QT_VERSION_SCRIPT=551
 
-wget https://download.qt.io/archive/qt/${QT_VERSION_A}/${QT_VERSION_B}/qt-opensource-linux-x64-${QT_VERSION_B}.run
+ARCH=$(uname -m)
 
-chmod +x qt-opensource-linux-x64-${QT_VERSION_B}.run 
+if [ "$ARCH" == "x86_64" ]; then
+    wget https://download.qt.io/archive/qt/${QT_VERSION_A}/${QT_VERSION_B}/qt-opensource-linux-x64-${QT_VERSION_B}.run
 
-# The '-platform' flag causes a message to stdout "Unknown option: p, l, a, t, f, o, r, m": message is incorrectly printed (it's a bug). The command still succeeds.
-# https://stackoverflow.com/a/34032216/1158977
+    chmod +x qt-opensource-linux-x64-${QT_VERSION_B}.run
 
-# the below error can be ignored since Ubuntu 14 does not have sslv2
-# qt.network.ssl: QSslSocket: cannot resolve SSLv2_client_method
-# qt.network.ssl: QSslSocket: cannot resolve SSLv2_server_method
-./qt-opensource-linux-x64-${QT_VERSION_B}.run --script qt-noninteractive.qs  -platform minimal
+    # The '-platform' flag causes a message to stdout "Unknown option: p, l, a, t, f, o, r, m": message is incorrectly printed (it's a bug). The command still succeeds.
+    # https://stackoverflow.com/a/34032216/1158977
 
-mkdir /usr/local/Qt$QT_VERSION_B
-ln -s /qt/$QT_VERSION_B /usr/local/Qt$QT_VERSION_B/$QT_VERSION_A
+    # the below error can be ignored since Ubuntu 14 does not have sslv2
+    # qt.network.ssl: QSslSocket: cannot resolve SSLv2_client_method
+    # qt.network.ssl: QSslSocket: cannot resolve SSLv2_server_method
+    ./qt-opensource-linux-x64-${QT_VERSION_B}.run --script qt-noninteractive.qs  -platform minimal
 
-# clean up
-rm qt-opensource-linux-x64-${QT_VERSION_B}.run
-rm -rf /usr/local/Qt$QT_VERSION_B/{Docs,Examples,Extras,Tools}
+    mkdir /usr/local/Qt$QT_VERSION_B
+    ln -s /qt/$QT_VERSION_B /usr/local/Qt$QT_VERSION_B/$QT_VERSION_A
+
+    # clean up
+    rm qt-opensource-linux-x64-${QT_VERSION_B}.run
+    rm -rf /usr/local/Qt$QT_VERSION_B/{Docs,Examples,Extras,Tools}
+elif [ "$ARCH" == "aarch64" ]; then
+    # on arm need to test
+    # wget https://download.qt.io/archive/qt/5.9/5.9.8/single/qt-everywhere-opensource-src-5.9.8.tar.xz
+    # tar -Jxvf qt-everywhere-opensource-src-5.9.8.tar.xz
+    # pushd qt-everywhere-opensource-src-5.9.8
+    # apt install libxcb1 libxcb1-dev libx11-xcb1 libx11-xcb-dev libxcb-keysyms1 libxcb-keysyms1-dev libxcb-image0 libxcb-image0-dev libxcb-shm0 libxcb-shm0-dev libxcb-icccm4 libxcb-icccm4-dev  libxcb-sync-dev libxcb-xfixes0-dev libxrender-dev libxcb-shape0-dev libxcb-randr0-dev libxcb-render-util0 libxcb-render-util0-dev libxcb-glx0-dev
+    # ./configure -prefix /qt -opensource -make tools
+    # make
+    # make install
+    # popd
+    # rm -rf cd qt-everywhere-opensource-src-5.9.8
+
+else
+	echo "not support $ARCH"
+fi
 
