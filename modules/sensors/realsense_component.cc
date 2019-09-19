@@ -23,6 +23,7 @@
 ******************************************************************************/
 #include "modules/sensors/realsense_component.h"
 
+#include <algorithm>
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -148,11 +149,6 @@ void RealsenseComponent::run() {
       OnColorImage(color_frame);
     }
 
-    if (FLAGS_publish_point_cloud) {
-      rs2::frame depth_frame = frames.get_depth_frame();
-      OnPointCloud(depth_frame);
-    }
-
     if (FLAGS_publish_acc) {
       rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
       OnAcc(accel_frame);
@@ -161,6 +157,30 @@ void RealsenseComponent::run() {
     if (FLAGS_publish_gyro) {
       rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
       OnGyro(gyro_frame);
+    }
+
+    auto angle = algo_.get_theta();
+    transform = Eigen::Matrix4f::Identity();
+    ::Eigen::Vector3d ea0(0, angle.x, angle.z);
+    ::Eigen::Matrix3d R;
+    R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
+        ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
+        ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
+    std::cout << "ROTATION :" << R << std::endl << std::endl;
+    transform(0, 0) = R(0, 0);
+    transform(0, 1) = R(0, 1);
+    transform(0, 2) = R(0, 2);
+    transform(1, 0) = R(1, 0);
+    transform(1, 1) = R(1, 1);
+    transform(1, 2) = R(1, 2);
+    transform(2, 0) = R(2, 0);
+    transform(2, 1) = R(2, 1);
+    transform(2, 2) = R(2, 2);
+    std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
+
+    if (FLAGS_publish_point_cloud) {
+      rs2::frame depth_frame = frames.get_depth_frame();
+      OnPointCloud(depth_frame);
     }
 
     // const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
@@ -325,6 +345,9 @@ void RealsenseComponent::OnPose(rs2::pose_frame pose_frame) {
 
 void RealsenseComponent::OnAcc(rs2::motion_frame accel_frame) {
   rs2_vector acc = accel_frame.get_motion_data();
+  // Call function that computes the angle of motion based on the retrieved
+  // measures
+  algo_.process_gyro(gyro_data, ts);
   AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
   auto proto_accel = std::make_shared<Acc>();
   proto_accel->mutable_acc()->set_x(acc.x);
@@ -336,6 +359,9 @@ void RealsenseComponent::OnAcc(rs2::motion_frame accel_frame) {
 
 void RealsenseComponent::OnGyro(rs2::motion_frame gyro_frame) {
   rs2_vector gyro = gyro_frame.get_motion_data();
+  // Call function that computes the angle of motion based on the retrieved
+  // measures
+  algo_.process_accel(accel_data);
   AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
   auto proto_gyro = std::make_shared<Gyro>();
   proto_gyro->mutable_gyro()->set_x(gyro.x);

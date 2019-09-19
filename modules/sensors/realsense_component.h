@@ -23,8 +23,12 @@
 ******************************************************************************/
 #pragma once
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <memory>
 #include <string>
+
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 #include "pcl/point_cloud.h"
@@ -37,6 +41,7 @@
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense_motion.h"
 
 namespace apollo {
 namespace sensors {
@@ -94,6 +99,9 @@ class RealsenseComponent : public Component<> {
   cv::Mat map2_;
 
   double norm_max = 0;
+  // Declare object that handles camera pose calculations
+  rotation_estimator algo_;
+  Eigen::Matrix4f transform;
 };
 
 CYBER_REGISTER_COMPONENT(RealsenseComponent)
