@@ -14,14 +14,14 @@
  * limitations under the License.
  *****************************************************************************/
 
-#version 330 core
+#version 130
 
-layout(location = 0) in vec2 vertPos;
-layout(location = 1) in vec2 texCoord;
+in vec2 vertPos;
+in vec2 texCoord;
 
 out vec2 TexCoord;
 
-void main(void)
+void main()
 {
     gl_Position = vec4(vertPos.x, vertPos.y, 0.0, 1.0);
     TexCoord = vec2(texCoord.x, 1.0 - texCoord.y);

@@ -14,13 +14,13 @@
  * limitations under the License.
  *****************************************************************************/
 
-#version 330 core
+#version 130
 
-in vec2 TexCoord;
-out vec4 FragColor;
+in mediump vec2 TexCoord;
+out mediump vec4 FragColor;
 
 uniform sampler2D texture;
 
-void main(void) {
+void main() {
     FragColor = texture2D(texture, TexCoord);
 }

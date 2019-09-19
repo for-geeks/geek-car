@@ -100,7 +100,7 @@ bool Texture::UpdateData(
     }
   } else if (imgData->encoding() == std::string("rgb8")) {
     memcpy(data_, imgData->data().c_str(), imgSize);
-  } else if (imgData->encoding() == std::string("bgr8")) {
+  } else if (imgData->encoding() == std::string("bgr8") || imgData->encoding() == std::string("BGR8")) {
     memcpy(data_, imgData->data().c_str(), imgSize);
     texture_format_ = GL_BGR;
   } else {

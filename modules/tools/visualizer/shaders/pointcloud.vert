@@ -14,9 +14,9 @@
  * limitations under the License.
  *****************************************************************************/
 
-#version 330 core
+#version 130
 
-layout(location = 0) in vec4 vertPos;
+in vec4 vertPos;
 uniform mat4 mvp;
 out vec3 Color;
 
@@ -36,12 +36,10 @@ void main(void)
     if(g > 0.75)
     {
         g = 0.0;
-        b = g * 4.0 - 3.0; // b = g;
+        b = g * 4.0 - 3.0;
     }
     else
     {
-        // g = g + 0.25;
-//        g = g + 0.45;
         g = g + 0.35;
     }
 

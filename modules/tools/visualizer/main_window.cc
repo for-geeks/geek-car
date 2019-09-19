@@ -65,7 +65,7 @@ const char* gridFragPath = ":/shaders/grid_pointcloud.frag";
 const char* radarVertexPath = ":/shaders/radarpoints.vert";
 const char* radarFragPath = ":/shaders/radarpoints.frag";
 
-const std::string CompressedImageType("apollo.drivers.CompressedImage");
+const std::string CompressedImageType("apollo.sensors.CompressedImage");
 
 }  // namespace
 
@@ -373,8 +373,26 @@ void MainWindow::EnableGrid(bool b) { grid_->set_is_renderable(b); }
 
 void MainWindow::ActionAddGrid(void) {
   if (grid_shader_ == nullptr) {
-    grid_shader_ = RenderableObject::CreateShaderProgram(tr(gridVertexPath),
-                                                         tr(gridFragPath));
+        static const char *vertexShaderSource =
+        "#version 130\n"
+        "in vec2 vertPos;\n"
+        "uniform mat4 mvp;\n"
+        "uniform vec3 color;\n"
+        "out vec3 Color;/n"
+        "void main() {\n"
+        "   gl_Position = vec4(vertPos.x, vertPos.y, 0.0, 1.0);\n"
+        "   Color = color;\n"
+        "}\n";
+
+        static const char *fragmentShaderSource =
+        "#version 130\n"
+        "in vec3 Color;\n"
+        "out vec4 FragColor;\n"
+        "void main() {\n"
+        "   FragColor = vec4(Color, 1.0);\n"
+        "}\n";
+    grid_shader_ = RenderableObject::CreateShaderProgram(vertexShaderSource,
+                                                         fragmentShaderSource);
     if (grid_shader_ != nullptr) {
       ui_->sceneWidget->AddNewShaderProg("grid", grid_shader_);
     }
@@ -510,7 +528,7 @@ void MainWindow::EnableRadarPoints(bool b) {
 void MainWindow::ActionOpenRadarChannel(void) {
   if (radar_points_shader_ == nullptr) {
     radar_points_shader_ = RenderableObject::CreateShaderProgram(
-        tr(radarVertexPath), tr(radarFragPath));
+        radarVertexPath, radarFragPath);
     if (radar_points_shader_ != nullptr) {
       ui_->sceneWidget->AddNewShaderProg("radarpoints", radar_points_shader_);
     } else {
@@ -667,8 +685,42 @@ void MainWindow::RadarRenderCallback(
 
 void MainWindow::ActionOpenPointCloud(void) {
   if (pointcloud_shader_ == nullptr) {
+        static const char *vertexShaderSource =
+            "#version 130\n"
+            "in vec4 vertPos;\n"
+            "uniform mat4 mvp;\n"
+            "out vec3 Color;\n"
+            "void main(void){\n"
+            "    gl_Position = mvp * vec4(vertPos.xyz, 1.0);\n"
+            "    float g = smoothstep(0.0, 256, vertPos.w);\n"
+            "    float r = 0.0;\n"
+            "    float b = 0.0;\n"
+            "    if(g <= 0.25)\n"
+            "    {\n"
+            "        r = g * 4.0;\n"
+            "        g = 0.0;\n"
+            "    }\n"
+            "    if(g > 0.75)\n"
+            "    {\n"
+            "        g = 0.0;\n"
+            "        b = g * 4.0 - 3.0;\n"
+            "    }\n"
+            "    else\n"
+            "    {\n"
+            "        g = g + 0.35;\n"
+            "    }\n"
+            "    Color = vec3(r,g,b);\n"
+            "}\n";
+
+        static const char *fragmentShaderSource =
+        "#version 130\n"
+        "in vec3 Color;\n"
+        "out vec4 FragColor;\n"
+        "void main() {\n"
+        "   FragColor = vec4(Color, 1.0);\n"
+        "}\n";
     pointcloud_shader_ =
-        RenderableObject::CreateShaderProgram(tr(pcVertexPath), tr(pcFragPath));
+        RenderableObject::CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
     if (pointcloud_shader_ != nullptr) {
       ui_->sceneWidget->AddNewShaderProg("pointcloud", pointcloud_shader_);
     } else {
@@ -766,7 +818,7 @@ void MainWindow::ActionOpenImage(void) {
     for (int i = 0; i < all_channel_root_->childCount(); ++i) {
       QTreeWidgetItem* child = all_channel_root_->child(i);
       QString channel = child->text(0);
-      if (channel.contains("camera")) {
+      if (channel.contains("camera") || channel.contains("image")) {
         videoImgProxy->channel_name_combobox_.addItem(channel);
       }
     }
@@ -946,7 +998,7 @@ void MainWindow::ImageReaderCallback(
     }
   } else {
     std::cerr
-        << "----Dynamic Texture is nullptr or apollo.drivers.Image is nullptr"
+        << "----Dynamic Texture is nullptr or apollo.sensors.Image is nullptr"
         << std::endl;
   }
   theVideoImgProxy->reader_mutex_.unlock();
@@ -975,7 +1027,7 @@ void MainWindow::ImageReaderCallback(
     }
   } else {
     std::cerr
-        << "----Dynamic Texture is nullptr or apollo.drivers.Image is nullptr"
+        << "----Dynamic Texture is nullptr or apollo.sensors.Image is nullptr"
         << std::endl;
   }
   theVideoImgProxy->reader_mutex_.unlock();
@@ -1035,6 +1087,7 @@ void MainWindow::DoPlayVideoImage(bool b, VideoImgProxy* theVideoImg) {
         ret = theVideoImg->compressed_image_reader_->InstallCallbackAndOpen(
             videoCallback, channelName, nodeName);
       } else {
+        std::cout << "ImageReaderCallback FOR IMAGES" << std::endl;
         auto videoCallback =
             [this, theVideoImg](
                 const std::shared_ptr<apollo::sensors::Image>& pdata) {

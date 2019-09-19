@@ -14,7 +14,7 @@
  * limitations under the License.
  *****************************************************************************/
 
-#version 330 core
+#version 130
 
 in vec3 Color;
 out vec4 FragColor;

@@ -63,9 +63,30 @@ void VideoImgViewer::initializeGL() {
     return;
   }
 
+    static const char *vertexShaderSource =
+        "#version 130\n"
+        "in vec2 vertPos;\n"
+        "in vec2 texCoord;\n"
+        "out vec2 TexCoord;\n"
+        "void main() {\n"
+        "   gl_Position = vec4(vertPos.x, vertPos.y, 0.0, 1.0);\n"
+        "   TexCoord = vec2(texCoord.x, 1.0 - texCoord.y);\n"
+        "}\n";
+
+
+
+    static const char *fragmentShaderSource =
+    "#version 130\n"
+    "in mediump vec2 TexCoord;\n"
+    "out mediump vec4 FragColor;\n"
+    "uniform sampler2D texture;\n"
+    "void main() {\n"
+    "   FragColor = texture2D(texture, TexCoord);\n"
+    "}\n";
+
   video_image_shader_prog_ = RenderableObject::CreateShaderProgram(
-      tr(":/shaders/video_image_plane.vert"),
-      tr(":/shaders/video_image_plane.frag"));
+      vertexShaderSource,
+      fragmentShaderSource);
   if (video_image_shader_prog_ == nullptr) {
     return;
   }

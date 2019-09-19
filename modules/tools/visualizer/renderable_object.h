@@ -26,7 +26,7 @@ class RenderableObject : protected QOpenGLFunctions {
  public:
   static std::shared_ptr<QOpenGLShaderProgram> NullRenderableObj;
   static std::shared_ptr<QOpenGLShaderProgram> CreateShaderProgram(
-      const QString& vertexShaderFileName, const QString& fragShaderFileName);
+      const char *vertexShaderSource, const char *fragmentShaderSource);
 
   explicit RenderableObject(int vertex_count = 1, int vertex_element_count = 3,
                             const std::shared_ptr<QOpenGLShaderProgram>&

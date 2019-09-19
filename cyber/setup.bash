@@ -12,7 +12,7 @@ launch_path="${CYBER_PATH}/tools/cyber_launch"
 channel_path="${CYBER_PATH}/tools/cyber_channel"
 node_path="${CYBER_PATH}/tools/cyber_node"
 service_path="${CYBER_PATH}/tools/cyber_service"
-qt_path=/usr/local/Qt5.5.1/5.5/gcc_64
+qt_path=/usr/local/Qt5.9.8/5.9/gcc_64
 rosbag_to_record_path="${ROOT_PATH}/bazel-bin/modules/data/tools/rosbag_to_record"
 
 
@@ -22,7 +22,7 @@ export PATH=${binary_path}:${recorder_path}:${monitor_path}:${launch_path}:${cha
 export PYTHONPATH=${PYTHON_LD_PATH}:${CYBER_PATH}/python:$PYTHONPATH
 export PYTHONPATH=${ROOT_PATH}/py_proto:$PYTHONPATH
 export CYBER_DOMAIN_ID=80
-export CYBER_IP=10.42.0.1
+export CYBER_IP=127.0.0.1
 
 export GLOG_log_dir=${ROOT_PATH}/data/log
 export GLOG_alsologtostderr=0
@@ -35,6 +35,6 @@ export cyber_sched_perf=0
 # for DEBUG log
 #export GLOG_minloglevel=-1
 export GLOG_alsologtostderr=1
-export GLOG_v=4
+export GLOG_v=3
 
 source ${CYBER_PATH}/tools/cyber_tools_auto_complete.bash
