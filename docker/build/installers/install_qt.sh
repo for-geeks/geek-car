@@ -27,10 +27,9 @@ QT_VERSION_SCRIPT=551
 
 ARCH=$(uname -m)
 
-if [ "$ARCH" == "x86_64" ]; then
-    wget https://download.qt.io/archive/qt/${QT_VERSION_A}/${QT_VERSION_B}/qt-opensource-linux-x64-${QT_VERSION_B}.run
+wget https://download.qt.io/archive/qt/${QT_VERSION_A}/${QT_VERSION_B}/qt-opensource-linux-x64-${QT_VERSION_B}.run
 
-    chmod +x qt-opensource-linux-x64-${QT_VERSION_B}.run
+chmod +x qt-opensource-linux-x64-${QT_VERSION_B}.run
 
     # The '-platform' flag causes a message to stdout "Unknown option: p, l, a, t, f, o, r, m": message is incorrectly printed (it's a bug). The command still succeeds.
     # https://stackoverflow.com/a/34032216/1158977
@@ -38,15 +37,14 @@ if [ "$ARCH" == "x86_64" ]; then
     # the below error can be ignored since Ubuntu 14 does not have sslv2
     # qt.network.ssl: QSslSocket: cannot resolve SSLv2_client_method
     # qt.network.ssl: QSslSocket: cannot resolve SSLv2_server_method
-    ./qt-opensource-linux-x64-${QT_VERSION_B}.run --script qt-noninteractive.qs  -platform minimal
+./qt-opensource-linux-x64-${QT_VERSION_B}.run --script qt-noninteractive.qs  -platform minimal
 
-    mkdir /usr/local/Qt$QT_VERSION_B
-    ln -s /qt/$QT_VERSION_B /usr/local/Qt$QT_VERSION_B/$QT_VERSION_A
+mkdir /usr/local/Qt$QT_VERSION_B
+ln -s /qt/$QT_VERSION_B /usr/local/Qt$QT_VERSION_B/$QT_VERSION_A
 
     # clean up
-    rm qt-opensource-linux-x64-${QT_VERSION_B}.run
-    rm -rf /usr/local/Qt$QT_VERSION_B/{Docs,Examples,Extras,Tools}
-elif [ "$ARCH" == "aarch64" ]; then
+rm qt-opensource-linux-x64-${QT_VERSION_B}.run
+rm -rf /usr/local/Qt$QT_VERSION_B/{Docs,Examples,Extras,Tools}
     # on arm need to test
     # wget https://download.qt.io/archive/qt/5.9/5.9.8/single/qt-everywhere-opensource-src-5.9.8.tar.xz
     # tar -Jxvf qt-everywhere-opensource-src-5.9.8.tar.xz
@@ -58,7 +56,4 @@ elif [ "$ARCH" == "aarch64" ]; then
     # popd
     # rm -rf cd qt-everywhere-opensource-src-5.9.8
 
-else
-	echo "not support $ARCH"
-fi
 
