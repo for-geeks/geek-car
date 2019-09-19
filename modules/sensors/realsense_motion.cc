@@ -54,7 +54,7 @@ int main() {
   // Declare object for rendering camera motion
   // camera_renderer camera;
   // Declare object that handles camera pose calculations
-  rotation_estimator algo;
+  apollo::sensors::rotation_estimator algo;
 
   apollo::cyber::ReaderConfig reader_config;
   reader_config.channel_name = FLAGS_acc_channel;

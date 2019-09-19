@@ -11,6 +11,8 @@
 #include <sstream>
 #include <string>
 
+#include "librealsense2/rs.hpp"
+
 #include "cyber/cyber.h"
 #include "cyber/task/task.h"
 #include "modules/common/global_gflags.h"

@@ -35,6 +35,7 @@
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 #include "pcl/filters/passthrough.h"
+#include "pcl/common/transforms.h"
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
@@ -160,6 +161,8 @@ void RealsenseComponent::run() {
     }
 
     auto angle = algo_.get_theta();
+    AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
+
     transform = Eigen::Matrix4f::Identity();
     ::Eigen::Vector3d ea0(0, angle.x, angle.z);
     ::Eigen::Matrix3d R;
@@ -167,15 +170,16 @@ void RealsenseComponent::run() {
         ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
         ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
     std::cout << "ROTATION :" << R << std::endl << std::endl;
-    transform(0, 0) = R(0, 0);
-    transform(0, 1) = R(0, 1);
-    transform(0, 2) = R(0, 2);
-    transform(1, 0) = R(1, 0);
-    transform(1, 1) = R(1, 1);
-    transform(1, 2) = R(1, 2);
-    transform(2, 0) = R(2, 0);
-    transform(2, 1) = R(2, 1);
-    transform(2, 2) = R(2, 2);
+    Eigen::MatrixXf RR = R.cast<float>();
+    transform(0, 0) = RR(0, 0);
+    transform(0, 1) = RR(0, 1);
+    transform(0, 2) = RR(0, 2);
+    transform(1, 0) = RR(1, 0);
+    transform(1, 1) = RR(1, 1);
+    transform(1, 2) = RR(1, 2);
+    transform(2, 0) = RR(2, 0);
+    transform(2, 1) = RR(2, 1);
+    transform(2, 2) = RR(2, 2);
     std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
 
     if (FLAGS_publish_point_cloud) {
@@ -267,7 +271,8 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   AINFO << "POINT SIZE AFTER FILTER IS " << (*cloud_filtered).size();
 
   // Apply an affine transform defined by an Eigen Transform.
-  // pcl::transformPointCloud(*source_cloud, *transformed_cloud, transform_1);
+  pcl_ptr transformed_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::transformPointCloud(*cloud_filtered, *transformed_cloud, transform);
 
   auto sp = points.get_profile().as<rs2::video_stream_profile>();
 
@@ -279,14 +284,14 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   point_cloud_proto->set_height(sp.height());
 
   // from rs-pointcloud Sample, after z axis filter, we can get 130000+ points
-  for (size_t i = 0; i < (*cloud_filtered).size(); i++) {
-    if ((*cloud_filtered)[i].z) {
+  for (size_t i = 0; i < (*transformed_cloud).size(); i++) {
+    if ((*transformed_cloud)[i].z) {
       // publish the point/texture coordinates only for points we have depth
       // data for
       apollo::sensors::PointXYZIT* p = point_cloud_proto->add_point();
-      p->set_x((*cloud_filtered)[i].x);
-      p->set_y((*cloud_filtered)[i].y);
-      p->set_z((*cloud_filtered)[i].z);
+      p->set_x((*transformed_cloud)[i].x);
+      p->set_y((*transformed_cloud)[i].y);
+      p->set_z((*transformed_cloud)[i].z);
       // p->set_intensity(0);
       // p->set_timestamp(depth_frame.get_timestamp());
     }
@@ -346,7 +351,7 @@ void RealsenseComponent::OnAcc(rs2::motion_frame accel_frame) {
   rs2_vector acc = accel_frame.get_motion_data();
   // Call function that computes the angle of motion based on the retrieved
   // measures
-  algo_.process_gyro(gyro_data, ts);
+  algo_.process_accel(acc);
   AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
   auto proto_accel = std::make_shared<Acc>();
   proto_accel->mutable_acc()->set_x(acc.x);
@@ -360,7 +365,7 @@ void RealsenseComponent::OnGyro(rs2::motion_frame gyro_frame) {
   rs2_vector gyro = gyro_frame.get_motion_data();
   // Call function that computes the angle of motion based on the retrieved
   // measures
-  algo_.process_accel(accel_data);
+  algo_.process_gyro(gyro, gyro_frame.get_timestamp());
   AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
   auto proto_gyro = std::make_shared<Gyro>();
   proto_gyro->mutable_gyro()->set_x(gyro.x);

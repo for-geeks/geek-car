@@ -80,7 +80,7 @@ cc_binary(
     ],
 )
 
-cc_binary(
+cc_library(
     name = "realsense_motion",
     srcs = ["realsense_motion.cc"],
     hdrs = ["realsense_motion.h"],
