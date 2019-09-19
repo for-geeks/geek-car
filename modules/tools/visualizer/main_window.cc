@@ -378,7 +378,7 @@ void MainWindow::ActionAddGrid(void) {
         "in vec2 vertPos;\n"
         "uniform mat4 mvp;\n"
         "uniform vec3 color;\n"
-        "out vec3 Color;/n"
+        "out vec3 Color;\n"
         "void main() {\n"
         "   gl_Position = vec4(vertPos.x, vertPos.y, 0.0, 1.0);\n"
         "   Color = color;\n"

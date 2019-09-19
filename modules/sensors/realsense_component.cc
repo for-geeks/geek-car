@@ -232,22 +232,22 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
 
   // Generate the pointcloud and texture mappings
   points = pc.calculate(depth_frame);
+  AINFO << "POINT SIZE BEFORE FILTER IS " << points.size();
 
-  // auto pcl_points = points_to_pcl(points);
+  auto pcl_points = points_to_pcl(points);
 
-  // pcl_ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-  // pcl::PassThrough<pcl::PointXYZ> pass;
-  // pass.setInputCloud(pcl_points);
-  // pass.setFilterFieldName("z");
-  // pass.setFilterLimits(0.0, 1.0);
-  // pass.filter(*cloud_filtered);
+  pcl_ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PassThrough<pcl::PointXYZ> pass;
+  pass.setInputCloud(pcl_points);
+  pass.setFilterFieldName("z");
+  pass.setFilterLimits(0.0, 1.0);
+  pass.setFilterLimitsNegative(true);
+  pass.filter(*cloud_filtered);
+
+  AINFO << "POINT SIZE AFTER FILTER IS " << (*cloud_filtered).size();
 
   // Apply an affine transform defined by an Eigen Transform.
   // pcl::transformPointCloud(*source_cloud, *transformed_cloud, transform_1);
-
-  // std::vector<pcl_ptr> layers;
-  // layers.push_back(pcl_points);
-  // layers.push_back(cloud_filtered);
 
   auto sp = points.get_profile().as<rs2::video_stream_profile>();
 
@@ -258,16 +258,15 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   point_cloud_proto->set_width(sp.width());
   point_cloud_proto->set_height(sp.height());
 
-  auto vertices = points.get_vertices();  // get vertices
   // from rs-pointcloud Sample, after z axis filter, we can get 130000+ points
-  for (size_t i = 0; i < points.size(); i++) {
-    if (vertices[i].z) {
+  for (size_t i = 0; i < (*cloud_filtered).size(); i++) {
+    if ((*cloud_filtered)[i].z) {
       // publish the point/texture coordinates only for points we have depth
       // data for
       apollo::sensors::PointXYZIT* p = point_cloud_proto->add_point();
-      p->set_x(vertices[i].x);
-      p->set_y(vertices[i].y);
-      p->set_z(vertices[i].z);
+      p->set_x((*cloud_filtered)[i].x);
+      p->set_y((*cloud_filtered)[i].y);
+      p->set_z((*cloud_filtered)[i].z);
       // p->set_intensity(0);
       // p->set_timestamp(depth_frame.get_timestamp());
     }
