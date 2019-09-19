@@ -82,17 +82,9 @@ cc_binary(
 
 cc_library(
     name = "realsense_motion",
-    srcs = ["realsense_motion.cc"],
-    hdrs = ["realsense_motion.h"],
+    srcs = ["realsense_motion.h"],
     linkopts = [
-        "-lopencv_core",
         "-lrealsense2",
-    ],
-    deps = [
-        "//cyber",
-        "//modules/common:global_gflags",
-        "//modules/sensors/proto:sensors_cc_proto",
-        "@eigen",
     ],
 )
 
