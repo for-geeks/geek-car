@@ -93,9 +93,9 @@ function generate_build_targets() {
   if [ $? -ne 0 ]; then
     fail 'Build failed!'
   fi
-  #skip msf for non x86_64 platforms
+  #skip visualizer for non x86_64 platforms
   if [ ${MACHINE_ARCH} != "x86_64" ]; then
-     BUILD_TARGETS=$(echo $BUILD_TARGETS |tr ' ' '\n' | grep -v "msf")
+     BUILD_TARGETS=$(echo $BUILD_TARGETS |tr ' ' '\n' | grep -v "visualizer")
   fi
 }
 
