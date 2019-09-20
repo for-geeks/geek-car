@@ -37,6 +37,30 @@ bool D435I::Init() {
 
   // Instruct pipeline to start streaming with the requested configuration
   pipe.start(cfg);
+
+  if (FLAGS_publish_color_image) {
+    color_image_writer_ = node_->CreateWriter<Image>(FLAGS_color_image_channel);
+  }
+
+  // Point cloud channel
+  if (FLAGS_publish_point_cloud) {
+    point_cloud_writer_ = node_->CreateWriter<apollo::sensors::PointCloud>(
+        FLAGS_point_cloud_channel);
+  }
+
+  if (FLAGS_publish_acc) {
+    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
+  }
+
+  if (FLAGS_publish_gyro) {
+    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  }
+
+  if (FLAGS_publish_compressed_color_image) {
+    compressed_image_writer_ =
+        node_->CreateWriter<Image>(FLAGS_compressed_color_image_channel);
+  }
+
   return true;
 }
 

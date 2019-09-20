@@ -40,50 +40,35 @@ bool T265::Init() {
 
   // Instruct pipeline to start streaming with the requested configuration
   pipe.start(cfg);
+
+  if (FLAGS_publish_pose) {
+    pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
+  }
+  if (FLAGS_publish_raw_gray_image) {
+    image_writer_ = node_->CreateWriter<Image>(FLAGS_gray_image_channel);
+  }
+
+  if (FLAGS_publish_acc) {
+    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
+  }
+
+  if (FLAGS_publish_gyro) {
+    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  }
+
+  if (FLAGS_publish_compressed_gray_image) {
+    compressed_image_writer_ =
+        node_->CreateWriter<Image>(FLAGS_compressed_gray_image_channel);
+  }
+
+  chassis_reader_ = node_->CreateReader<Chassis>(
+      FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis>& chassis) {
+        chassis_.Clear();
+        chassis_.CopyFrom(*chassis);
+      });
   return true;
 }
 
-void T265::Calibration() {
-  cv::Mat intrinsicsL;
-  cv::Mat distCoeffsL;
-  rs2_intrinsics left = sensor_.get_stream_profiles()[0]
-                            .as<rs2::video_stream_profile>()
-                            .get_intrinsics();
-  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
-         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
-  intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
-                 left.ppy, 0, 0, 1);
-  distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
-  cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
-  cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
-               left.ppy, 0, 0, 0, 1, 0);
-
-  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
-                                       cv::Size(848, 816), CV_16SC2, map1_,
-                                       map2_);
-}
-
-void T265::WheelOdometry() {
-  auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
-  std::string calibration_file_path =
-      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
-  std::ifstream calibrationFile(calibration_file_path);
-  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
-                             std::istreambuf_iterator<char>());
-  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
-
-  if (!wheel_odometry_sensor.load_wheel_odometery_config(wo_calib)) {
-    AERROR << "Failed to load wheel odometry config file.";
-  }
-}
-
-/**
- * @brief callback of Pose data
- *
- * @param pose_data
- * @return true
- * @return false
- */
 void T265::OnPose(rs2::frame f) {
   auto pose_frame = f.as<rs2::pose_frame>();
   if (pose_frame.get_frame_number() % 5 == 0) {
@@ -132,6 +117,40 @@ void T265::OnPose(rs2::frame f) {
     angular_velocity->set_z(pose_data.angular_velocity.z);
 
     pose_writer_->Write(pose_proto);
+  }
+}
+
+void T265::Calibration() {
+  cv::Mat intrinsicsL;
+  cv::Mat distCoeffsL;
+  rs2_intrinsics left = sensor_.get_stream_profiles()[0]
+                            .as<rs2::video_stream_profile>()
+                            .get_intrinsics();
+  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
+         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
+  intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
+                 left.ppy, 0, 0, 1);
+  distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
+  cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
+  cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
+               left.ppy, 0, 0, 0, 1, 0);
+
+  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
+                                       cv::Size(848, 816), CV_16SC2, map1_,
+                                       map2_);
+}
+
+void T265::WheelOdometry() {
+  auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
+  std::string calibration_file_path =
+      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
+  std::ifstream calibrationFile(calibration_file_path);
+  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
+                             std::istreambuf_iterator<char>());
+  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
+
+  if (!wheel_odometry_sensor.load_wheel_odometery_config(wo_calib)) {
+    AERROR << "Failed to load wheel odometry config file.";
   }
 }
 

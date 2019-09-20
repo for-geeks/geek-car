@@ -32,7 +32,14 @@ namespace sensors {
 
 class DeviceBase {
  public:
-  bool Init();
+  void DeviceBase() = default;
+  virtual bool Init() = 0;
+  virtual void Config() = 0;
+  virtual void InitDevice() = 0;
+
+  virtual void Run();
+
+  virtual ~DeviceBase() = default;
 
   void OnImage(cv::Mat raw_image, uint64 frame_no);
   void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
