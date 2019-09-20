@@ -80,6 +80,10 @@ class Service : public ServiceBase {
 
   ~Service() {
     inited_ = false;
+    {
+      std::lock_guard<std::mutex> lg(queue_mutex_);
+      tasks_.clear();
+    }
     condition_.notify_all();
     if (thread_.joinable()) {
       thread_.join();
@@ -102,6 +106,7 @@ class Service : public ServiceBase {
 
   void SendResponse(const transport::MessageInfo& message_info,
                     const std::shared_ptr<Response>& response);
+
   bool IsInit(void) const { return request_receiver_ != nullptr; }
 
   std::string node_name_;
@@ -116,7 +121,7 @@ class Service : public ServiceBase {
   std::string response_channel_;
   std::mutex service_handle_request_mutex_;
 
-  volatile bool inited_;
+  volatile bool inited_ = false;
   void Enqueue(std::function<void()>&& task);
   void Process();
   std::thread thread_;
@@ -128,6 +133,10 @@ class Service : public ServiceBase {
 template <typename Request, typename Response>
 void Service<Request, Response>::destroy() {
   inited_ = false;
+  {
+    std::lock_guard<std::mutex> lg(queue_mutex_);
+    this->tasks_.clear();
+  }
   condition_.notify_all();
   if (thread_.joinable()) {
     thread_.join();
@@ -190,7 +199,6 @@ bool Service<Request, Response>::Init() {
       [=](const std::shared_ptr<Request>& request,
           const transport::MessageInfo& message_info,
           const proto::RoleAttributes& reader_attr) {
-        (void)reader_attr;
         (void)reader_attr;
         auto task = [this, request, message_info]() {
           this->HandleRequest(request, message_info);

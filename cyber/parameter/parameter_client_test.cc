@@ -42,7 +42,6 @@ class ParameterClientTest : public ::testing::Test {
 
   virtual void SetUp() {
     // Called before every TEST_F(ParameterClientTest, *)
-    apollo::cyber::Init("parameter_client_test");
     node_ = CreateNode("parameter_server");
     ps_.reset(new ParameterServer(node_));
     pc_.reset(new ParameterClient(node_, "parameter_server"));
@@ -94,6 +93,5 @@ TEST_F(ParameterClientTest, list_parameter) {
 int main(int argc, char** argv) {
   apollo::cyber::Init(argv[0]);
   testing::InitGoogleTest(&argc, argv);
-  auto res = RUN_ALL_TESTS();
-  return res;
+  return RUN_ALL_TESTS();
 }

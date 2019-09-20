@@ -42,7 +42,7 @@ bool Scheduler::CreateTask(const RoutineFactory& factory,
 bool Scheduler::CreateTask(std::function<void()>&& func,
                            const std::string& name,
                            std::shared_ptr<DataVisitorBase> visitor) {
-  if (unlikely(stop_.load())) {
+  if (cyber_unlikely(stop_.load())) {
     ADEBUG << "scheduler is stoped, cannot create task!";
     return false;
   }
@@ -60,7 +60,7 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
 
   if (visitor != nullptr) {
     visitor->RegisterNotifyCallback([this, task_id, name]() {
-      if (unlikely(stop_.load())) {
+      if (cyber_unlikely(stop_.load())) {
         return;
       }
       this->NotifyProcessor(task_id);
@@ -70,40 +70,10 @@ bool Scheduler::CreateTask(std::function<void()>&& func,
 }
 
 bool Scheduler::NotifyTask(uint64_t crid) {
-  if (unlikely(stop_.load())) {
+  if (cyber_unlikely(stop_.load())) {
     return true;
   }
   return NotifyProcessor(crid);
-}
-
-void Scheduler::ParseCpuset(const std::string& str, std::vector<int>* cpuset) {
-  std::vector<std::string> lines;
-  std::stringstream ss(str);
-  std::string l;
-
-  while (getline(ss, l, ',')) {
-    lines.push_back(l);
-  }
-
-  for (auto line : lines) {
-    std::stringstream ss(line);
-    std::vector<std::string> range;
-
-    while (getline(ss, l, '-')) {
-      range.push_back(l);
-    }
-
-    if (range.size() == 1) {
-      cpuset->push_back(std::stoi(range[0]));
-    } else if (range.size() == 2) {
-      for (int i = std::stoi(range[0]), e = std::stoi(range[1]); i <= e; i++) {
-        cpuset->push_back(i);
-      }
-    } else {
-      AERROR << "Parsing cpuset format error.";
-      exit(0);
-    }
-  }
 }
 
 void Scheduler::ProcessLevelResourceControl() {
@@ -124,34 +94,13 @@ void Scheduler::SetInnerThreadAttr(const std::string& name, std::thread* thr) {
 
     std::vector<int> cpus;
     ParseCpuset(cpuset, &cpus);
-    cpu_set_t set;
-    CPU_ZERO(&set);
-    for (const auto cpu : cpus) {
-      CPU_SET(cpu, &set);
-    }
-    pthread_setaffinity_np(thr->native_handle(), sizeof(set), &set);
-
-    auto policy = th_conf.policy();
-    auto prio = th_conf.prio();
-    int p;
-    if (!policy.compare("SCHED_FIFO")) {
-      p = SCHED_FIFO;
-    } else if (!policy.compare("SCHED_RR")) {
-      p = SCHED_RR;
-    } else {
-      return;
-    }
-
-    struct sched_param sp;
-    memset(static_cast<void*>(&sp), 0, sizeof(sp));
-    sp.sched_priority = prio;
-    pthread_setschedparam(thr->native_handle(), p, &sp);
+    SetSchedAffinity(thr, cpus, "range");
+    SetSchedPolicy(thr, th_conf.policy(), th_conf.prio());
   }
-  return;
 }
 
 void Scheduler::Shutdown() {
-  if (unlikely(stop_.exchange(true))) {
+  if (cyber_unlikely(stop_.exchange(true))) {
     return;
   }
 

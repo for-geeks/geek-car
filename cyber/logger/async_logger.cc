@@ -43,10 +43,10 @@ AsyncLogger::AsyncLogger(google::base::Logger* wrapped, int max_buffer_bytes)
 
 AsyncLogger::~AsyncLogger() {
   Stop();
-  for (auto itr = moduleLoggerMap.begin(); itr != moduleLoggerMap.end();
-       ++itr) {
-    delete itr->second;
+  for (auto& logger : moduleLoggerMap) {
+    delete logger.second;
   }
+  moduleLoggerMap.clear();
 }
 
 void AsyncLogger::Start() {
@@ -72,7 +72,7 @@ void AsyncLogger::Stop() {
 void AsyncLogger::Write(bool force_flush, time_t timestamp, const char* message,
                         int message_len) {
   // drop message when active buffer full
-  if (unlikely(BufferFull(*active_buf_))) {
+  if (cyber_unlikely(BufferFull(*active_buf_))) {
     return;
   }
   {
