@@ -1087,7 +1087,6 @@ void MainWindow::DoPlayVideoImage(bool b, VideoImgProxy* theVideoImg) {
         ret = theVideoImg->compressed_image_reader_->InstallCallbackAndOpen(
             videoCallback, channelName, nodeName);
       } else {
-        std::cout << "ImageReaderCallback FOR IMAGES" << std::endl;
         auto videoCallback =
             [this, theVideoImg](
                 const std::shared_ptr<apollo::sensors::Image>& pdata) {

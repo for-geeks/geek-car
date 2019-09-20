@@ -32,7 +32,7 @@ void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {
   ADEBUG << "image, height :" << image->height() << " width:" << image->width();
   cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
                               static_cast<int>(image->width()), CV_8UC3,
-                              (void*)image->data().c_str());
+                              const_cast<char *>(image->data().c_str()));
   std::string image_name =
       FLAGS_image_export_dir + std::to_string(image->frame_no()) + ".jpg";
 

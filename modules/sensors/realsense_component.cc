@@ -225,7 +225,7 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
 
 void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   // Creating OpenCV Matrix from a color image
-  cv::Mat mat(cv::Size(640, 480), CV_8UC3, (void*)color_frame.get_data(),
+  cv::Mat mat(cv::Size(640, 480), CV_8UC3, const_cast<void *>(color_frame.get_data()),
               cv::Mat::AUTO_STEP);
   AINFO << "FRAME NUMBER:" << color_frame.get_frame_number();
   auto image_proto = std::make_shared<Image>();
