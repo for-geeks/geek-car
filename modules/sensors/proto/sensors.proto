@@ -11,20 +11,6 @@ message RealSenseDeviceModel {
   }
 }
 
-message Image {
-  optional apollo.common.Header header = 1;
-  optional uint64 frame_no = 2;
-  optional double measurement_time = 3;
-
-  optional uint32 height = 4;  // image height, that is, number of rows
-  optional uint32 width = 5;   // image width, that is, number of columns
-
-  optional string encoding = 6;
-  optional uint32 step = 7;  // Full row length in bytes
-  optional bytes data = 8;   // actual matrix data, size is (step * rows)
-  optional string frame_id = 9;
-}
-
 message Pose {
   optional uint64 frame_no = 1;
   optional Point translation = 2;

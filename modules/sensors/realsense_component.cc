@@ -50,7 +50,6 @@ using apollo::cyber::Time;
 using apollo::cyber::common::GetAbsolutePath;
 using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
-using apollo::sensors::Image;
 using apollo::sensors::Pose;
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
@@ -88,13 +87,13 @@ bool RealsenseComponent::Init() {
   if (FLAGS_publish_compressed_color_image &&
       device_model_ == RealSenseDeviceModel::D435I) {
     compressed_image_writer_ =
-        node_->CreateWriter<Image>(FLAGS_compressed_color_image_channel);
+        node_->CreateWriter<CompressedImage>(FLAGS_compressed_color_image_channel);
   }
 
   if (FLAGS_publish_compressed_gray_image &&
       device_model_ == RealSenseDeviceModel::T265) {
     compressed_image_writer_ =
-        node_->CreateWriter<Image>(FLAGS_compressed_gray_image_channel);
+        node_->CreateWriter<CompressedImage>(FLAGS_compressed_gray_image_channel);
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
@@ -219,7 +218,7 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
   image_writer_->Write(image_proto);
 
   if (FLAGS_publish_compressed_gray_image) {
-    OnCompressedImage(dst, fisheye_frame.get_frame_number());
+    OnCompressedImage(dst, fisheye_frame);
   }
 }
 
@@ -243,7 +242,7 @@ void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   color_image_writer_->Write(image_proto);
 
   if (FLAGS_publish_compressed_color_image) {
-    OnCompressedImage(mat, color_frame.get_frame_number());
+    OnCompressedImage(mat, color_frame);
   }
 }
 
@@ -375,26 +374,22 @@ void RealsenseComponent::OnGyro(rs2::motion_frame gyro_frame) {
   gyro_writer_->Write(proto_gyro);
 }
 
-void RealsenseComponent::OnCompressedImage(cv::Mat raw_image, uint64 frame_no) {
+void RealsenseComponent::OnCompressedImage(cv::Mat raw_image, rs2::frame f) {
   std::vector<uchar> data_encode;
   std::vector<int> param = std::vector<int>(2);
   param[0] = CV_IMWRITE_JPEG_QUALITY;
   param[1] = FLAGS_compress_rate;
-  cv::imencode(".jpeg", raw_image, data_encode, param);
+  cv::Mat tmp_mat;
+  cv::cvtColor(raw_image, tmp_mat, cv::COLOR_RGB2BGR);
+  cv::imencode(".jpeg", tmp_mat, data_encode, param);
   std::string str_encode(data_encode.begin(), data_encode.end());
 
-  auto compressedimage = std::make_shared<Image>();
-  compressedimage->set_frame_no(frame_no);
-  compressedimage->set_height(raw_image.rows);
-  compressedimage->set_width(raw_image.cols);
-  // encodings
-  if (device_model_ == RealSenseDeviceModel::T265) {
-    compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
-  } else if (device_model_ == RealSenseDeviceModel::D435I) {
-    compressedimage->set_encoding(rs2_format_to_string(RS2_FORMAT_BGR8));
-  }
-  compressedimage->set_measurement_time(Time::Now().ToSecond());
+  auto compressedimage = std::make_shared<CompressedImage>();
+  compressedimage->set_frame_no(f.get_frame_number());
+  compressedimage->set_format("jpeg");
+  compressedimage->set_measurement_time(f.get_timestamp());
   compressedimage->set_data(str_encode);
+
   compressed_image_writer_->Write(compressedimage);
 }
 

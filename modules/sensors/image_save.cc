@@ -26,6 +26,7 @@
 #include "cyber/task/task.h"
 #include "modules/common/global_gflags.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/proto/sensor_image.pb.h"
 #include "opencv2/opencv.hpp"
 
 void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {

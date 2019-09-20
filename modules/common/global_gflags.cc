@@ -84,7 +84,7 @@ DEFINE_double(left_cy, 200.011, "cy");
 DEFINE_double(speed_feedback, -2, "chassis speed feedback coefficient");
 
 // IMAGE
-DEFINE_int32(compress_rate, 30, "image compressed rate");
+DEFINE_int32(compress_rate, 95, "image compressed rate");
 
 // TOOLS
 DEFINE_string(image_export_dir, "/home/geek-car/out_test/",

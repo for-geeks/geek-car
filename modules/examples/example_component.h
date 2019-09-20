@@ -18,6 +18,7 @@
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/proto/sensor_image.pb.h"
 
 using apollo::cyber::Component;
 using apollo::sensors::Image;

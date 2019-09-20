@@ -41,6 +41,7 @@
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/realsense_motion.h"
 
 namespace apollo {
@@ -49,6 +50,8 @@ namespace sensors {
 using apollo::control::Chassis;
 using apollo::cyber::Component;
 using apollo::cyber::Writer;
+using apollo::sensors::Image;
+using apollo::sensors::CompressedImage;
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
@@ -64,7 +67,7 @@ class RealsenseComponent : public Component<> {
   void WheelOdometry();
   void OnGrayImage(rs2::frame fisheye_frame);
   void OnColorImage(rs2::frame f);
-  void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
+  void OnCompressedImage(cv::Mat raw_image, rs2::frame f);
   void OnPointCloud(rs2::frame f);
   void OnPose(rs2::pose_frame pose_frame);
   void OnAcc(rs2::motion_frame accel_frame);
@@ -80,7 +83,7 @@ class RealsenseComponent : public Component<> {
   std::shared_ptr<Writer<apollo::sensors::PointCloud>> point_cloud_writer_ =
       nullptr;
 
-  std::shared_ptr<Writer<Image>> compressed_image_writer_ = nullptr;
+  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
   Chassis chassis_;
 
   std::future<void> async_result_;

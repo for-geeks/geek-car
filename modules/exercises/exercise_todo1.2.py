@@ -2,7 +2,7 @@
 import numpy as np
 import cv2
 import time
-from modules.sensors.proto.sensors_pb2 import Image
+from modules.sensors.proto.sensor_image_pb2 import Image, CompressImage
 from cyber_py import cyber
 import sys
 
