@@ -30,8 +30,8 @@
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "modules/localization/proto/localization.pb.h"
-#include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {
 namespace localization {

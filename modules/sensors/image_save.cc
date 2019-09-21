@@ -25,15 +25,15 @@
 #include "cyber/cyber.h"
 #include "cyber/task/task.h"
 #include "modules/common/global_gflags.h"
-#include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 #include "opencv2/opencv.hpp"
 
 void ImageCallback(const std::shared_ptr<apollo::sensors::Image>& image) {
   ADEBUG << "image, height :" << image->height() << " width:" << image->width();
   cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
                               static_cast<int>(image->width()), CV_8UC3,
-                              const_cast<char *>(image->data().c_str()));
+                              const_cast<char*>(image->data().c_str()));
   std::string image_name =
       FLAGS_image_export_dir + std::to_string(image->frame_no()) + ".jpg";
 

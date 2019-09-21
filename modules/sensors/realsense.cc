@@ -47,7 +47,7 @@ cv::Mat frame_to_mat(rs2::frame f) {
   const int h = vf.get_height();
 
   if (f.get_profile().format() == RS2_FORMAT_BGR8) {
-    return cv::Mat(cv::Size(w, h), CV_8UC3, const_cast<void *>(f.get_data()),
+    return cv::Mat(cv::Size(w, h), CV_8UC3, const_cast<void*>(f.get_data()),
                    cv::Mat::AUTO_STEP);
   } else if (f.get_profile().format() == RS2_FORMAT_RGB8) {
     auto r = cv::Mat(cv::Size(w, h), CV_8UC3, const_cast<void*>(f.get_data()),

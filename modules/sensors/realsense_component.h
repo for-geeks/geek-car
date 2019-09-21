@@ -40,8 +40,8 @@
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
-#include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/realsense_motion.h"
 
 namespace apollo {
@@ -50,8 +50,8 @@ namespace sensors {
 using apollo::control::Chassis;
 using apollo::cyber::Component;
 using apollo::cyber::Writer;
-using apollo::sensors::Image;
 using apollo::sensors::CompressedImage;
+using apollo::sensors::Image;
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 

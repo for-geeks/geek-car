@@ -86,14 +86,14 @@ bool RealsenseComponent::Init() {
 
   if (FLAGS_publish_compressed_color_image &&
       device_model_ == RealSenseDeviceModel::D435I) {
-    compressed_image_writer_ =
-        node_->CreateWriter<CompressedImage>(FLAGS_compressed_color_image_channel);
+    compressed_image_writer_ = node_->CreateWriter<CompressedImage>(
+        FLAGS_compressed_color_image_channel);
   }
 
   if (FLAGS_publish_compressed_gray_image &&
       device_model_ == RealSenseDeviceModel::T265) {
-    compressed_image_writer_ =
-        node_->CreateWriter<CompressedImage>(FLAGS_compressed_gray_image_channel);
+    compressed_image_writer_ = node_->CreateWriter<CompressedImage>(
+        FLAGS_compressed_gray_image_channel);
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
@@ -223,8 +223,8 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
 
 void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   // Creating OpenCV Matrix from a color image
-  cv::Mat mat(cv::Size(640, 480), CV_8UC3, const_cast<void *>(color_frame.get_data()),
-              cv::Mat::AUTO_STEP);
+  cv::Mat mat(cv::Size(640, 480), CV_8UC3,
+              const_cast<void*>(color_frame.get_data()), cv::Mat::AUTO_STEP);
   AINFO << "FRAME NUMBER:" << color_frame.get_frame_number();
   auto image_proto = std::make_shared<Image>();
   image_proto->set_frame_no(color_frame.get_frame_number());
