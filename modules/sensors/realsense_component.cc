@@ -159,29 +159,28 @@ void RealsenseComponent::run() {
       OnGyro(gyro_frame);
     }
 
-    auto angle = algo_.get_theta();
-    AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
-
-    transform = Eigen::Matrix4f::Identity();
-    ::Eigen::Vector3d ea0(0, angle.x, angle.z);
-    ::Eigen::Matrix3d R;
-    R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
-        ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
-        ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
-    std::cout << "ROTATION :" << R << std::endl << std::endl;
-    Eigen::MatrixXf RR = R.cast<float>();
-    transform(0, 0) = RR(0, 0);
-    transform(0, 1) = RR(0, 1);
-    transform(0, 2) = RR(0, 2);
-    transform(1, 0) = RR(1, 0);
-    transform(1, 1) = RR(1, 1);
-    transform(1, 2) = RR(1, 2);
-    transform(2, 0) = RR(2, 0);
-    transform(2, 1) = RR(2, 1);
-    transform(2, 2) = RR(2, 2);
-    std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
-
     if (FLAGS_publish_point_cloud) {
+      auto angle = algo_.get_theta();
+      AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
+
+      transform = Eigen::Matrix4f::Identity();
+      ::Eigen::Vector3d ea0(0, angle.x, angle.z);
+      ::Eigen::Matrix3d R;
+      R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
+          ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
+          ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
+      std::cout << "ROTATION :" << R << std::endl << std::endl;
+      Eigen::MatrixXf RR = R.cast<float>();
+      transform(0, 0) = RR(0, 0);
+      transform(0, 1) = RR(0, 1);
+      transform(0, 2) = RR(0, 2);
+      transform(1, 0) = RR(1, 0);
+      transform(1, 1) = RR(1, 1);
+      transform(1, 2) = RR(1, 2);
+      transform(2, 0) = RR(2, 0);
+      transform(2, 1) = RR(2, 1);
+      transform(2, 2) = RR(2, 2);
+      std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
       rs2::frame depth_frame = frames.get_depth_frame();
       OnPointCloud(depth_frame);
     }
@@ -281,16 +280,15 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   point_cloud_proto->set_measurement_time(depth_frame.get_timestamp());
   point_cloud_proto->set_width(sp.width());
   point_cloud_proto->set_height(sp.height());
-
   // from rs-pointcloud Sample, after z axis filter, we can get 130000+ points
-  for (size_t i = 0; i < (*transformed_cloud).size(); i++) {
-    if ((*transformed_cloud)[i].z) {
+  for (size_t i = 0; i < (*cloud_filtered).size(); i++) {
+    if ((*cloud_filtered)[i].z) {
       // publish the point/texture coordinates only for points we have depth
       // data for
       apollo::sensors::PointXYZIT* p = point_cloud_proto->add_point();
-      p->set_x((*transformed_cloud)[i].x);
-      p->set_y((*transformed_cloud)[i].y);
-      p->set_z((*transformed_cloud)[i].z);
+      p->set_x((*cloud_filtered)[i].x);
+      p->set_y((*cloud_filtered)[i].y);
+      p->set_z((*cloud_filtered)[i].z);
       // p->set_intensity(0);
       // p->set_timestamp(depth_frame.get_timestamp());
     }
