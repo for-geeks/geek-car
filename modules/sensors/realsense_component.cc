@@ -160,27 +160,30 @@ void RealsenseComponent::run() {
     }
 
     if (FLAGS_publish_point_cloud) {
-      auto angle = algo_.get_theta();
-      AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
+      if(FLAGS_enable_point_cloud_transform) {
+        auto angle = algo_.get_theta();
+        AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
 
-      transform = Eigen::Matrix4f::Identity();
-      ::Eigen::Vector3d ea0(0, angle.x, angle.z);
-      ::Eigen::Matrix3d R;
-      R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
-          ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
-          ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
-      std::cout << "ROTATION :" << R << std::endl << std::endl;
-      Eigen::MatrixXf RR = R.cast<float>();
-      transform(0, 0) = RR(0, 0);
-      transform(0, 1) = RR(0, 1);
-      transform(0, 2) = RR(0, 2);
-      transform(1, 0) = RR(1, 0);
-      transform(1, 1) = RR(1, 1);
-      transform(1, 2) = RR(1, 2);
-      transform(2, 0) = RR(2, 0);
-      transform(2, 1) = RR(2, 1);
-      transform(2, 2) = RR(2, 2);
-      std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
+        transform = Eigen::Matrix4f::Identity();
+        ::Eigen::Vector3d ea0(0, angle.x, angle.z);
+        ::Eigen::Matrix3d R;
+        R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
+            ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
+            ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
+        std::cout << "ROTATION :" << R << std::endl << std::endl;
+        Eigen::MatrixXf RR = R.cast<float>();
+        transform(0, 0) = RR(0, 0);
+        transform(0, 1) = RR(0, 1);
+        transform(0, 2) = RR(0, 2);
+        transform(1, 0) = RR(1, 0);
+        transform(1, 1) = RR(1, 1);
+        transform(1, 2) = RR(1, 2);
+        transform(2, 0) = RR(2, 0);
+        transform(2, 1) = RR(2, 1);
+        transform(2, 2) = RR(2, 2);
+        std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
+      }
+
       rs2::frame depth_frame = frames.get_depth_frame();
       OnPointCloud(depth_frame);
     }

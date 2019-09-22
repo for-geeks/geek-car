@@ -68,6 +68,8 @@ DEFINE_bool(publish_color_image, true, "color image from d435i");
 DEFINE_bool(publish_compressed_color_image, true, "compressed color image");
 DEFINE_bool(publish_depth_image, true, "depth image from d435");
 DEFINE_bool(publish_point_cloud, true, "publish point cloud for 435I");
+DEFINE_bool(enable_point_cloud_transform, true, "enable_point_cloud_transform");
+
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");

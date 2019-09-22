@@ -63,6 +63,7 @@ DECLARE_bool(publish_depth_image);
 DECLARE_bool(publish_color_image);
 DECLARE_bool(publish_compressed_color_image);
 DECLARE_bool(publish_point_cloud);
+DECLARE_bool(enable_point_cloud_transform);
 
 // CONST
 DECLARE_double(cruise_speed);
