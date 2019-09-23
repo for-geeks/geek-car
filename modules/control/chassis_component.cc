@@ -51,11 +51,9 @@ bool ChassisComponent::Init() {
 
   // control message action
   async_action_ = cyber::Async(&ChassisComponent::Action, this);
-  // async_action_.get();
-  // uint32 chassis feedback
-  OnChassis();
-  // async_feedback_ = cyber::Async(&ChassisComponent::OnChassis, this);
-  // async_feedback_.get();
+
+  // thread to publish chassis message
+  std::thread(&ChassisComponent::OnChassis, this).detach();
   return true;
 }
 

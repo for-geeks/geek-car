@@ -114,7 +114,7 @@ bool RealsenseComponent::Init() {
   async_result_ = cyber::Async(&RealsenseComponent::run, this);
 
   // thread to Publish point cloud
-  PublishPointCloud();
+  std::thread(&RealsenseComponent::PublishPointCloud, this).detach();
   return true;
 }
 
