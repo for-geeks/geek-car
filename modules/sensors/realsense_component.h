@@ -74,8 +74,6 @@ private:
   void OnPose(const rs2::pose_frame &pose_frame);
   void OnAcc(const rs2::motion_frame &accel_frame);
   void OnGyro(const rs2::motion_frame &gyro_frame);
-  void Calibration();
-  void WheelOdometry();
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
