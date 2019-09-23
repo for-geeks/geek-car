@@ -70,7 +70,6 @@ DEFINE_bool(publish_depth_image, true, "depth image from d435");
 DEFINE_bool(publish_point_cloud, true, "publish point cloud for 435I");
 DEFINE_bool(enable_point_cloud_transform, true, "enable_point_cloud_transform");
 
-
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");
 DEFINE_double(longitude_kp, 5.0, "kp");
@@ -87,6 +86,9 @@ DEFINE_double(speed_feedback, -2, "chassis speed feedback coefficient");
 
 // IMAGE
 DEFINE_int32(compress_rate, 95, "image compressed rate");
+DEFINE_int32(color_image_height, 480, "image compressed rate");
+DEFINE_int32(color_image_width, 640, "image compressed rate");
+DEFINE_int32(color_image_frequency, 30, "image color_image_frequency");
 
 // TOOLS
 DEFINE_string(image_export_dir, "/home/geek-car/out_test/",

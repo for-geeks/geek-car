@@ -56,22 +56,22 @@ using apollo::sensors::Image;
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 class RealsenseComponent : public Component<> {
- public:
+public:
   bool Init() override;
   void run();
   ~RealsenseComponent();
 
- private:
+private:
   void InitDeviceAndSensor();
   void Calibration();
   void WheelOdometry();
-  void OnGrayImage(rs2::frame fisheye_frame);
-  void OnColorImage(rs2::frame f);
+  void OnGrayImage(const rs2::frame &fisheye_frame);
+  void OnColorImage(const rs2::frame &f);
   void OnCompressedImage(cv::Mat raw_image, rs2::frame f);
-  void OnPointCloud(rs2::frame f);
-  void OnPose(rs2::pose_frame pose_frame);
-  void OnAcc(rs2::motion_frame accel_frame);
-  void OnGyro(rs2::motion_frame gyro_frame);
+  void OnPointCloud(const rs2::frame &f);
+  void OnPose(const rs2::pose_frame &pose_frame);
+  void OnAcc(const rs2::motion_frame &accel_frame);
+  void OnGyro(const rs2::motion_frame &gyro_frame);
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
@@ -87,9 +87,9 @@ class RealsenseComponent : public Component<> {
   Chassis chassis_;
 
   std::future<void> async_result_;
-  rs2::device device_;     // realsense device
-  rs2::sensor sensor_;     // sensor include imu and camera;
-  uint32_t device_model_;  // realsense device model like T265 OR D435I
+  rs2::device device_;    // realsense device
+  rs2::sensor sensor_;    // sensor include imu and camera;
+  uint32_t device_model_; // realsense device model like T265 OR D435I
 
   // Contruct a pipeline which abstracts the device
   rs2::pipeline pipe;
@@ -108,5 +108,5 @@ class RealsenseComponent : public Component<> {
 };
 
 CYBER_REGISTER_COMPONENT(RealsenseComponent)
-}  // namespace sensors
-}  // namespace apollo
+} // namespace sensors
+} // namespace apollo

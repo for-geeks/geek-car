@@ -81,6 +81,9 @@ DECLARE_double(speed_feedback);
 
 // IMAGE
 DECLARE_int32(compress_rate);
+DECLARE_int32(color_image_height);
+DECLARE_int32(color_image_width);
+DECLARE_int32(color_image_frequency);
 
 // TOOLS
 DECLARE_string(image_export_dir);

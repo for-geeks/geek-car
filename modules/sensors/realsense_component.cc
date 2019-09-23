@@ -97,7 +97,7 @@ bool RealsenseComponent::Init() {
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
-      FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis>& chassis) {
+      FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis> &chassis) {
         chassis_.Clear();
         chassis_.CopyFrom(*chassis);
       });
@@ -119,15 +119,21 @@ void RealsenseComponent::InitDeviceAndSensor() {
   }
 
   // Add desired streams to configuration
-  cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+  cfg.enable_stream(RS2_STREAM_COLOR, FLAGS_color_image_width,
+                    FLAGS_color_image_height, RS2_FORMAT_BGR8,
+                    FLAGS_color_image_frequency);
   // Use a configuration object to request only depth from the pipeline
-  cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+  cfg.enable_stream(RS2_STREAM_DEPTH, FLAGS_color_image_width,
+                    FLAGS_color_image_height, RS2_FORMAT_Z16,
+                    FLAGS_color_image_frequency);
   // Add streams of gyro and accelerometer to configuration
   cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
   cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
 
   // Instruct pipeline to start streaming with the requested configuration
-  pipe.start(cfg);
+  if (!pipe.start(cfg)) {
+    AERROR << "Failed to start streaming";
+  }
 
   // load_wheel_odometery_config
   if (device_model_ == RealSenseDeviceModel::T265) {
@@ -160,7 +166,7 @@ void RealsenseComponent::run() {
     }
 
     if (FLAGS_publish_point_cloud) {
-      if(FLAGS_enable_point_cloud_transform) {
+      if (FLAGS_enable_point_cloud_transform) {
         auto angle = algo_.get_theta();
         AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
 
@@ -194,7 +200,7 @@ void RealsenseComponent::run() {
   }
 }
 
-void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
+void RealsenseComponent::OnGrayImage(const rs2::frame &fisheye_frame) {
   if (!FLAGS_publish_raw_gray_image) {
     AINFO << "Turn off the raw gray image";
     return;
@@ -224,10 +230,10 @@ void RealsenseComponent::OnGrayImage(rs2::frame fisheye_frame) {
   }
 }
 
-void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
+void RealsenseComponent::OnColorImage(const rs2::frame &color_frame) {
   // Creating OpenCV Matrix from a color image
   cv::Mat mat(cv::Size(640, 480), CV_8UC3,
-              const_cast<void*>(color_frame.get_data()), cv::Mat::AUTO_STEP);
+              const_cast<void *>(color_frame.get_data()), cv::Mat::AUTO_STEP);
   AINFO << "FRAME NUMBER:" << color_frame.get_frame_number();
   auto image_proto = std::make_shared<Image>();
   image_proto->set_frame_no(color_frame.get_frame_number());
@@ -248,7 +254,7 @@ void RealsenseComponent::OnColorImage(rs2::frame color_frame) {
   }
 }
 
-void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
+void RealsenseComponent::OnPointCloud(const rs2::frame &depth_frame) {
   // Declare pointcloud object, for calculating pointclouds and texture mappings
   rs2::pointcloud pc;
   // We want the points object to be persistent so we can display the last cloud
@@ -288,7 +294,7 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
     if ((*cloud_filtered)[i].z) {
       // publish the point/texture coordinates only for points we have depth
       // data for
-      apollo::sensors::PointXYZIT* p = point_cloud_proto->add_point();
+      apollo::sensors::PointXYZIT *p = point_cloud_proto->add_point();
       p->set_x((*cloud_filtered)[i].x);
       p->set_y((*cloud_filtered)[i].y);
       p->set_z((*cloud_filtered)[i].z);
@@ -300,7 +306,7 @@ void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
   point_cloud_writer_->Write(point_cloud_proto);
 }
 
-void RealsenseComponent::OnPose(rs2::pose_frame pose_frame) {
+void RealsenseComponent::OnPose(const rs2::pose_frame &pose_frame) {
   auto pose_data = pose_frame.get_pose_data();
   AINFO << "Pose: " << pose_data.translation;
   double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
@@ -347,7 +353,7 @@ void RealsenseComponent::OnPose(rs2::pose_frame pose_frame) {
   pose_writer_->Write(pose_proto);
 }
 
-void RealsenseComponent::OnAcc(rs2::motion_frame accel_frame) {
+void RealsenseComponent::OnAcc(const rs2::motion_frame &accel_frame) {
   rs2_vector acc = accel_frame.get_motion_data();
   // Call function that computes the angle of motion based on the retrieved
   // measures
@@ -361,7 +367,7 @@ void RealsenseComponent::OnAcc(rs2::motion_frame accel_frame) {
   acc_writer_->Write(proto_accel);
 }
 
-void RealsenseComponent::OnGyro(rs2::motion_frame gyro_frame) {
+void RealsenseComponent::OnGyro(const rs2::motion_frame &gyro_frame) {
   rs2_vector gyro = gyro_frame.get_motion_data();
   // Call function that computes the angle of motion based on the retrieved
   // measures
@@ -436,5 +442,5 @@ RealsenseComponent::~RealsenseComponent() {
   async_result_.wait();
 }
 
-}  // namespace sensors
-}  // namespace apollo
+} // namespace sensors
+} // namespace apollo

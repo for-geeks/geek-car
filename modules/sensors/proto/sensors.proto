@@ -2,8 +2,6 @@ syntax = "proto2";
 
 package apollo.sensors;
 
-import "modules/common/proto/header.proto";
-
 message RealSenseDeviceModel {
   enum DeviceModel {
     T265 = 0;
