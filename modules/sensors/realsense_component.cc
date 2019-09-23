@@ -69,8 +69,8 @@ bool RealsenseComponent::Init() {
   // Point cloud channel
   if (FLAGS_publish_point_cloud &&
       device_model_ == RealSenseDeviceModel::D435I) {
-    point_cloud_writer_ = node_->CreateWriter<apollo::sensors::PointCloud>(
-        FLAGS_point_cloud_channel);
+    point_cloud_writer_ =
+        node_->CreateWriter<PointCloud>(FLAGS_point_cloud_channel);
   }
 
   if (FLAGS_publish_acc) {
@@ -99,8 +99,22 @@ bool RealsenseComponent::Init() {
         chassis_.CopyFrom(*chassis);
       });
 
+  point_cloud_pool_.reset(new CCObjectPool<PointCloud>(8));
+  point_cloud_pool_->ConstructAll();
+  for (int i = 0; i < 8; i++) {
+    auto point_cloud = point_cloud_pool_->GetObject();
+    if (point_cloud == nullptr) {
+      AERROR << "fail to getobject, i: " << i;
+      return false;
+    }
+    point_cloud->mutable_point()->Reserve(210000);
+  }
+
   // thread to handle frames
   async_result_ = cyber::Async(&RealsenseComponent::run, this);
+
+  // thread to Publish point cloud
+  PublishPointCloud();
   return true;
 }
 
@@ -128,15 +142,15 @@ void RealsenseComponent::InitDeviceAndSensor() {
   cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
 
   // Instruct pipeline to start streaming with the requested configuration
-  if (!pipe.start(cfg)) {
-    AERROR << "Failed to start streaming";
+  auto profile = pipe.start(cfg);
+  auto sensor = profile.get_device().first<rs2::depth_sensor>();
+
+  // Set the device to High Accuracy preset of the D400 stereoscopic cameras
+  if (sensor && sensor.is<rs2::depth_stereo_sensor>())
+  {
+    sensor.set_option(RS2_OPTION_VISUAL_PRESET, RS2_RS400_VISUAL_PRESET_HIGH_ACCURACY);
   }
 
-  // load_wheel_odometery_config
-  if (device_model_ == RealSenseDeviceModel::T265) {
-    Calibration();
-    WheelOdometry();
-  }
 }
 
 void RealsenseComponent::run() {
@@ -252,52 +266,70 @@ void RealsenseComponent::OnColorImage(const rs2::frame &color_frame) {
   }
 }
 
-void RealsenseComponent::OnPointCloud(const rs2::frame &depth_frame) {
+void RealsenseComponent::OnPointCloud(rs2::frame depth_frame) {
+  rs2::threshold_filter thr_filter(static_cast<float>(FLAGS_point_cloud_min_distance),
+    static_cast<float>(FLAGS_point_cloud_max_distance));
+
+  depth_frame = thr_filter.process(depth_frame);
+
+  filtered_data.enqueue(depth_frame);
+}
+
+void RealsenseComponent::PublishPointCloud(){
+  while(!apollo::cyber::IsShutdown()) {
+  AINFO << "ENTERED PublishPointCloud METHOD";
   // Declare pointcloud object, for calculating pointclouds and texture mappings
   rs2::pointcloud pc;
   // We want the points object to be persistent so we can display the last cloud
   // when a frame drops
   rs2::points points;
 
+  rs2::frame depth_frame;
+  filtered_data.poll_for_frame(&depth_frame);
+  if(!depth_frame) {
+    AINFO << "FRAME QUEUE IS EMPTY, WAIT FOR ENQUEUE;";
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    continue;
+  }
   // Generate the pointcloud and texture mappings
   points = pc.calculate(depth_frame);
-  AINFO << "POINT SIZE BEFORE FILTER IS " << points.size();
 
+  auto t1 = Time::Now().ToSecond();
   auto pcl_points = points_to_pcl(points);
-
-  pcl_ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::PassThrough<pcl::PointXYZ> pass;
-  pass.setInputCloud(pcl_points);
-  pass.setFilterFieldName("z");
-  pass.setFilterLimits(0.0, 1.0);
-  pass.setFilterLimitsNegative(true);
-  pass.filter(*cloud_filtered);
-
-  AINFO << "POINT SIZE AFTER FILTER IS " << (*cloud_filtered).size();
+  auto t2 = Time::Now().ToSecond();
+  AINFO << "time for realsense point to point cloud:" << t2 - t1;
 
   pcl_ptr cloud_(new pcl::PointCloud<pcl::PointXYZ>);
 
   if (FLAGS_enable_point_cloud_transform) {
     // Apply an affine transform defined by an Eigen Transform.
-    pcl::transformPointCloud(*cloud_filtered, *cloud_, transform);
+    pcl::transformPointCloud(*pcl_points, *cloud_, transform);
   } else {
-    *cloud_ = *cloud_filtered;
+    *cloud_ = *pcl_points;
   }
 
   auto sp = points.get_profile().as<rs2::video_stream_profile>();
 
-  auto point_cloud_proto = std::make_shared<apollo::sensors::PointCloud>();
-  // point_cloud_proto->set_frame_no(depth_frame.get_frame_number());
-  point_cloud_proto->set_is_dense(false);
-  point_cloud_proto->set_measurement_time(depth_frame.get_timestamp());
-  point_cloud_proto->set_width(sp.width());
-  point_cloud_proto->set_height(sp.height());
+  std::shared_ptr<PointCloud> point_cloud_out = point_cloud_pool_->GetObject();
+  if (point_cloud_out == nullptr) {
+    AWARN << "point cloud pool return nullptr, will be create new.";
+    point_cloud_out = std::make_shared<PointCloud>();
+    point_cloud_out->mutable_point()->Reserve(210000);
+  }
+  if (point_cloud_out == nullptr) {
+    AWARN << "point cloud out is nullptr";
+    return;
+  }
+  point_cloud_out->Clear();
+
+  point_cloud_out->set_is_dense(false);
+  point_cloud_out->set_measurement_time(Time::Now().ToSecond());
+  point_cloud_out->set_width(sp.width());
+  point_cloud_out->set_height(sp.height());
 
   for (size_t i = 0; i < (*cloud_).size(); i++) {
     if ((*cloud_)[i].z) {
-      // publish the point/texture coordinates only for points we have depth
-      // data for
-      apollo::sensors::PointXYZIT *p = point_cloud_proto->add_point();
+      apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
       p->set_x((*cloud_)[i].x);
       p->set_y((*cloud_)[i].y);
       p->set_z((*cloud_)[i].z);
@@ -306,15 +338,20 @@ void RealsenseComponent::OnPointCloud(const rs2::frame &depth_frame) {
     }
   }
 
-  point_cloud_writer_->Write(point_cloud_proto);
+  auto tt = Time::Now().ToSecond();
+  AINFO << "all time for point cloud:" << tt - t1;
+
+  point_cloud_writer_->Write(point_cloud_out);
+  }
+
 }
 
 void RealsenseComponent::OnPose(const rs2::pose_frame &pose_frame) {
   auto pose_data = pose_frame.get_pose_data();
   AINFO << "Pose: " << pose_data.translation;
-  double norm = sqrt(pose_data.translation.x * pose_data.translation.x +
-                     pose_data.translation.y * pose_data.translation.y +
-                     pose_data.translation.z * pose_data.translation.z);
+  double norm = std::sqrt(pose_data.translation.x * pose_data.translation.x +
+                          pose_data.translation.y * pose_data.translation.y +
+                          pose_data.translation.z * pose_data.translation.z);
   if (norm > norm_max) {
     norm_max = norm;
   }
@@ -400,40 +437,6 @@ void RealsenseComponent::OnCompressedImage(const rs2::frame &f,
   compressedimage->set_data(str_encode);
 
   compressed_image_writer_->Write(compressedimage);
-}
-
-void RealsenseComponent::Calibration() {
-  cv::Mat intrinsicsL;
-  cv::Mat distCoeffsL;
-  rs2_intrinsics left = sensor_.get_stream_profiles()[0]
-                            .as<rs2::video_stream_profile>()
-                            .get_intrinsics();
-  ADEBUG << " intrinsicksL, fx:" << left.fx << ", fy:" << left.fy
-         << ", ppx:" << left.ppx << ", ppy:" << left.ppy;
-  intrinsicsL = (cv::Mat_<double>(3, 3) << left.fx, 0, left.ppx, 0, left.fy,
-                 left.ppy, 0, 0, 1);
-  distCoeffsL = cv::Mat(1, 4, CV_32F, left.coeffs);
-  cv::Mat R = cv::Mat::eye(3, 3, CV_32F);
-  cv::Mat P = (cv::Mat_<double>(3, 4) << left.fx, 0, left.ppx, 0, 0, left.fy,
-               left.ppy, 0, 0, 0, 1, 0);
-
-  cv::fisheye::initUndistortRectifyMap(intrinsicsL, distCoeffsL, R, P,
-                                       cv::Size(848, 816), CV_16SC2, map1_,
-                                       map2_);
-}
-
-void RealsenseComponent::WheelOdometry() {
-  auto wheel_odometry_sensor = device_.first<rs2::wheel_odometer>();
-  std::string calibration_file_path =
-      GetAbsolutePath(apollo::cyber::common::WorkRoot(), FLAGS_odometry_file);
-  std::ifstream calibrationFile(calibration_file_path);
-  const std::string json_str((std::istreambuf_iterator<char>(calibrationFile)),
-                             std::istreambuf_iterator<char>());
-  const std::vector<uint8_t> wo_calib(json_str.begin(), json_str.end());
-
-  if (!wheel_odometry_sensor.load_wheel_odometery_config(wo_calib)) {
-    AERROR << "Failed to load wheel odometry config file.";
-  }
 }
 
 RealsenseComponent::~RealsenseComponent() {

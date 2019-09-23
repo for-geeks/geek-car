@@ -84,6 +84,8 @@ DEFINE_double(left_cx, 211.345, "cx");
 DEFINE_double(left_cy, 200.011, "cy");
 DEFINE_double(speed_feedback, -2, "chassis speed feedback coefficient");
 
+DEFINE_double(point_cloud_min_distance, 0.2f, "point_cloud_min_distance");
+DEFINE_double(point_cloud_max_distance, 3.f, "point_cloud_max_distance");
 // IMAGE
 DEFINE_int32(compress_rate, 95, "image compressed rate");
 DEFINE_int32(color_image_height, 480, "image compressed rate");
@@ -91,8 +93,7 @@ DEFINE_int32(color_image_width, 640, "image compressed rate");
 DEFINE_int32(color_image_frequency, 30, "image color_image_frequency");
 
 // TOOLS
-DEFINE_string(image_export_dir, "/home/geek-car/out_test/",
-              "tools image saver dir");
+DEFINE_string(image_export_dir, "/apollo/data/", "tools image saver dir");
 DEFINE_string(odometry_file,
               "../modules/sensors/conf/calibration_odometry.json",
               "odometry calibration file ");

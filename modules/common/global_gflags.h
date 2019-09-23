@@ -78,6 +78,8 @@ DECLARE_double(left_fy);
 DECLARE_double(left_cx);
 DECLARE_double(left_cy);
 DECLARE_double(speed_feedback);
+DECLARE_double(point_cloud_min_distance);
+DECLARE_double(point_cloud_max_distance);
 
 // IMAGE
 DECLARE_int32(compress_rate);
