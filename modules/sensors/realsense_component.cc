@@ -32,15 +32,12 @@
 #include <utility>
 #include <vector>
 
-#include "librealsense2/rs.hpp"
-#include "opencv2/opencv.hpp"
 #include "pcl/common/transforms.h"
 #include "pcl/filters/passthrough.h"
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
 #include "cyber/time/time.h"
-#include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/realsense.h"
 
 namespace apollo {
@@ -226,14 +223,15 @@ void RealsenseComponent::OnGrayImage(const rs2::frame &fisheye_frame) {
   image_writer_->Write(image_proto);
 
   if (FLAGS_publish_compressed_gray_image) {
-    OnCompressedImage(dst, fisheye_frame);
+    OnCompressedImage(fisheye_frame, dst);
   }
 }
 
 void RealsenseComponent::OnColorImage(const rs2::frame &color_frame) {
   // Creating OpenCV Matrix from a color image
-  cv::Mat mat(cv::Size(640, 480), CV_8UC3,
-              const_cast<void *>(color_frame.get_data()), cv::Mat::AUTO_STEP);
+  cv::Mat mat(cv::Size(FLAGS_color_image_width, FLAGS_color_image_height),
+              CV_8UC3, const_cast<void *>(color_frame.get_data()),
+              cv::Mat::AUTO_STEP);
   AINFO << "FRAME NUMBER:" << color_frame.get_frame_number();
   auto image_proto = std::make_shared<Image>();
   image_proto->set_frame_no(color_frame.get_frame_number());
@@ -250,7 +248,7 @@ void RealsenseComponent::OnColorImage(const rs2::frame &color_frame) {
   color_image_writer_->Write(image_proto);
 
   if (FLAGS_publish_compressed_color_image) {
-    OnCompressedImage(mat, color_frame);
+    OnCompressedImage(color_frame, mat);
   }
 }
 
@@ -277,9 +275,14 @@ void RealsenseComponent::OnPointCloud(const rs2::frame &depth_frame) {
 
   AINFO << "POINT SIZE AFTER FILTER IS " << (*cloud_filtered).size();
 
-  // Apply an affine transform defined by an Eigen Transform.
-  pcl_ptr transformed_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::transformPointCloud(*cloud_filtered, *transformed_cloud, transform);
+  pcl_ptr cloud_(new pcl::PointCloud<pcl::PointXYZ>);
+
+  if (FLAGS_enable_point_cloud_transform) {
+    // Apply an affine transform defined by an Eigen Transform.
+    pcl::transformPointCloud(*cloud_filtered, *cloud_, transform);
+  } else {
+    *cloud_ = *cloud_filtered;
+  }
 
   auto sp = points.get_profile().as<rs2::video_stream_profile>();
 
@@ -289,15 +292,15 @@ void RealsenseComponent::OnPointCloud(const rs2::frame &depth_frame) {
   point_cloud_proto->set_measurement_time(depth_frame.get_timestamp());
   point_cloud_proto->set_width(sp.width());
   point_cloud_proto->set_height(sp.height());
-  // from rs-pointcloud Sample, after z axis filter, we can get 130000+ points
-  for (size_t i = 0; i < (*cloud_filtered).size(); i++) {
-    if ((*cloud_filtered)[i].z) {
+
+  for (size_t i = 0; i < (*cloud_).size(); i++) {
+    if ((*cloud_)[i].z) {
       // publish the point/texture coordinates only for points we have depth
       // data for
       apollo::sensors::PointXYZIT *p = point_cloud_proto->add_point();
-      p->set_x((*cloud_filtered)[i].x);
-      p->set_y((*cloud_filtered)[i].y);
-      p->set_z((*cloud_filtered)[i].z);
+      p->set_x((*cloud_)[i].x);
+      p->set_y((*cloud_)[i].y);
+      p->set_z((*cloud_)[i].z);
       // p->set_intensity(0);
       // p->set_timestamp(depth_frame.get_timestamp());
     }
@@ -355,8 +358,7 @@ void RealsenseComponent::OnPose(const rs2::pose_frame &pose_frame) {
 
 void RealsenseComponent::OnAcc(const rs2::motion_frame &accel_frame) {
   rs2_vector acc = accel_frame.get_motion_data();
-  // Call function that computes the angle of motion based on the retrieved
-  // measures
+  // Computes the angle of motion based on the retrieved measures
   algo_.process_accel(acc);
   AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
   auto proto_accel = std::make_shared<Acc>();
@@ -369,8 +371,7 @@ void RealsenseComponent::OnAcc(const rs2::motion_frame &accel_frame) {
 
 void RealsenseComponent::OnGyro(const rs2::motion_frame &gyro_frame) {
   rs2_vector gyro = gyro_frame.get_motion_data();
-  // Call function that computes the angle of motion based on the retrieved
-  // measures
+  // Computes the angle of motion based on the retrieved measures
   algo_.process_gyro(gyro, gyro_frame.get_timestamp());
   AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
   auto proto_gyro = std::make_shared<Gyro>();
@@ -381,7 +382,8 @@ void RealsenseComponent::OnGyro(const rs2::motion_frame &gyro_frame) {
   gyro_writer_->Write(proto_gyro);
 }
 
-void RealsenseComponent::OnCompressedImage(cv::Mat raw_image, rs2::frame f) {
+void RealsenseComponent::OnCompressedImage(const rs2::frame &f,
+                                           cv::Mat raw_image) {
   std::vector<uchar> data_encode;
   std::vector<int> param = std::vector<int>(2);
   param[0] = CV_IMWRITE_JPEG_QUALITY;

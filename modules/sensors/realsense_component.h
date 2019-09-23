@@ -63,15 +63,15 @@ public:
 
 private:
   void InitDeviceAndSensor();
-  void Calibration();
-  void WheelOdometry();
   void OnGrayImage(const rs2::frame &fisheye_frame);
   void OnColorImage(const rs2::frame &f);
-  void OnCompressedImage(cv::Mat raw_image, rs2::frame f);
+  void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
   void OnPointCloud(const rs2::frame &f);
   void OnPose(const rs2::pose_frame &pose_frame);
   void OnAcc(const rs2::motion_frame &accel_frame);
   void OnGyro(const rs2::motion_frame &gyro_frame);
+  void Calibration();
+  void WheelOdometry();
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
