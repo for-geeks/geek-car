@@ -126,6 +126,7 @@ function create_data_dir() {
   mkdir -p "${DATA_DIR}/log"
   mkdir -p "${DATA_DIR}/bag"
   mkdir -p "${DATA_DIR}/core"
+  mkdir -p "${DATA_DIR}/images"
 }
 
 function determine_bin_prefix() {

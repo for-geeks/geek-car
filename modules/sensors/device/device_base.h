@@ -27,6 +27,8 @@
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 
+#include "modules/common/global_gflags.h"
+
 namespace apollo {
 namespace sensors {
 
@@ -43,8 +45,8 @@ class DeviceBase {
 
   void OnImage(cv::Mat raw_image, uint64 frame_no);
   void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
-  void OnAcc(rs2::frame f);
-  void OnGyro(rs2::frame f);
+  void OnAcc(const rs2::frame &f);
+  void OnGyro(const rs2::frame &f);
 
  private:
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
