@@ -31,6 +31,8 @@ cc_library(
         "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
+        "//modules/sensors/device:device_base",
+        "//modules/sensors/device:d435_lib",
         "@eigen",
         "@pcl",
     ],

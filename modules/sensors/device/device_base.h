@@ -27,7 +27,13 @@
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 
+#include "cyber/cyber.h"
 #include "modules/common/global_gflags.h"
+#include "modules/control/proto/chassis.pb.h"
+#include "modules/sensors/proto/pointcloud.pb.h"
+#include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense_motion.h"
 
 namespace apollo {
 namespace sensors {
@@ -39,7 +45,7 @@ using apollo::sensors::PointCloud;
 
 class DeviceBase {
  public:
-  void DeviceBase() = default;
+  DeviceBase() = default;
   virtual bool Init() = 0;
   virtual void InitChannelWriter() = 0;
   virtual void DeviceConfig() = 0;
@@ -48,10 +54,11 @@ class DeviceBase {
 
   virtual ~DeviceBase() = default;
 
-  void OnImage(cv::Mat raw_image, uint64 frame_no);
   void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
-  void OnAcc(const rs2::frame &f);
-  void OnGyro(const rs2::frame &f);
+  void OnAcc(const rs2::motion_frame &accel_frame);
+  void OnGyro(const rs2::motion_frame &gyro_frame);
+
+  std::future<void> async_result_;
 
  private:
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
@@ -59,7 +66,7 @@ class DeviceBase {
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
 
-  std::future<void> async_result_;
+  
   rs2::device device_;  // realsense device
   rs2::sensor sensor_;  // sensor include imu and camera;
 
@@ -68,6 +75,9 @@ class DeviceBase {
 
   // Configuring the pipeline with a non default profile
   rs2::config cfg;
+
+  // Declare object that handles camera pose calculations
+  rotation_estimator algo_;
 };
 
 void DeviceBase::OnAcc(const rs2::motion_frame &accel_frame) {

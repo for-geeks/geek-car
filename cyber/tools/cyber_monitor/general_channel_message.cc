@@ -25,6 +25,10 @@
 
 namespace {
 constexpr int ReaderWriterOffset = 4;
+
+static constexpr size_t kGB = 1 << 30;
+static constexpr size_t kMB = 1 << 20;
+static constexpr size_t kKB = 1 << 10;
 }  // namespace
 
 const char* GeneralChannelMessage::errCode2Str(
@@ -240,14 +244,14 @@ void GeneralChannelMessage::RenderDebugString(const Screen* s, int key,
         outStr.str("");
         outStr << channelMsg->message.size() << " Bytes";
 
-        if (channelMsg->message.size() >= (1024 * 1024 * 1024)) {
-          outStr << " (" << static_cast<double>(channelMsg->message.size()) / (1024 * 1024 * 1024)
+        if (channelMsg->message.size() >= kGB) {
+          outStr << " (" << static_cast<float>(channelMsg->message.size()) / kGB
                     << " GB)";
-        } else if (channelMsg->message.size() >= (1024 * 1024)) {
-          outStr << " (" << static_cast<double>(channelMsg->message.size()) / (1024 * 1024)
+        } else if (channelMsg->message.size() >= kMB) {
+          outStr << " (" << static_cast<float>(channelMsg->message.size()) / kMB
                     << " MB)";
-        } else if (channelMsg->message.size() >= 1024) {
-          outStr << " (" << static_cast<double>(channelMsg->message.size()) / 1024 << " KB)";
+        } else if (channelMsg->message.size() >= kKB) {
+          outStr << " (" << static_cast<float>(channelMsg->message.size()) / kKB << " KB)";
         }
         s->AddStr(outStr.str().c_str());
         if (raw_msg_class_->ParseFromString(channelMsg->message)) {

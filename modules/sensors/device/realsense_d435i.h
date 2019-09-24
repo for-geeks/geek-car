@@ -23,7 +23,12 @@
 ******************************************************************************/
 #include "modules/sensors/device/device_base.h"
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <memory>
+
+#include "cyber/base/concurrent_object_pool.h"
 
 namespace apollo {
 namespace sensors {
@@ -33,6 +38,7 @@ using apollo::cyber::Time;
 using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
 using apollo::sensors::PointCloud;
+using apollo::cyber::base::CCObjectPool;
 
 class D435I : public DeviceBase {
  public:

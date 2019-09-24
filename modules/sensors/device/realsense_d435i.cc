@@ -59,10 +59,10 @@ bool D435I::Init() {
   }
 
   // Thread to handle frames
-  async_result_ = cyber::Async(&RealsenseComponent::Run, this);
+  async_result_ = cyber::Async(&D435I::Run, this);
 
   // Thread to get point cloud from frame queue, and publish
-  std::thread(&RealsenseComponent::PublishPointCloud, this).detach();
+  std::thread(&D435I::PublishPointCloud, this).detach();
   AINFO << "Device Realsense D435I Init succussfuly";
   return true;
 }
@@ -173,7 +173,7 @@ void D435I::Run() {
   }
 }
 
-void RealsenseComponent::OnColorImage(const rs2::frame &color_frame) {
+void D435I::OnColorImage(const rs2::frame &color_frame) {
   // Creating OpenCV Matrix from a color image
   cv::Mat mat(cv::Size(FLAGS_color_image_width, FLAGS_color_image_height),
               CV_8UC3, const_cast<void *>(color_frame.get_data()),

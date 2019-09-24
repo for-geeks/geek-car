@@ -31,15 +31,11 @@
 
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
-#include "modules/device/realsense_d435i.h"
-#include "modules/device/realsense_t265.h"
+
 #include "modules/sensors/realsense.h"
 
 namespace apollo {
 namespace sensors {
-
-using apollo::sensors::device::D435I;
-using apollo::sensors::device::T265;
 
 bool RealsenseComponent::Init() {
   // TODO(FENGZONGBAO): READ CONFIG
@@ -54,14 +50,14 @@ void RealsenseComponent::InitDeviceAndSensor() {
   device_ = first_connected_device();
 
   if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
-    device_object_ = new T265();
+    // device_object_ = new T265();
   } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
-    device_object_ = new D435I();
+    // device_object_ = D435I();
   } else {
     AERROR << "The device data is not yet supported for parsing";
   }
 
-  if (!device_object_->Init()) {
+  if (!device_object_.Init()) {
     AERROR << "Failed to init Realsense device";
   }
 }
@@ -71,7 +67,6 @@ RealsenseComponent::~RealsenseComponent() {
     sensor_.stop();
     sensor_.close();
   }
-  async_result_.wait();
 }
 
 }  // namespace sensors

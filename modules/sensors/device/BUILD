@@ -15,11 +15,11 @@ cc_library(
     ],
     deps = [
         ":device_base",
-        ":realsense_motion",
         "//cyber",
         "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
+        "//modules/sensors:realsense_motion",
         "@eigen",
         "@pcl",
     ],
