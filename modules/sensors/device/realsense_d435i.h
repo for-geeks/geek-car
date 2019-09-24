@@ -23,22 +23,60 @@
 ******************************************************************************/
 #include "modules/sensors/device/device_base.h"
 
+#include <memory>
+
 namespace apollo {
 namespace sensors {
+namespace device {
+
+using apollo::cyber::Time;
+using apollo::sensors::Acc;
+using apollo::sensors::Gyro;
+using apollo::sensors::PointCloud;
+
 class D435I : public DeviceBase {
  public:
   D435I();
   ~D435I();
 
   bool Init();
+  void InitChannelWriter();
+  void DeviceConfig();
 
-  void OnDepthImage(cv::Mat mat, uint64 frame_no);
-  void OnPointCloud(rs2::frame f);
+  void Run();
+
+  void OnColorImage(const rs2::frame &f);
+  void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
+  void OnPointCloud(rs2::frame depth_frame);
+  void PublishPointCloud();
 
  private:
-  std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
-  std::shared_ptr<Writer<apollo::sensors::PointCloud>> point_cloud_writer_ =
-      nullptr;
+  std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
+  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
+
+  std::shared_ptr<Writer<PointCloud>> point_cloud_writer_ = nullptr;
+
+  std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
+  std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
+
+  std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
+
+  // Contruct a pipeline which abstracts the device
+  rs2::pipeline pipe;
+
+  // Configuring the pipeline with a non default profile
+  rs2::config cfg;
+
+  // filtered point cloud frame
+  rs2::frame_queue filtered_data;
+
+  const int pool_size_ = 8;
+  const int point_size_ = 210000;
+
+  // Declare object that handles camera pose calculations
+  rotation_estimator algo_;
+  Eigen::Matrix4f transform;
 };
+}  // namespace device
 }  // namespace sensors
 }  // namespace apollo

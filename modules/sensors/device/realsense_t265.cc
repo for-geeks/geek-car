@@ -23,6 +23,9 @@
 ******************************************************************************/
 #include "modules/sensors/device/realsense_t265.h"
 
+#include <string>
+#include <vector>
+
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/sensors/proto/point_cloud.pb.h"
@@ -30,6 +33,14 @@
 
 namespace apollo {
 namespace sensors {
+namespace device {
+
+using apollo::cyber::Time;
+using apollo::cyber::common::GetAbsolutePath;
+using apollo::sensors::Acc;
+using apollo::sensors::Gyro;
+using apollo::sensors::Pose;
+
 bool T265::Init() {
   cfg.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
   cfg.enable_stream(RS2_STREAM_FISHEYE, 1);
@@ -69,8 +80,37 @@ bool T265::Init() {
   return true;
 }
 
-void T265::OnPose(rs2::frame f) {
-  auto pose_frame = f.as<rs2::pose_frame>();
+void D435I::Run() {
+  while (!apollo::cyber::IsShutdown()) {
+    // Camera warmup - dropping several first frames to let auto-exposure
+    // stabilize
+    rs2::frameset frames;
+    // Wait for all configured streams to produce a frame
+    frames = pipe.wait_for_frames();
+
+    if (FLAGS_publish_acc) {
+      rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
+      OnAcc(accel_frame);
+    }
+
+    if (FLAGS_publish_gyro) {
+      rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
+      OnGyro(gyro_frame);
+    }
+
+    if (FLAGS_publish_pose) {
+      auto pose_frame = frames.get_pose_frame();
+      OnPose(pose_frame);
+    }
+
+    if (FLAGS_publish_compressed_gray_image) {
+      auto fisheye_frame = frames.get_fisheye_frame(fisheye_sensor_idx);
+      OnGrayImage(fisheye_frame);
+    }
+  }
+}
+
+void T265::OnPose(const rs2::frame& pose_frame) {
   if (pose_frame.get_frame_number() % 5 == 0) {
     auto pose_data = pose_frame.get_pose_data();
     AINFO << "pose " << pose_data.translation;
@@ -120,6 +160,55 @@ void T265::OnPose(rs2::frame f) {
   }
 }
 
+void T265::OnGrayImage(const rs2::frame& fisheye_frame) {
+  if (!FLAGS_publish_raw_gray_image) {
+    AINFO << "Turn off the raw gray image";
+    return;
+  }
+
+  cv::Mat image = frame_to_mat(fisheye_frame);
+  cv::Mat dst;
+  cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
+  cv::Size dsize = cv::Size(static_cast<int>(dst.cols * 0.5),
+                            static_cast<int>(dst.rows * 0.5));
+  cv::Mat new_size_img(dsize, CV_8U);
+  cv::resize(dst, new_size_img, dsize);
+
+  auto image_proto = std::make_shared<Image>();
+  image_proto->set_frame_no(fisheye_frame.get_frame_number());
+  image_proto->set_height(dst.rows);
+  image_proto->set_width(dst.cols);
+  // encodings
+  image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+  image_proto->set_measurement_time(fisheye_frame.get_timestamp());
+  auto m_size = dst.rows * dst.cols * dst.elemSize();
+  image_proto->set_data(dst.data, m_size);
+  image_writer_->Write(image_proto);
+
+  if (FLAGS_publish_compressed_gray_image) {
+    OnCompressedImage(fisheye_frame, dst);
+  }
+}
+
+void D435I::OnCompressedImage(const rs2::frame& f, cv::Mat raw_image) {
+  std::vector<uchar> data_encode;
+  std::vector<int> param = std::vector<int>(2);
+  param[0] = CV_IMWRITE_JPEG_QUALITY;
+  param[1] = FLAGS_compress_rate;
+  cv::Mat tmp_mat;
+  cv::cvtColor(raw_image, tmp_mat, cv::COLOR_RGB2BGR);
+  cv::imencode(".jpeg", tmp_mat, data_encode, param);
+  std::string str_encode(data_encode.begin(), data_encode.end());
+
+  auto compressedimage = std::make_shared<CompressedImage>();
+  compressedimage->set_frame_no(f.get_frame_number());
+  compressedimage->set_format("jpeg");
+  compressedimage->set_measurement_time(f.get_timestamp());
+  compressedimage->set_data(str_encode);
+
+  compressed_image_writer_->Write(compressedimage);
+}
+
 void T265::Calibration() {
   cv::Mat intrinsicsL;
   cv::Mat distCoeffsL;
@@ -154,5 +243,6 @@ void T265::WheelOdometry() {
   }
 }
 
+}  // namespace device
 }  // namespace sensors
 }  // namespace apollo

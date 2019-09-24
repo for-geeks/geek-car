@@ -35,24 +35,38 @@ class T265 : public DeviceBase {
 
   bool Init();
 
+ private:
+  void InitDeviceAndSensor();
+  void OnGrayImage(const rs2::frame &fisheye_frame);
+  void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
+  void OnPose(const rs2::pose_frame &pose_frame);
+  void OnAcc(const rs2::motion_frame &accel_frame);
+  void OnGyro(const rs2::motion_frame &gyro_frame);
+
   void Calibration();
   void WheelOdometry();
-  void OnPose(rs2::frame f);
-
- private:
-  rs2::device device_;  // realsense device
-  rs2::sensor sensor_;  // sensor include imu and camera;
 
   std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
+
+  std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
+  std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
+  std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
+
+  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
 
   Chassis chassis_;
+
+  rs2::device device_;  // realsense device
+  rs2::sensor sensor_;  // sensor include imu and camera;
 
   // fisheye calibration map
   cv::Mat map1_;
   cv::Mat map2_;
 
   double norm_max = 0;
+
+  const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
 };
 }  // namespace sensors
 }  // namespace apollo

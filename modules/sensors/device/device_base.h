@@ -32,19 +32,24 @@
 namespace apollo {
 namespace sensors {
 
+using apollo::cyber::Writer;
+using apollo::sensors::CompressedImage;
+using apollo::sensors::Image;
+using apollo::sensors::PointCloud;
+
 class DeviceBase {
  public:
   void DeviceBase() = default;
   virtual bool Init() = 0;
-  virtual void Config() = 0;
-  virtual void InitDevice() = 0;
+  virtual void InitChannelWriter() = 0;
+  virtual void DeviceConfig() = 0;
 
   virtual void Run();
 
   virtual ~DeviceBase() = default;
 
   void OnImage(cv::Mat raw_image, uint64 frame_no);
-  void OnCompressedImage(cv::Mat raw_image, uint64 frame_no);
+  void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
   void OnAcc(const rs2::frame &f);
   void OnGyro(const rs2::frame &f);
 
@@ -52,19 +57,43 @@ class DeviceBase {
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
-  std::shared_ptr<Writer<Image>> compressed_image_writer_ = nullptr;
+  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
 
   std::future<void> async_result_;
-  rs2::device device_;     // realsense device
-  rs2::sensor sensor_;     // sensor include imu and camera;
-  uint32_t device_model_;  // realsense device model like T265 OR D435I
+  rs2::device device_;  // realsense device
+  rs2::sensor sensor_;  // sensor include imu and camera;
 
   // Contruct a pipeline which abstracts the device
   rs2::pipeline pipe;
 
-  // Create a configuration for configuring the pipeline with a non default
-  // profile
+  // Configuring the pipeline with a non default profile
   rs2::config cfg;
 };
+
+void DeviceBase::OnAcc(const rs2::motion_frame &accel_frame) {
+  rs2_vector acc = accel_frame.get_motion_data();
+  // Computes the angle of motion based on the retrieved measures
+  algo_.process_accel(acc);
+  AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
+  auto proto_accel = std::make_shared<Acc>();
+  proto_accel->mutable_acc()->set_x(acc.x);
+  proto_accel->mutable_acc()->set_y(acc.y);
+  proto_accel->mutable_acc()->set_z(acc.z);
+
+  acc_writer_->Write(proto_accel);
+}
+
+void DeviceBase::OnGyro(const rs2::motion_frame &gyro_frame) {
+  rs2_vector gyro = gyro_frame.get_motion_data();
+  // Computes the angle of motion based on the retrieved measures
+  algo_.process_gyro(gyro, gyro_frame.get_timestamp());
+  AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
+  auto proto_gyro = std::make_shared<Gyro>();
+  proto_gyro->mutable_gyro()->set_x(gyro.x);
+  proto_gyro->mutable_gyro()->set_y(gyro.y);
+  proto_gyro->mutable_gyro()->set_z(gyro.z);
+
+  gyro_writer_->Write(proto_gyro);
+}
 }  // namespace sensors
 }  // namespace apollo
