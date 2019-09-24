@@ -57,7 +57,8 @@ void RealsenseComponent::InitDeviceAndSensor() {
     AERROR << "The device data is not yet supported for parsing";
   }
 
-  if (!device_object_.Init()) {
+  // Channel writer
+  if (!device_object_.Init(node_)) {
     AERROR << "Failed to init Realsense device";
   }
 }

@@ -35,19 +35,19 @@ namespace sensors {
 namespace device {
 
 using apollo::cyber::Time;
+using apollo::cyber::base::CCObjectPool;
 using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
 using apollo::sensors::PointCloud;
-using apollo::cyber::base::CCObjectPool;
 
 class D435I : public DeviceBase {
  public:
   D435I();
   ~D435I();
 
-  bool Init();
-  void InitChannelWriter();
+  bool Init(std::shared_ptr<Node> node_);
   void DeviceConfig();
+  void InitChannelWriter(std::shared_ptr<Node> node_);
 
   void Run();
 

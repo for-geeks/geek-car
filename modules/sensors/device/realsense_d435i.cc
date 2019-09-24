@@ -40,11 +40,11 @@ namespace device {
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
-bool D435I::Init() {
+bool D435I::Init(std::shared_ptr<Node> node) {
   // 1. Init Device
   DeviceConfig();
   // 2. Channel Writer Config
-  InitChannelWriter();
+  InitChannelWriter(node);
 
   // 3. Concurrent object pool for point cloud
   point_cloud_pool_.reset(new CCObjectPool<PointCloud>(pool_size_));
@@ -91,7 +91,7 @@ void D435I::DeviceConfig() {
   }
 }
 
-void D435I::InitChannelWriter() {
+void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
   // Channel Writer flags
   if (FLAGS_publish_color_image) {
     color_image_writer_ = node_->CreateWriter<Image>(FLAGS_color_image_channel);

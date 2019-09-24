@@ -66,7 +66,6 @@ class DeviceBase {
   std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
   std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
 
-  
   rs2::device device_;  // realsense device
   rs2::sensor sensor_;  // sensor include imu and camera;
 
