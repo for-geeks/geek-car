@@ -41,6 +41,10 @@ namespace device {
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
+D435I::D435I(){
+
+}
+
 bool D435I::Init(std::shared_ptr<Node> node_) {
   // 1. Init Device
   DeviceConfig();
@@ -64,7 +68,7 @@ bool D435I::Init(std::shared_ptr<Node> node_) {
 
   // Thread to get point cloud from frame queue, and publish
   std::thread(&D435I::PublishPointCloud, this).detach();
-  AINFO << "Device Realsense D435I Init succussfuly";
+  AINFO << "Realsense Device D435I Init Successfuly";
   return true;
 }
 
@@ -86,10 +90,10 @@ void D435I::DeviceConfig() {
   auto sensor = profile.get_device().first<rs2::depth_sensor>();
 
   // Set the device to High Accuracy preset of the D400 stereoscopic cameras
-  if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
-    sensor.set_option(RS2_OPTION_VISUAL_PRESET,
-                      RS2_RS400_VISUAL_PRESET_HIGH_ACCURACY);
-  }
+  // if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
+  //   sensor.set_option(RS2_OPTION_VISUAL_PRESET,
+  //                     RS2_RS400_VISUAL_PRESET_HIGH_ACCURACY);
+  // }
 }
 
 void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
@@ -189,7 +193,7 @@ void D435I::OnColorImage(const rs2::frame &color_frame) {
   image_proto->set_encoding(
       rs2_format_to_string(color_frame.get_profile().format()));
 
-  image_proto->set_measurement_time(color_frame.get_timestamp());
+  image_proto->set_measurement_time(Time::Now().ToSecond());
   auto m_size = mat.rows * mat.cols * mat.elemSize();
   image_proto->set_data(mat.data, m_size);
   color_image_writer_->Write(image_proto);
@@ -300,7 +304,8 @@ void D435I::OnCompressedImage(const rs2::frame &f, cv::Mat raw_image) {
 }
 
 D435I::~D435I(){
-  // delete data members  
+  // delete data members
+  AINFO << "Deconstructor from D435I";
 }
 
 }  // namespace device

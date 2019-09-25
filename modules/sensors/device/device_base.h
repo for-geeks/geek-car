@@ -55,22 +55,46 @@ class DeviceBase {
   virtual void InitChannelWriter(std::shared_ptr<Node> node_) = 0;
   virtual void DeviceConfig() = 0;
 
-  virtual void Run();
+  virtual void Run() = 0;
 
-  virtual ~DeviceBase();
+  virtual ~DeviceBase() {
+    AINFO << "Deconstructor from DeviceBase";
+  };
 
   void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
-  void OnAcc(const rs2::motion_frame &accel_frame);
-  void OnGyro(const rs2::motion_frame &gyro_frame);
 
+  void OnAcc(const rs2::motion_frame &accel_frame) {
+    rs2_vector acc = accel_frame.get_motion_data();
+    // Computes the angle of motion based on the retrieved measures
+    algo_.process_accel(acc);
+    AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
+    auto proto_accel = std::make_shared<Acc>();
+    proto_accel->mutable_acc()->set_x(acc.x);
+    proto_accel->mutable_acc()->set_y(acc.y);
+    proto_accel->mutable_acc()->set_z(acc.z);
+
+    acc_writer_->Write(proto_accel);
+  }
+
+  void OnGyro(const rs2::motion_frame &gyro_frame) {
+    rs2_vector gyro = gyro_frame.get_motion_data();
+    // Computes the angle of motion based on the retrieved measures
+    algo_.process_gyro(gyro, gyro_frame.get_timestamp());
+    AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
+    auto proto_gyro = std::make_shared<Gyro>();
+    proto_gyro->mutable_gyro()->set_x(gyro.x);
+    proto_gyro->mutable_gyro()->set_y(gyro.y);
+    proto_gyro->mutable_gyro()->set_z(gyro.z);
+
+    gyro_writer_->Write(proto_gyro);
+  }
+
+ protected:
+  std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
+  std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
   std::future<void> async_result_;
 
  private:
-  std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
-  std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
-  std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
-  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
-
   rs2::device device_;  // realsense device
   rs2::sensor sensor_;  // sensor include imu and camera;
 
@@ -84,31 +108,6 @@ class DeviceBase {
   rotation_estimator algo_;
 };
 
-void DeviceBase::OnAcc(const rs2::motion_frame &accel_frame) {
-  rs2_vector acc = accel_frame.get_motion_data();
-  // Computes the angle of motion based on the retrieved measures
-  algo_.process_accel(acc);
-  AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
-  auto proto_accel = std::make_shared<Acc>();
-  proto_accel->mutable_acc()->set_x(acc.x);
-  proto_accel->mutable_acc()->set_y(acc.y);
-  proto_accel->mutable_acc()->set_z(acc.z);
-
-  acc_writer_->Write(proto_accel);
-}
-
-void DeviceBase::OnGyro(const rs2::motion_frame &gyro_frame) {
-  rs2_vector gyro = gyro_frame.get_motion_data();
-  // Computes the angle of motion based on the retrieved measures
-  algo_.process_gyro(gyro, gyro_frame.get_timestamp());
-  AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
-  auto proto_gyro = std::make_shared<Gyro>();
-  proto_gyro->mutable_gyro()->set_x(gyro.x);
-  proto_gyro->mutable_gyro()->set_y(gyro.y);
-  proto_gyro->mutable_gyro()->set_z(gyro.z);
-
-  gyro_writer_->Write(proto_gyro);
-}
-}
+}  // namespace device
 }  // namespace sensors
 }  // namespace apollo

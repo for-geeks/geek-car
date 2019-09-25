@@ -56,9 +56,9 @@ class D435I : public DeviceBase {
   D435I();
   ~D435I();
 
-  bool Init(std::shared_ptr<Node> node_);
-  void DeviceConfig();
-  void InitChannelWriter(std::shared_ptr<Node> node_);
+  bool Init(std::shared_ptr<Node> node_) override;
+  void DeviceConfig() override;
+  void InitChannelWriter(std::shared_ptr<Node> node_) override;
 
   void Run();
 
@@ -72,9 +72,6 @@ class D435I : public DeviceBase {
   std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
 
   std::shared_ptr<Writer<PointCloud>> point_cloud_writer_ = nullptr;
-
-  std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
-  std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
 
   std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
 

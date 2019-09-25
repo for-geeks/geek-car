@@ -34,7 +34,6 @@
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
 
-
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "cyber/node/node.h"
