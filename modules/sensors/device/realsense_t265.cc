@@ -23,14 +23,34 @@
 ******************************************************************************/
 #include "modules/sensors/device/realsense_t265.h"
 
-#include "modules/common/global_gflags.h"
-#include "modules/control/proto/chassis.pb.h"
-#include "modules/sensors/proto/point_cloud.pb.h"
-#include "modules/sensors/proto/sensors.pb.h"
+#include <string>
+#include <vector>
+
+#include "modules/sensors/realsense.h"
 
 namespace apollo {
 namespace sensors {
-bool T265::Init() {
+namespace device {
+
+using apollo::cyber::Time;
+using apollo::cyber::common::GetAbsolutePath;
+using apollo::sensors::Acc;
+using apollo::sensors::Gyro;
+using apollo::sensors::Pose;
+
+bool T265::Init(std::shared_ptr<Node> node_) {
+  // 1. DeviceConfig
+  DeviceConfig();
+
+  InitChannelWriter(node_);
+
+  async_result_ = cyber::Async(&T265::Run, this);
+
+  return true;
+}
+
+void T265::DeviceConfig() {
+  // Add desired streams to configuration
   cfg.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
   cfg.enable_stream(RS2_STREAM_FISHEYE, 1);
   cfg.enable_stream(RS2_STREAM_FISHEYE, 2);
@@ -38,9 +58,11 @@ bool T265::Init() {
   cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
   cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
 
-  // Instruct pipeline to start streaming with the requested configuration
   pipe.start(cfg);
+}
 
+void T265::InitChannelWriter(std::shared_ptr<Node> node_) {
+  // Channel Writer flags
   if (FLAGS_publish_pose) {
     pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
   }
@@ -58,7 +80,7 @@ bool T265::Init() {
 
   if (FLAGS_publish_compressed_gray_image) {
     compressed_image_writer_ =
-        node_->CreateWriter<Image>(FLAGS_compressed_gray_image_channel);
+        node_->CreateWriter<CompressedImage>(FLAGS_compressed_gray_image_channel);
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
@@ -66,11 +88,39 @@ bool T265::Init() {
         chassis_.Clear();
         chassis_.CopyFrom(*chassis);
       });
-  return true;
 }
 
-void T265::OnPose(rs2::frame f) {
-  auto pose_frame = f.as<rs2::pose_frame>();
+void T265::Run() {
+  while (!apollo::cyber::IsShutdown()) {
+    // Camera warmup - dropping several first frames to let auto-exposure
+    // stabilize
+    rs2::frameset frames;
+    // Wait for all configured streams to produce a frame
+    frames = pipe.wait_for_frames();
+
+    if (FLAGS_publish_acc) {
+      rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
+      OnAcc(accel_frame);
+    }
+
+    if (FLAGS_publish_gyro) {
+      rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
+      OnGyro(gyro_frame);
+    }
+
+    if (FLAGS_publish_pose) {
+      auto pose_frame = frames.get_pose_frame();
+      OnPose(pose_frame);
+    }
+
+    if (FLAGS_publish_compressed_gray_image) {
+      auto fisheye_frame = frames.get_fisheye_frame(fisheye_sensor_idx);
+      OnGrayImage(fisheye_frame);
+    }
+  }
+}
+
+void T265::OnPose(const rs2::pose_frame &pose_frame) {
   if (pose_frame.get_frame_number() % 5 == 0) {
     auto pose_data = pose_frame.get_pose_data();
     AINFO << "pose " << pose_data.translation;
@@ -120,6 +170,36 @@ void T265::OnPose(rs2::frame f) {
   }
 }
 
+void T265::OnGrayImage(const rs2::frame& fisheye_frame) {
+  if (!FLAGS_publish_raw_gray_image) {
+    AINFO << "Turn off the raw gray image";
+    return;
+  }
+
+  cv::Mat image = frame_to_mat(fisheye_frame);
+  cv::Mat dst;
+  cv::remap(image, dst, map1_, map2_, cv::INTER_LINEAR);
+  cv::Size dsize = cv::Size(static_cast<int>(dst.cols * 0.5),
+                            static_cast<int>(dst.rows * 0.5));
+  cv::Mat new_size_img(dsize, CV_8U);
+  cv::resize(dst, new_size_img, dsize);
+
+  auto image_proto = std::make_shared<Image>();
+  image_proto->set_frame_no(fisheye_frame.get_frame_number());
+  image_proto->set_height(dst.rows);
+  image_proto->set_width(dst.cols);
+  // encodings
+  image_proto->set_encoding(rs2_format_to_string(RS2_FORMAT_Y8));
+  image_proto->set_measurement_time(fisheye_frame.get_timestamp());
+  auto m_size = dst.rows * dst.cols * dst.elemSize();
+  image_proto->set_data(dst.data, m_size);
+  image_writer_->Write(image_proto);
+
+  if (FLAGS_publish_compressed_gray_image) {
+    OnCompressedImage(fisheye_frame, dst);
+  }
+}
+
 void T265::Calibration() {
   cv::Mat intrinsicsL;
   cv::Mat distCoeffsL;
@@ -154,5 +234,6 @@ void T265::WheelOdometry() {
   }
 }
 
+}  // namespace device
 }  // namespace sensors
 }  // namespace apollo

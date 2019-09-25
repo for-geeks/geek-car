@@ -21,24 +21,65 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
+#pragma once
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <memory>
+
+#include "cyber/base/concurrent_object_pool.h"
+#include "cyber/node/node.h"
+#include "cyber/node/writer.h"
+
+#include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/device/device_base.h"
 
 namespace apollo {
 namespace sensors {
+namespace device {
+
+using apollo::cyber::Time;
+using apollo::cyber::base::CCObjectPool;
+using apollo::cyber::Node;
+using apollo::cyber::Writer;
+using apollo::sensors::Acc;
+using apollo::sensors::Gyro;
+using apollo::sensors::Image;
+using apollo::sensors::CompressedImage;
+using apollo::sensors::PointCloud;
+using apollo::sensors::device::DeviceBase;
+
 class D435I : public DeviceBase {
  public:
-  D435I();
+  D435I(){};
   ~D435I();
 
-  bool Init();
-
-  void OnDepthImage(cv::Mat mat, uint64 frame_no);
-  void OnPointCloud(rs2::frame f);
+  bool Init(std::shared_ptr<Node> node_) override;
+  void DeviceConfig() override;
+  void InitChannelWriter(std::shared_ptr<Node> node_) override;
 
  private:
-  std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
-  std::shared_ptr<Writer<apollo::sensors::PointCloud>> point_cloud_writer_ =
-      nullptr;
+  void Run();
+  void OnColorImage(const rs2::frame &f);
+  void OnPointCloud(rs2::frame depth_frame);
+  void PublishPointCloud();
+  std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
+  std::shared_ptr<Writer<PointCloud>> point_cloud_writer_ = nullptr;
+
+  std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
+
+  // filtered point cloud frame
+  rs2::frame_queue filtered_data;
+
+  const int pool_size_ = 8;
+  const int point_size_ = 160000;
+
+  // Declare object that handles camera pose calculations
+  rotation_estimator algo_;
+  Eigen::Matrix4f transform;
 };
+}  // namespace device
 }  // namespace sensors
 }  // namespace apollo

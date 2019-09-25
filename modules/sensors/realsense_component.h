@@ -34,83 +34,46 @@
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
 
-#include "cyber/base/concurrent_object_pool.h"
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
+#include "cyber/node/node.h"
 
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
-#include "modules/sensors/realsense_motion.h"
+#include "modules/sensors/device/realsense_d435i.h"
+#include "modules/sensors/device/realsense_t265.h"
+#include "modules/sensors/device/device_base.h"
+
 
 namespace apollo {
 namespace sensors {
 
 using apollo::control::Chassis;
 using apollo::cyber::Component;
-using apollo::cyber::Writer;
-using apollo::cyber::base::CCObjectPool;
-using apollo::sensors::CompressedImage;
-using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
+using apollo::sensors::device::DeviceBase;
+using apollo::sensors::device::D435I;
+using apollo::sensors::device::T265;
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 class RealsenseComponent : public Component<> {
-public:
+ public:
   bool Init() override;
-  void run();
+  void InitDeviceAndSensor();
+  void Run();
   ~RealsenseComponent();
 
-private:
-  void InitDeviceAndSensor();
-  void OnGrayImage(const rs2::frame &fisheye_frame);
-  void OnColorImage(const rs2::frame &f);
-  void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
-  void OnPointCloud(rs2::frame depth_frame);
-  void PublishPointCloud();
-  void OnPose(const rs2::pose_frame &pose_frame);
-  void OnAcc(const rs2::motion_frame &accel_frame);
-  void OnGyro(const rs2::motion_frame &gyro_frame);
+ private:
+  rs2::device device_;  // realsense device
 
-  std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
-
-  std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
-  std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
-  std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
-  std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
-  std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
-  std::shared_ptr<Writer<PointCloud>> point_cloud_writer_ = nullptr;
-
-  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
-  std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
-  Chassis chassis_;
-
-  std::future<void> async_result_;
-  rs2::device device_;    // realsense device
-  rs2::sensor sensor_;    // sensor include imu and camera;
-  uint32_t device_model_; // realsense device model like T265 OR D435I
-
-  // Contruct a pipeline which abstracts the device
-  rs2::pipeline pipe;
-
-  // Create a configuration for configuring the pipeline with a non default
-  // profile
-  rs2::config cfg;
-
-  rs2::frame_queue filtered_data;
-
-  cv::Mat map1_;
-  cv::Mat map2_;
-
-  double norm_max = 0;
-  // Declare object that handles camera pose calculations
-  rotation_estimator algo_;
-  Eigen::Matrix4f transform;
+  // realsense device model like T265 OR D435I
+  DeviceBase *device_object_;
 };
 
 CYBER_REGISTER_COMPONENT(RealsenseComponent)
-} // namespace sensors
-} // namespace apollo
+}  // namespace sensors
+}  // namespace apollo

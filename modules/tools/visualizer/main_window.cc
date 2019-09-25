@@ -58,10 +58,10 @@ const char* licenseMessage =
     "limitations under the License.\n";
 
 const char* pcTempObjGroupName = "pointcloud";
-const char* pcVertexPath = ":/shaders/pointcloud.vert";
-const char* pcFragPath = ":/shaders/grid_pointcloud.frag";
-const char* gridVertexPath = ":/shaders/grid.vert";
-const char* gridFragPath = ":/shaders/grid_pointcloud.frag";
+// const char* pcVertexPath = ":/shaders/pointcloud.vert";
+// const char* pcFragPath = ":/shaders/grid_pointcloud.frag";
+// const char* gridVertexPath = ":/shaders/grid.vert";
+// const char* gridFragPath = ":/shaders/grid_pointcloud.frag";
 const char* radarVertexPath = ":/shaders/radarpoints.vert";
 const char* radarFragPath = ":/shaders/radarpoints.frag";
 
