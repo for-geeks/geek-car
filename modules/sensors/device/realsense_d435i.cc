@@ -33,6 +33,7 @@
 #include "pcl/filters/passthrough.h"
 
 #include "modules/common/global_gflags.h"
+#include "modules/sensors/realsense.h"
 
 namespace apollo {
 namespace sensors {
@@ -40,11 +41,11 @@ namespace device {
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
-bool D435I::Init(std::shared_ptr<Node> node) {
+bool D435I::Init(std::shared_ptr<Node> node_) {
   // 1. Init Device
   DeviceConfig();
   // 2. Channel Writer Config
-  InitChannelWriter(node);
+  InitChannelWriter(node_);
 
   // 3. Concurrent object pool for point cloud
   point_cloud_pool_.reset(new CCObjectPool<PointCloud>(pool_size_));
@@ -116,7 +117,7 @@ void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
   // compreessed image channel
   if (FLAGS_publish_compressed_color_image) {
     compressed_image_writer_ =
-        node_->CreateWriter<Image>(FLAGS_compressed_color_image_channel);
+        node_->CreateWriter<CompressedImage>(FLAGS_compressed_color_image_channel);
   }
 }
 
@@ -183,8 +184,8 @@ void D435I::OnColorImage(const rs2::frame &color_frame) {
   image_proto->set_frame_no(color_frame.get_frame_number());
   image_proto->set_height(mat.rows);
   image_proto->set_width(mat.cols);
-  // encoding /**< 16-bit linear depth values. The depth is meters is equal to
-  // depth scale * pixel value. */
+  // encoding 16-bit linear depth values. 
+  // The depth is meters is equal to depth scale * pixel value.
   image_proto->set_encoding(
       rs2_format_to_string(color_frame.get_profile().format()));
 
@@ -211,8 +212,7 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 void D435I::PublishPointCloud() {
   while (!apollo::cyber::IsShutdown()) {
     AINFO << "ENTERED PublishPointCloud METHOD";
-    // Declare pointcloud object, for calculating pointclouds and texture
-    // mappings
+    // Declare pointcloud object, for calculating pointclouds
     rs2::pointcloud pc;
     // We want the points object to be persistent so we can display the last
     // cloud when a frame drops
@@ -297,6 +297,10 @@ void D435I::OnCompressedImage(const rs2::frame &f, cv::Mat raw_image) {
   compressedimage->set_data(str_encode);
 
   compressed_image_writer_->Write(compressedimage);
+}
+
+D435I::~D435I(){
+  // delete data members  
 }
 
 }  // namespace device

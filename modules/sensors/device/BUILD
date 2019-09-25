@@ -17,9 +17,9 @@ cc_library(
         ":device_base",
         "//cyber",
         "//modules/common:global_gflags",
-        "//modules/control/proto:control_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
         "//modules/sensors:realsense_motion",
+        "//modules/sensors:realsense_api",
         "@eigen",
         "@pcl",
     ],
@@ -37,5 +37,6 @@ cc_library(
     ],
     deps = [
         "//cyber",
+        "//modules/control/proto:control_cc_proto",
     ],
 )

@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
+#pragma once
 
 #include <memory>
 
@@ -28,6 +29,8 @@
 #include "opencv2/opencv.hpp"
 
 #include "cyber/cyber.h"
+#include "cyber/node/node.h"
+
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
@@ -37,8 +40,10 @@
 
 namespace apollo {
 namespace sensors {
+namespace device {
 
 using apollo::cyber::Writer;
+using apollo::cyber::Node;
 using apollo::sensors::CompressedImage;
 using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
@@ -46,13 +51,13 @@ using apollo::sensors::PointCloud;
 class DeviceBase {
  public:
   DeviceBase() = default;
-  virtual bool Init() = 0;
-  virtual void InitChannelWriter() = 0;
+  virtual bool Init(std::shared_ptr<Node> node_) = 0;
+  virtual void InitChannelWriter(std::shared_ptr<Node> node_) = 0;
   virtual void DeviceConfig() = 0;
 
   virtual void Run();
 
-  virtual ~DeviceBase() = default;
+  virtual ~DeviceBase();
 
   void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
   void OnAcc(const rs2::motion_frame &accel_frame);
@@ -103,6 +108,7 @@ void DeviceBase::OnGyro(const rs2::motion_frame &gyro_frame) {
   proto_gyro->mutable_gyro()->set_z(gyro.z);
 
   gyro_writer_->Write(proto_gyro);
+}
 }
 }  // namespace sensors
 }  // namespace apollo

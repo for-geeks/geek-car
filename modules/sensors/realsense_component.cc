@@ -52,13 +52,13 @@ void RealsenseComponent::InitDeviceAndSensor() {
   if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
     // device_object_ = new T265();
   } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
-    // device_object_ = D435I();
+    device_object_ = new D435I();
   } else {
     AERROR << "The device data is not yet supported for parsing";
   }
 
   // Channel writer
-  if (!device_object_.Init(node_)) {
+  if (!device_object_->Init(node_)) {
     AERROR << "Failed to init Realsense device";
   }
 }

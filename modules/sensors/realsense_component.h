@@ -37,6 +37,7 @@
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
+#include "cyber/node/node.h"
 
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
@@ -44,6 +45,7 @@
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/device/realsense_d435i.h"
+#include "modules/sensors/device/device_base.h"
 
 
 namespace apollo {
@@ -51,11 +53,8 @@ namespace sensors {
 
 using apollo::control::Chassis;
 using apollo::cyber::Component;
-using apollo::cyber::Writer;
-
-using apollo::sensors::CompressedImage;
-using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
+using apollo::sensors::device::DeviceBase;
 using apollo::sensors::device::D435I;
 //using apollo::sensors::device::T265;
 
@@ -73,7 +72,7 @@ class RealsenseComponent : public Component<> {
   rs2::sensor sensor_;  // sensor include imu and camera;
 
   // realsense device model like T265 OR D435I
-  D435I device_object_;
+  DeviceBase *device_object_;
 };
 
 CYBER_REGISTER_COMPONENT(RealsenseComponent)
