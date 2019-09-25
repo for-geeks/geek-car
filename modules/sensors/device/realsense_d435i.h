@@ -53,39 +53,28 @@ using apollo::sensors::device::DeviceBase;
 
 class D435I : public DeviceBase {
  public:
-  D435I();
+  D435I(){};
   ~D435I();
 
   bool Init(std::shared_ptr<Node> node_) override;
   void DeviceConfig() override;
   void InitChannelWriter(std::shared_ptr<Node> node_) override;
 
+ private:
   void Run();
-
   void OnColorImage(const rs2::frame &f);
-  void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
   void OnPointCloud(rs2::frame depth_frame);
   void PublishPointCloud();
-
- private:
   std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
-  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
-
   std::shared_ptr<Writer<PointCloud>> point_cloud_writer_ = nullptr;
 
   std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
-
-  // Contruct a pipeline which abstracts the device
-  rs2::pipeline pipe;
-
-  // Configuring the pipeline with a non default profile
-  rs2::config cfg;
 
   // filtered point cloud frame
   rs2::frame_queue filtered_data;
 
   const int pool_size_ = 8;
-  const int point_size_ = 210000;
+  const int point_size_ = 160000;
 
   // Declare object that handles camera pose calculations
   rotation_estimator algo_;

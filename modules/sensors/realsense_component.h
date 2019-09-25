@@ -44,6 +44,7 @@
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/device/realsense_d435i.h"
+#include "modules/sensors/device/realsense_t265.h"
 #include "modules/sensors/device/device_base.h"
 
 
@@ -55,7 +56,7 @@ using apollo::cyber::Component;
 using apollo::sensors::PointCloud;
 using apollo::sensors::device::DeviceBase;
 using apollo::sensors::device::D435I;
-//using apollo::sensors::device::T265;
+using apollo::sensors::device::T265;
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
@@ -68,7 +69,6 @@ class RealsenseComponent : public Component<> {
 
  private:
   rs2::device device_;  // realsense device
-  rs2::sensor sensor_;  // sensor include imu and camera;
 
   // realsense device model like T265 OR D435I
   DeviceBase *device_object_;

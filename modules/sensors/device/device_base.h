@@ -61,8 +61,6 @@ class DeviceBase {
     AINFO << "Deconstructor from DeviceBase";
   };
 
-  void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image);
-
   void OnAcc(const rs2::motion_frame &accel_frame) {
     rs2_vector acc = accel_frame.get_motion_data();
     // Computes the angle of motion based on the retrieved measures
@@ -74,7 +72,7 @@ class DeviceBase {
     proto_accel->mutable_acc()->set_z(acc.z);
 
     acc_writer_->Write(proto_accel);
-  }
+  };
 
   void OnGyro(const rs2::motion_frame &gyro_frame) {
     rs2_vector gyro = gyro_frame.get_motion_data();
@@ -87,14 +85,34 @@ class DeviceBase {
     proto_gyro->mutable_gyro()->set_z(gyro.z);
 
     gyro_writer_->Write(proto_gyro);
-  }
+  };
+
+  void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image) {
+    std::vector<int> param = std::vector<int>(2);
+    param[0] = CV_IMWRITE_JPEG_QUALITY;
+    param[1] = FLAGS_compress_rate;
+    cv::Mat tmp_mat;
+    cv::cvtColor(raw_image, tmp_mat, cv::COLOR_RGB2BGR);
+    std::vector<uchar> data_encode;
+    cv::imencode(".jpeg", tmp_mat, data_encode, param);
+    std::string str_encode(data_encode.begin(), data_encode.end());
+
+    auto compressedimage = std::make_shared<CompressedImage>();
+    compressedimage->set_frame_no(f.get_frame_number());
+    compressedimage->set_format("jpeg");
+    compressedimage->set_measurement_time(f.get_timestamp());
+    compressedimage->set_data(str_encode);
+
+    compressed_image_writer_->Write(compressedimage);
+  };
 
  protected:
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
+  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
+
   std::future<void> async_result_;
 
- private:
   rs2::device device_;  // realsense device
   rs2::sensor sensor_;  // sensor include imu and camera;
 
@@ -103,6 +121,8 @@ class DeviceBase {
 
   // Configuring the pipeline with a non default profile
   rs2::config cfg;
+
+ private:
 
   // Declare object that handles camera pose calculations
   rotation_estimator algo_;

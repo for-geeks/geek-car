@@ -50,7 +50,7 @@ void RealsenseComponent::InitDeviceAndSensor() {
   device_ = first_connected_device();
 
   if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
-    // device_object_ = new T265();
+    device_object_ = new T265();
   } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
     device_object_ = new D435I();
   } else {
@@ -64,10 +64,7 @@ void RealsenseComponent::InitDeviceAndSensor() {
 }
 
 RealsenseComponent::~RealsenseComponent() {
-  if (sensor_) {
-    sensor_.stop();
-    sensor_.close();
-  }
+  delete device_object_;
 }
 
 }  // namespace sensors

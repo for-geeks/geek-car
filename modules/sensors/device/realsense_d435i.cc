@@ -41,10 +41,6 @@ namespace device {
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
-D435I::D435I(){
-
-}
-
 bool D435I::Init(std::shared_ptr<Node> node_) {
   // 1. Init Device
   DeviceConfig();
@@ -63,10 +59,10 @@ bool D435I::Init(std::shared_ptr<Node> node_) {
     point_cloud->mutable_point()->Reserve(point_size_);
   }
 
-  // Thread to handle frames
+  // 4.1 Thread to handle frames
   async_result_ = cyber::Async(&D435I::Run, this);
 
-  // Thread to get point cloud from frame queue, and publish
+  // 4.2 Thread to get point cloud from frame queue, and publish
   std::thread(&D435I::PublishPointCloud, this).detach();
   AINFO << "Realsense Device D435I Init Successfuly";
   return true;
@@ -90,10 +86,10 @@ void D435I::DeviceConfig() {
   auto sensor = profile.get_device().first<rs2::depth_sensor>();
 
   // Set the device to High Accuracy preset of the D400 stereoscopic cameras
-  // if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
-  //   sensor.set_option(RS2_OPTION_VISUAL_PRESET,
-  //                     RS2_RS400_VISUAL_PRESET_HIGH_ACCURACY);
-  // }
+  if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
+    sensor.set_option(RS2_OPTION_VISUAL_PRESET,
+                      RS2_RS400_VISUAL_PRESET_HIGH_ACCURACY);
+  }
 }
 
 void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
@@ -215,7 +211,6 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 
 void D435I::PublishPointCloud() {
   while (!apollo::cyber::IsShutdown()) {
-    AINFO << "ENTERED PublishPointCloud METHOD";
     // Declare pointcloud object, for calculating pointclouds
     rs2::pointcloud pc;
     // We want the points object to be persistent so we can display the last
@@ -246,8 +241,6 @@ void D435I::PublishPointCloud() {
       *cloud_ = *pcl_points;
     }
 
-    auto sp = points.get_profile().as<rs2::video_stream_profile>();
-
     std::shared_ptr<PointCloud> point_cloud_out =
         point_cloud_pool_->GetObject();
     if (point_cloud_out == nullptr) {
@@ -263,8 +256,8 @@ void D435I::PublishPointCloud() {
 
     point_cloud_out->set_is_dense(false);
     point_cloud_out->set_measurement_time(Time::Now().ToSecond());
-    point_cloud_out->set_width(sp.width());
-    point_cloud_out->set_height(sp.height());
+    point_cloud_out->set_width(FLAGS_color_image_width);
+    point_cloud_out->set_height(FLAGS_color_image_height);
 
     for (size_t i = 0; i < (*cloud_).size(); i++) {
       if ((*cloud_)[i].z) {
@@ -282,25 +275,6 @@ void D435I::PublishPointCloud() {
 
     point_cloud_writer_->Write(point_cloud_out);
   }
-}
-
-void D435I::OnCompressedImage(const rs2::frame &f, cv::Mat raw_image) {
-  std::vector<int> param = std::vector<int>(2);
-  param[0] = CV_IMWRITE_JPEG_QUALITY;
-  param[1] = FLAGS_compress_rate;
-  cv::Mat tmp_mat;
-  cv::cvtColor(raw_image, tmp_mat, cv::COLOR_RGB2BGR);
-  std::vector<uchar> data_encode;
-  cv::imencode(".jpeg", tmp_mat, data_encode, param);
-  std::string str_encode(data_encode.begin(), data_encode.end());
-
-  auto compressedimage = std::make_shared<CompressedImage>();
-  compressedimage->set_frame_no(f.get_frame_number());
-  compressedimage->set_format("jpeg");
-  compressedimage->set_measurement_time(f.get_timestamp());
-  compressedimage->set_data(str_encode);
-
-  compressed_image_writer_->Write(compressedimage);
 }
 
 D435I::~D435I(){

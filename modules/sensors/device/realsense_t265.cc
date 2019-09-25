@@ -26,10 +26,7 @@
 #include <string>
 #include <vector>
 
-#include "modules/common/global_gflags.h"
-#include "modules/control/proto/chassis.pb.h"
-#include "modules/sensors/proto/point_cloud.pb.h"
-#include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense.h"
 
 namespace apollo {
 namespace sensors {
@@ -41,7 +38,19 @@ using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
 using apollo::sensors::Pose;
 
-bool T265::Init() {
+bool T265::Init(std::shared_ptr<Node> node_) {
+  // 1. DeviceConfig
+  DeviceConfig();
+
+  InitChannelWriter(node_);
+
+  async_result_ = cyber::Async(&T265::Run, this);
+
+  return true;
+}
+
+void T265::DeviceConfig() {
+  // Add desired streams to configuration
   cfg.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
   cfg.enable_stream(RS2_STREAM_FISHEYE, 1);
   cfg.enable_stream(RS2_STREAM_FISHEYE, 2);
@@ -49,9 +58,11 @@ bool T265::Init() {
   cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
   cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
 
-  // Instruct pipeline to start streaming with the requested configuration
   pipe.start(cfg);
+}
 
+void T265::InitChannelWriter(std::shared_ptr<Node> node_) {
+  // Channel Writer flags
   if (FLAGS_publish_pose) {
     pose_writer_ = node_->CreateWriter<Pose>(FLAGS_pose_channel);
   }
@@ -69,7 +80,7 @@ bool T265::Init() {
 
   if (FLAGS_publish_compressed_gray_image) {
     compressed_image_writer_ =
-        node_->CreateWriter<Image>(FLAGS_compressed_gray_image_channel);
+        node_->CreateWriter<CompressedImage>(FLAGS_compressed_gray_image_channel);
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
@@ -77,10 +88,9 @@ bool T265::Init() {
         chassis_.Clear();
         chassis_.CopyFrom(*chassis);
       });
-  return true;
 }
 
-void D435I::Run() {
+void T265::Run() {
   while (!apollo::cyber::IsShutdown()) {
     // Camera warmup - dropping several first frames to let auto-exposure
     // stabilize
@@ -110,7 +120,7 @@ void D435I::Run() {
   }
 }
 
-void T265::OnPose(const rs2::frame& pose_frame) {
+void T265::OnPose(const rs2::pose_frame &pose_frame) {
   if (pose_frame.get_frame_number() % 5 == 0) {
     auto pose_data = pose_frame.get_pose_data();
     AINFO << "pose " << pose_data.translation;
@@ -188,25 +198,6 @@ void T265::OnGrayImage(const rs2::frame& fisheye_frame) {
   if (FLAGS_publish_compressed_gray_image) {
     OnCompressedImage(fisheye_frame, dst);
   }
-}
-
-void D435I::OnCompressedImage(const rs2::frame& f, cv::Mat raw_image) {
-  std::vector<uchar> data_encode;
-  std::vector<int> param = std::vector<int>(2);
-  param[0] = CV_IMWRITE_JPEG_QUALITY;
-  param[1] = FLAGS_compress_rate;
-  cv::Mat tmp_mat;
-  cv::cvtColor(raw_image, tmp_mat, cv::COLOR_RGB2BGR);
-  cv::imencode(".jpeg", tmp_mat, data_encode, param);
-  std::string str_encode(data_encode.begin(), data_encode.end());
-
-  auto compressedimage = std::make_shared<CompressedImage>();
-  compressedimage->set_frame_no(f.get_frame_number());
-  compressedimage->set_format("jpeg");
-  compressedimage->set_measurement_time(f.get_timestamp());
-  compressedimage->set_data(str_encode);
-
-  compressed_image_writer_->Write(compressedimage);
 }
 
 void T265::Calibration() {
