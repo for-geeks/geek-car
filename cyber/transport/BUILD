@@ -57,12 +57,32 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "endpoint_test",
+    size = "small",
+    srcs = ["common/endpoint_test.cc"],
+    deps = [
+        "//cyber:cyber_core",
+        "@gtest//:main",
+    ],
+)
+
 cc_library(
     name = "identity",
     srcs = ["common/identity.cc"],
     hdrs = ["common/identity.h"],
     deps = [
         "//cyber/common:util",
+    ],
+)
+
+cc_test(
+    name = "identity_test",
+    size = "small",
+    srcs = ["common/identity_test.cc"],
+    deps = [
+        "//cyber:cyber_core",
+        "@gtest//:main",
     ],
 )
 
@@ -213,6 +233,18 @@ cc_library(
 )
 
 cc_test(
+    name = "message_info_test",
+    size = "small",
+    srcs = [
+        "message/message_info_test.cc",
+    ],
+    deps = [
+        "//cyber:cyber_core",
+        "@gtest//:main",
+    ],
+)
+
+cc_test(
     name = "message_test",
     size = "small",
     srcs = [
@@ -294,6 +326,7 @@ cc_library(
     srcs = ["rtps/underlay_message.cc"],
     hdrs = ["rtps/underlay_message.h"],
     deps = [
+        "//cyber/common:log",
         "@fastrtps",
     ],
 )

@@ -39,8 +39,6 @@ using apollo::cyber::common::GlobalData;
 using apollo::cyber::common::PathExists;
 using apollo::cyber::common::WorkRoot;
 using apollo::cyber::croutine::RoutineState;
-using apollo::cyber::event::PerfEventCache;
-using apollo::cyber::event::SchedPerf;
 
 SchedulerChoreography::SchedulerChoreography() {
   std::string conf("conf/");
@@ -114,8 +112,8 @@ void SchedulerChoreography::CreateProcessor() {
 
     proc->BindContext(ctx);
     SetSchedAffinity(proc->Thread(), pool_cpuset_, pool_affinity_, i);
-    SetSchedPolicy(proc->Thread(), pool_processor_policy_,
-                   pool_processor_prio_, proc->Tid());
+    SetSchedPolicy(proc->Thread(), pool_processor_policy_, pool_processor_prio_,
+                   proc->Tid());
     pctxs_.emplace_back(ctx);
     processors_.emplace_back(proc);
   }
@@ -249,9 +247,6 @@ bool SchedulerChoreography::NotifyProcessor(uint64_t crid) {
       return false;
     }
   }
-
-  PerfEventCache::Instance()->AddSchedEvent(SchedPerf::NOTIFY_IN, crid,
-                                            cr->processor_id());
 
   if (cr->processor_id() != -1) {
     auto pid = cr->processor_id();

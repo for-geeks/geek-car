@@ -16,9 +16,15 @@
 
 #include "cyber/tools/cyber_recorder/info.h"
 
+#include "cyber/record/record_message.h"
+
 namespace apollo {
 namespace cyber {
 namespace record {
+
+using apollo::cyber::record::kGB;
+using apollo::cyber::record::kKB;
+using apollo::cyber::record::kMB;
 
 Info::Info() {}
 
@@ -56,14 +62,12 @@ bool Info::Display(const std::string& file) {
 
   // size
   std::cout << std::setw(w) << "size: " << hdr.size() << " Bytes";
-  if (hdr.size() >= (1024 * 1024 * 1024)) {
-    std::cout << " (" << static_cast<double>(hdr.size()) / (1024 * 1024 * 1024)
-              << " GB)";
-  } else if (hdr.size() >= (1024 * 1024)) {
-    std::cout << " (" << static_cast<double>(hdr.size()) / (1024 * 1024)
-              << " MB)";
-  } else if (hdr.size() >= 1024) {
-    std::cout << " (" << static_cast<double>(hdr.size()) / 1024 << " KB)";
+  if (hdr.size() >= kGB) {
+    std::cout << " (" << static_cast<float>(hdr.size()) / kGB << " GB)";
+  } else if (hdr.size() >= kMB) {
+    std::cout << " (" << static_cast<float>(hdr.size()) / kMB << " MB)";
+  } else if (hdr.size() >= kKB) {
+    std::cout << " (" << static_cast<float>(hdr.size()) / kKB << " KB)";
   }
   std::cout << std::endl;
 

@@ -24,6 +24,7 @@
 #include "cyber/common/global_data.h"
 #include "cyber/common/log.h"
 #include "cyber/croutine/croutine.h"
+#include "cyber/time/time.h"
 
 namespace apollo {
 namespace cyber {
@@ -38,14 +39,18 @@ Processor::~Processor() { Stop(); }
 void Processor::Run() {
   tid_.store(static_cast<int>(syscall(SYS_gettid)));
   AINFO << "processor_tid: " << tid_;
+  snap_shot_->processor_id.store(tid_);
 
   while (cyber_likely(running_.load())) {
     if (cyber_likely(context_ != nullptr)) {
       auto croutine = context_->NextRoutine();
       if (croutine) {
+        snap_shot_->execute_start_time.store(cyber::Time::Now().ToNanosecond());
+        snap_shot_->routine_name = croutine->name();
         croutine->Resume();
         croutine->Release();
       } else {
+        snap_shot_->execute_start_time.store(0);
         context_->Wait();
       }
     } else {
@@ -70,7 +75,7 @@ void Processor::Stop() {
   }
 }
 
-void Processor::BindContext(const std::shared_ptr<ProcessorContext> &context) {
+void Processor::BindContext(const std::shared_ptr<ProcessorContext>& context) {
   context_ = context;
   std::call_once(thread_flag_,
                  [this]() { thread_ = std::thread(&Processor::Run, this); });

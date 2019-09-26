@@ -17,6 +17,7 @@
 #include "./general_channel_message.h"
 #include "./general_message.h"
 #include "./screen.h"
+#include "cyber/record/record_message.h"
 
 #include <iomanip>
 #include <sstream>
@@ -25,10 +26,9 @@
 
 namespace {
 constexpr int ReaderWriterOffset = 4;
-
-static constexpr size_t kGB = 1 << 30;
-static constexpr size_t kMB = 1 << 20;
-static constexpr size_t kKB = 1 << 10;
+using apollo::cyber::record::kGB;
+using apollo::cyber::record::kKB;
+using apollo::cyber::record::kMB;
 }  // namespace
 
 const char* GeneralChannelMessage::errCode2Str(
@@ -243,15 +243,15 @@ void GeneralChannelMessage::RenderDebugString(const Screen* s, int key,
         s->AddStr(0, lineNo++, "RawMessage Size: ");
         outStr.str("");
         outStr << channelMsg->message.size() << " Bytes";
-
         if (channelMsg->message.size() >= kGB) {
           outStr << " (" << static_cast<float>(channelMsg->message.size()) / kGB
-                    << " GB)";
+                 << " GB)";
         } else if (channelMsg->message.size() >= kMB) {
           outStr << " (" << static_cast<float>(channelMsg->message.size()) / kMB
-                    << " MB)";
+                 << " MB)";
         } else if (channelMsg->message.size() >= kKB) {
-          outStr << " (" << static_cast<float>(channelMsg->message.size()) / kKB << " KB)";
+          outStr << " (" << static_cast<float>(channelMsg->message.size()) / kKB
+                 << " KB)";
         }
         s->AddStr(outStr.str().c_str());
         if (raw_msg_class_->ParseFromString(channelMsg->message)) {
