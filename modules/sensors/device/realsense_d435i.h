@@ -32,27 +32,27 @@
 #include "cyber/node/node.h"
 #include "cyber/node/writer.h"
 
+#include "modules/sensors/device/device_base.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
-#include "modules/sensors/device/device_base.h"
 
 namespace apollo {
 namespace sensors {
 namespace device {
 
-using apollo::cyber::Time;
-using apollo::cyber::base::CCObjectPool;
 using apollo::cyber::Node;
+using apollo::cyber::Time;
 using apollo::cyber::Writer;
+using apollo::cyber::base::CCObjectPool;
 using apollo::sensors::Acc;
+using apollo::sensors::CompressedImage;
 using apollo::sensors::Gyro;
 using apollo::sensors::Image;
-using apollo::sensors::CompressedImage;
 using apollo::sensors::PointCloud;
 using apollo::sensors::device::DeviceBase;
 
 class D435I : public DeviceBase {
- public:
+public:
   D435I(){};
   ~D435I();
 
@@ -60,7 +60,7 @@ class D435I : public DeviceBase {
   void DeviceConfig() override;
   void InitChannelWriter(std::shared_ptr<Node> node_) override;
 
- private:
+private:
   void Run();
   void OnColorImage(const rs2::frame &f);
   void OnPointCloud(rs2::frame depth_frame);
@@ -80,6 +80,6 @@ class D435I : public DeviceBase {
   rotation_estimator algo_;
   Eigen::Matrix4f transform;
 };
-}  // namespace device
-}  // namespace sensors
-}  // namespace apollo
+} // namespace device
+} // namespace sensors
+} // namespace apollo

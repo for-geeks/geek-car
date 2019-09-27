@@ -116,8 +116,8 @@ void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
 
   // compreessed image channel
   if (FLAGS_publish_compressed_color_image) {
-    compressed_image_writer_ =
-        node_->CreateWriter<CompressedImage>(FLAGS_compressed_color_image_channel);
+    compressed_image_writer_ = node_->CreateWriter<CompressedImage>(
+        FLAGS_compressed_color_image_channel);
   }
 }
 
@@ -184,7 +184,7 @@ void D435I::OnColorImage(const rs2::frame &color_frame) {
   image_proto->set_frame_no(color_frame.get_frame_number());
   image_proto->set_height(mat.rows);
   image_proto->set_width(mat.cols);
-  // encoding 16-bit linear depth values. 
+  // encoding 16-bit linear depth values.
   // The depth is meters is equal to depth scale * pixel value.
   image_proto->set_encoding(
       rs2_format_to_string(color_frame.get_profile().format()));
@@ -277,11 +277,11 @@ void D435I::PublishPointCloud() {
   }
 }
 
-D435I::~D435I(){
+D435I::~D435I() {
   // delete data members
   AINFO << "Deconstructor from D435I";
 }
 
-}  // namespace device
-}  // namespace sensors
-}  // namespace apollo
+} // namespace device
+} // namespace sensors
+} // namespace apollo

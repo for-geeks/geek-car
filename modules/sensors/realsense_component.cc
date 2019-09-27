@@ -38,7 +38,7 @@ namespace apollo {
 namespace sensors {
 
 bool RealsenseComponent::Init() {
-  // TODO(FENGZONGBAO): READ CONFIG
+  // TODO(FENGZONGBAO): READ DEVICE CONFIG
 
   // Init by config device
   InitDeviceAndSensor();
@@ -64,8 +64,13 @@ void RealsenseComponent::InitDeviceAndSensor() {
 }
 
 RealsenseComponent::~RealsenseComponent() {
-  delete device_object_;
+  AINFO << "destructor from RealsenseComponent.";
+  try {
+    delete device_object_;
+  } catch (const std::exception &e) {
+    std::cerr << "error from destructor:" << e.what() << std::endl;
+  }
 }
 
-}  // namespace sensors
-}  // namespace apollo
+} // namespace sensors
+} // namespace apollo

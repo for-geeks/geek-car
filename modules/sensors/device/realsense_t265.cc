@@ -79,12 +79,12 @@ void T265::InitChannelWriter(std::shared_ptr<Node> node_) {
   }
 
   if (FLAGS_publish_compressed_gray_image) {
-    compressed_image_writer_ =
-        node_->CreateWriter<CompressedImage>(FLAGS_compressed_gray_image_channel);
+    compressed_image_writer_ = node_->CreateWriter<CompressedImage>(
+        FLAGS_compressed_gray_image_channel);
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(
-      FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis>& chassis) {
+      FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis> &chassis) {
         chassis_.Clear();
         chassis_.CopyFrom(*chassis);
       });
@@ -170,7 +170,7 @@ void T265::OnPose(const rs2::pose_frame &pose_frame) {
   }
 }
 
-void T265::OnGrayImage(const rs2::frame& fisheye_frame) {
+void T265::OnGrayImage(const rs2::frame &fisheye_frame) {
   if (!FLAGS_publish_raw_gray_image) {
     AINFO << "Turn off the raw gray image";
     return;
@@ -234,6 +234,10 @@ void T265::WheelOdometry() {
   }
 }
 
-}  // namespace device
-}  // namespace sensors
-}  // namespace apollo
+T265::~T265() {
+  AINFO << "Deconstructor from D435I";
+}
+
+} // namespace device
+} // namespace sensors
+} // namespace apollo

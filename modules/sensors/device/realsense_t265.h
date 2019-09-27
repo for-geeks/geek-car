@@ -32,30 +32,30 @@
 #include "cyber/node/writer.h"
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
-#include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {
 namespace sensors {
-namespace device{
+namespace device {
 
+using apollo::control::Chassis;
 using apollo::cyber::Node;
 using apollo::cyber::Reader;
 using apollo::cyber::Writer;
 using apollo::sensors::Image;
 using apollo::sensors::Pose;
-using apollo::control::Chassis;
 
 class T265 : public DeviceBase {
- public:
+public:
   T265(){};
-  ~T265(){};
+  ~T265();
 
   bool Init(std::shared_ptr<Node> node_) override;
   void DeviceConfig() override;
   void InitChannelWriter(std::shared_ptr<Node> node_) override;
 
- private:
+private:
   void Run();
   void OnGrayImage(const rs2::frame &fisheye_frame);
   void OnPose(const rs2::pose_frame &pose_frame);
@@ -76,8 +76,8 @@ class T265 : public DeviceBase {
 
   double norm_max = 0;
 
-  const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
+  const int fisheye_sensor_idx = 1; // for the left fisheye lens of T265
 };
-}
-}  // namespace sensors
-}  // namespace apollo
+} // namespace device
+} // namespace sensors
+} // namespace apollo

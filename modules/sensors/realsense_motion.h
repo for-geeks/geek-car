@@ -42,9 +42,6 @@ namespace sensors {
 #ifndef PI
 const double PI = 3.14159265358979323846;
 #endif
-struct short3 {
-  uint16_t x, y, z;
-};
 
 struct double3 {
   double x, y, z;
@@ -58,10 +55,10 @@ struct double3 {
     z = z * t;
   }
 
-  void operator=(double3 other) {
-    x = other.x;
-    y = other.y;
-    z = other.z;
+  void operator=(double3 d) {
+    x = d.x;
+    y = d.y;
+    z = d.z;
   }
 
   void add(double t1, double t2, double t3) {
