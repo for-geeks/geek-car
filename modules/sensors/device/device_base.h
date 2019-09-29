@@ -58,7 +58,7 @@ class DeviceBase {
   virtual void Run() = 0;
 
   virtual ~DeviceBase() {
-    AINFO << "Deconstructor from DeviceBase";
+    AINFO << "Destructor from DeviceBase";
     if (async_result_.valid()) {
       async_result_.wait();
     }

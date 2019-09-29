@@ -285,7 +285,7 @@ void D435I::PublishPointCloud() {
 
 D435I::~D435I() {
   // delete data members
-  AINFO << "Deconstructor from D435I";
+  AINFO << "Destructor from D435I";
 
   if (!stop_.load()) {
     stop_.exchange(true);
