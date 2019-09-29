@@ -58,19 +58,19 @@ using apollo::sensors::device::DeviceBase;
 using apollo::sensors::device::T265;
 
 class RealsenseComponent : public Component<> {
-public:
+ public:
   bool Init() override;
   void InitDeviceAndSensor();
   void Run();
   ~RealsenseComponent();
 
-private:
-  rs2::device device_; // realsense device
+ private:
+  rs2::device device_;  // realsense device
 
   // realsense device model like T265 OR D435I
   DeviceBase *device_object_;
 };
 
 CYBER_REGISTER_COMPONENT(RealsenseComponent)
-} // namespace sensors
-} // namespace apollo
+}  // namespace sensors
+}  // namespace apollo

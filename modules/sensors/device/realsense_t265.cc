@@ -234,10 +234,8 @@ void T265::WheelOdometry() {
   }
 }
 
-T265::~T265() {
-  AINFO << "Deconstructor from D435I";
-}
+T265::~T265() { AINFO << "Deconstructor from D435I"; }
 
-} // namespace device
-} // namespace sensors
-} // namespace apollo
+}  // namespace device
+}  // namespace sensors
+}  // namespace apollo

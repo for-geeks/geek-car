@@ -49,7 +49,7 @@ using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
 
 class DeviceBase {
-public:
+ public:
   DeviceBase() = default;
   virtual bool Init(std::shared_ptr<Node> node_) = 0;
   virtual void InitChannelWriter(std::shared_ptr<Node> node_) = 0;
@@ -59,9 +59,9 @@ public:
 
   virtual ~DeviceBase() {
     AINFO << "Deconstructor from DeviceBase";
-    // (TODO):fengzongbao resovle Segment fault here setup new method for close
-    // all threads
-    async_result_.wait();
+    if (async_result_.valid()) {
+      async_result_.wait();
+    }
   };
 
   void OnAcc(const rs2::motion_frame &accel_frame) {
@@ -109,15 +109,15 @@ public:
     compressed_image_writer_->Write(compressedimage);
   };
 
-protected:
+ protected:
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
   std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
 
   std::future<void> async_result_;
 
-  rs2::device device_; // realsense device
-  rs2::sensor sensor_; // sensor include imu and camera;
+  rs2::device device_;  // realsense device
+  rs2::sensor sensor_;  // sensor include imu and camera;
 
   // Contruct a pipeline which abstracts the device
   rs2::pipeline pipe;
@@ -125,11 +125,11 @@ protected:
   // Configuring the pipeline with a non default profile
   rs2::config cfg;
 
-private:
+ private:
   // Declare object that handles camera pose calculations
   rotation_estimator algo_;
 };
 
-} // namespace device
-} // namespace sensors
-} // namespace apollo
+}  // namespace device
+}  // namespace sensors
+}  // namespace apollo

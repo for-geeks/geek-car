@@ -27,6 +27,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <memory>
+#include <thread>
 
 #include "cyber/base/concurrent_object_pool.h"
 #include "cyber/node/node.h"
@@ -52,7 +53,7 @@ using apollo::sensors::PointCloud;
 using apollo::sensors::device::DeviceBase;
 
 class D435I : public DeviceBase {
-public:
+ public:
   D435I(){};
   ~D435I();
 
@@ -60,7 +61,7 @@ public:
   void DeviceConfig() override;
   void InitChannelWriter(std::shared_ptr<Node> node_) override;
 
-private:
+ private:
   void Run();
   void OnColorImage(const rs2::frame &f);
   void OnPointCloud(rs2::frame depth_frame);
@@ -79,7 +80,12 @@ private:
   // Declare object that handles camera pose calculations
   rotation_estimator algo_;
   Eigen::Matrix4f transform;
+
+  std::thread realsense_t1;
+  std::thread realsense_t2;
+
+  std::atomic<bool> stop_ = {false};
 };
-} // namespace device
-} // namespace sensors
-} // namespace apollo
+}  // namespace device
+}  // namespace sensors
+}  // namespace apollo

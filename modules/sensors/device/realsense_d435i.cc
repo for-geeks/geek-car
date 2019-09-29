@@ -60,10 +60,16 @@ bool D435I::Init(std::shared_ptr<Node> node_) {
   }
 
   // 4.1 Thread to handle frames
-  async_result_ = cyber::Async(&D435I::Run, this);
+  // async_result_ = cyber::Async(&D435I::Run, this);
+  // async_result_.get();
+  realsense_t1 = std::thread(&D435I::Run, this);
 
   // 4.2 Thread to get point cloud from frame queue, and publish
-  std::thread(&D435I::PublishPointCloud, this).detach();
+  // std::thread(&D435I::PublishPointCloud, this).join();
+  // async_result_2 = cyber::Async(&D435I::PublishPointCloud, this);
+  // async_result_2.get();
+  realsense_t2 = std::thread(&D435I::PublishPointCloud, this);
+
   AINFO << "Realsense Device D435I Init Successfuly";
   return true;
 }
@@ -122,15 +128,13 @@ void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
 }
 
 void D435I::Run() {
-  while (!apollo::cyber::IsShutdown()) {
+  while (!apollo::cyber::IsShutdown() && !stop_) {
     rs2::frameset frames;
     // Wait for all configured streams to produce a frame
     frames = pipe.wait_for_frames();
 
-    if (FLAGS_publish_color_image) {
-      rs2::frame color_frame = frames.get_color_frame();
-      OnColorImage(color_frame);
-    }
+    rs2::frame color_frame = frames.get_color_frame();
+    OnColorImage(color_frame);
 
     if (FLAGS_publish_acc) {
       rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
@@ -180,19 +184,21 @@ void D435I::OnColorImage(const rs2::frame &color_frame) {
               CV_8UC3, const_cast<void *>(color_frame.get_data()),
               cv::Mat::AUTO_STEP);
   AINFO << "FRAME NUMBER:" << color_frame.get_frame_number();
-  auto image_proto = std::make_shared<Image>();
-  image_proto->set_frame_no(color_frame.get_frame_number());
-  image_proto->set_height(mat.rows);
-  image_proto->set_width(mat.cols);
-  // encoding 16-bit linear depth values.
-  // The depth is meters is equal to depth scale * pixel value.
-  image_proto->set_encoding(
-      rs2_format_to_string(color_frame.get_profile().format()));
+  if (FLAGS_publish_color_image) {
+    auto image_proto = std::make_shared<Image>();
+    image_proto->set_frame_no(color_frame.get_frame_number());
+    image_proto->set_height(mat.rows);
+    image_proto->set_width(mat.cols);
+    // encoding 16-bit linear depth values.
+    // The depth is meters is equal to depth scale * pixel value.
+    image_proto->set_encoding(
+        rs2_format_to_string(color_frame.get_profile().format()));
 
-  image_proto->set_measurement_time(Time::Now().ToSecond());
-  auto m_size = mat.rows * mat.cols * mat.elemSize();
-  image_proto->set_data(mat.data, m_size);
-  color_image_writer_->Write(image_proto);
+    image_proto->set_measurement_time(Time::Now().ToSecond());
+    auto m_size = mat.rows * mat.cols * mat.elemSize();
+    image_proto->set_data(mat.data, m_size);
+    color_image_writer_->Write(image_proto);
+  }
 
   if (FLAGS_publish_compressed_color_image) {
     OnCompressedImage(color_frame, mat);
@@ -210,7 +216,7 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 }
 
 void D435I::PublishPointCloud() {
-  while (!apollo::cyber::IsShutdown()) {
+  while (!apollo::cyber::IsShutdown() && !stop_) {
     // Declare pointcloud object, for calculating pointclouds
     rs2::pointcloud pc;
     // We want the points object to be persistent so we can display the last
@@ -280,8 +286,14 @@ void D435I::PublishPointCloud() {
 D435I::~D435I() {
   // delete data members
   AINFO << "Deconstructor from D435I";
+
+  if (!stop_.load()) {
+    stop_.exchange(true);
+    realsense_t1.join();
+    realsense_t2.join();
+  }
 }
 
-} // namespace device
-} // namespace sensors
-} // namespace apollo
+}  // namespace device
+}  // namespace sensors
+}  // namespace apollo
