@@ -107,11 +107,11 @@ function set_lib_path() {
     export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
   fi
   export PYTHONPATH=/usr/local/lib/python2.7/dist-packages:${PY_LIB_PATH}:${PY_TOOLS_PATH}:${PYTHONPATH}
-  if [ -e /usr/local/cuda-8.0/ ];then
-    export PATH=/usr/local/cuda-8.0/bin:$PATH
-    export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64:$LD_LIBRARY_PATH
-    export C_INCLUDE_PATH=/usr/local/cuda-8.0/include:$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=/usr/local/cuda-8.0/include:$CPLUS_INCLUDE_PATH
+  if [ -e /usr/local/cuda/ ];then
+    export PATH=/usr/local/cuda/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+    export C_INCLUDE_PATH=/usr/local/cuda/include:$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=/usr/local/cuda/include:$CPLUS_INCLUDE_PATH
   fi
 }
 
@@ -454,8 +454,8 @@ if [ -e "${CYBER_SETUP}" ]; then
   source "${CYBER_SETUP}"
 fi
 
+set_lib_path
 if [ -z $APOLLO_BASE_SOURCED ]; then
-  set_lib_path
   determine_bin_prefix
   export APOLLO_BASE_SOURCED=1
 fi
