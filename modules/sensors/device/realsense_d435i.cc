@@ -128,7 +128,7 @@ void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
 }
 
 void D435I::Run() {
-  while (!apollo::cyber::IsShutdown() && !stop_) {
+  while (!stop_) {
     rs2::frameset frames;
     // Wait for all configured streams to produce a frame
     frames = pipe.wait_for_frames();
@@ -216,7 +216,7 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 }
 
 void D435I::PublishPointCloud() {
-  while (!apollo::cyber::IsShutdown() && !stop_) {
+  while (!stop_) {
     // Declare pointcloud object, for calculating pointclouds
     rs2::pointcloud pc;
     // We want the points object to be persistent so we can display the last
