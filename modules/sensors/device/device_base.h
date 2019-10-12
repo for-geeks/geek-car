@@ -92,7 +92,7 @@ class DeviceBase {
 
   void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image) {
     std::vector<int> param = std::vector<int>(2);
-    param[0] = CV_IMWRITE_JPEG_QUALITY;
+    param[0] = cv::IMWRITE_JPEG_QUALITY;
     param[1] = FLAGS_compress_rate;
     cv::Mat tmp_mat;
     cv::cvtColor(raw_image, tmp_mat, cv::COLOR_RGB2BGR);

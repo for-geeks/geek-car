@@ -18,10 +18,6 @@ cc_library(
         "realsense_component.h",
     ],
     linkopts = [
-        "-lopencv_core",
-        "-lopencv_imgproc",
-        "-lopencv_calib3d",
-        "-lopencv_highgui",
         "-lrealsense2",
     ],
     deps = [
@@ -35,6 +31,7 @@ cc_library(
         "//modules/sensors/device:t265_lib",
         "@eigen",
         "@pcl",
+	"@opencv",
     ],
 )
 
@@ -43,15 +40,12 @@ cc_library(
     srcs = ["realsense.cc"],
     hdrs = ["realsense.h"],
     linkopts = [
-        "-lopencv_core",
-        "-lopencv_imgproc",
-        "-lopencv_calib3d",
-        "-lopencv_highgui",
         "-lrealsense2",
     ],
     deps = [
         "//cyber",
         "@pcl",
+	"@opencv",
     ],
 )
 
@@ -69,32 +63,26 @@ cc_binary(
 cc_binary(
     name = "image_save",
     srcs = ["image_save.cc"],
+    deps = [
+        "//cyber",
+        "//modules/common:global_gflags",
+        "//modules/sensors/proto:sensors_cc_proto",
+	"@opencv",
+    ],
+)
+
+cc_binary(
+    name = "opencv_gpu",
+    srcs = ["opencv_gpu.cc"],
     linkopts = [
-        "-lopencv_core",
-        "-lopencv_highgui",
-        "-lopencv_imgproc",
-        "-lopencv_imgcodecs",
     ],
     deps = [
         "//cyber",
         "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
+	"@opencv",
     ],
 )
-
-#cc_binary(
-#    name = "opencv_gpu",
-#    srcs = ["opencv_gpu.cc"],
-#    linkopts = [
-#        "-lopencv_core",
-#        "-lopencv_gpu",
-#    ],
-#    deps = [
-#        "//cyber",
-#        "//modules/common:global_gflags",
-#        "//modules/sensors/proto:sensors_cc_proto",
-#    ],
-#)
 
 cc_library(
     name = "realsense_motion",

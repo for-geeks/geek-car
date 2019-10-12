@@ -100,3 +100,10 @@ new_local_repository(
     build_file = "third_party/apriltag.BUILD",
     path = "/usr",
 )
+
+
+new_local_repository(
+    name = "opencv",
+    build_file = "third_party/opencv.BUILD",
+    path="/usr/local/include/opencv4",
+)

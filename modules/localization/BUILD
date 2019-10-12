@@ -31,9 +31,6 @@ cc_library(
     ],
     linkopts = [
         "-lrealsense2",
-        "-lopencv_core",
-        "-lopencv_imgproc",
-        "-lopencv_imgcodecs",
         "-lapriltag",
     ],
     deps = [
@@ -42,6 +39,7 @@ cc_library(
         "//modules/localization/proto:localization_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
         "@apriltag",
+	"@opencv",
     ],
 )
 
