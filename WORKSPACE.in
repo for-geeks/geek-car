@@ -105,5 +105,5 @@ new_local_repository(
 new_local_repository(
     name = "opencv",
     build_file = "third_party/opencv.BUILD",
-    path="/usr/local/include/opencv4",
+    path="/usr/include",
 )

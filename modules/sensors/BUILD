@@ -71,19 +71,6 @@ cc_binary(
     ],
 )
 
-cc_binary(
-    name = "opencv_gpu",
-    srcs = ["opencv_gpu.cc"],
-    linkopts = [
-    ],
-    deps = [
-        "//cyber",
-        "//modules/common:global_gflags",
-        "//modules/sensors/proto:sensors_cc_proto",
-	"@opencv",
-    ],
-)
-
 cc_library(
     name = "realsense_motion",
     srcs = ["realsense_motion.h"],
