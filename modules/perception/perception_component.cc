@@ -44,7 +44,7 @@ using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 bool PerceptionComponent::Init() { return true; }
 
-bool PerceptionComponent::Proc(const std::shared_ptr<Point>& point) {
+bool PerceptionComponent::Proc(const std::shared_ptr<PointCloud>& point) {
   ADEBUG << point->DebugString();
 
   pcl::PCDReader reader;
@@ -138,7 +138,7 @@ bool PerceptionComponent::Proc(const std::shared_ptr<Point>& point) {
       cloud_cluster->points.push_back(cloud_filtered->points[*pit]);
     }
 
-    cloud_cluster->width = cloud_cluster->points.size();
+    cloud_cluster->width = static_cast<uint32_t>(cloud_cluster->points.size());
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
