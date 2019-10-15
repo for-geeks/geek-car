@@ -26,6 +26,7 @@
 #include <memory>
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
+#include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 
 namespace apollo {
@@ -33,11 +34,12 @@ namespace perception {
 
 using apollo::cyber::Component;
 using apollo::sensors::Image;
+using apollo::sensors::PointCloud;
 
-class PerceptionComponent : public Component<Image> {
+class PerceptionComponent : public Component<PointCloud> {
  public:
   bool Init() override;
-  bool Proc(const std::shared_ptr<Image>& image) override;
+  bool Proc(const std::shared_ptr<PointCloud>& point) override;
 };
 
 CYBER_REGISTER_COMPONENT(PerceptionComponent)

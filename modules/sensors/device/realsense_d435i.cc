@@ -60,14 +60,9 @@ bool D435I::Init(std::shared_ptr<Node> node_) {
   }
 
   // 4.1 Thread to handle frames
-  // async_result_ = cyber::Async(&D435I::Run, this);
-  // async_result_.get();
   realsense_t1 = std::thread(&D435I::Run, this);
 
   // 4.2 Thread to get point cloud from frame queue, and publish
-  // std::thread(&D435I::PublishPointCloud, this).join();
-  // async_result_2 = cyber::Async(&D435I::PublishPointCloud, this);
-  // async_result_2.get();
   realsense_t2 = std::thread(&D435I::PublishPointCloud, this);
 
   AINFO << "Realsense Device D435I Init Successfuly";

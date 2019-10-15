@@ -24,6 +24,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
@@ -62,7 +64,7 @@ class DeviceBase {
     if (async_result_.valid()) {
       async_result_.wait();
     }
-  };
+  }
 
   void OnAcc(const rs2::motion_frame &accel_frame) {
     rs2_vector acc = accel_frame.get_motion_data();
@@ -75,7 +77,7 @@ class DeviceBase {
     proto_accel->mutable_acc()->set_z(acc.z);
 
     acc_writer_->Write(proto_accel);
-  };
+  }
 
   void OnGyro(const rs2::motion_frame &gyro_frame) {
     rs2_vector gyro = gyro_frame.get_motion_data();
@@ -88,7 +90,7 @@ class DeviceBase {
     proto_gyro->mutable_gyro()->set_z(gyro.z);
 
     gyro_writer_->Write(proto_gyro);
-  };
+  }
 
   void OnCompressedImage(const rs2::frame &f, cv::Mat raw_image) {
     std::vector<int> param = std::vector<int>(2);
@@ -107,7 +109,7 @@ class DeviceBase {
     compressedimage->set_data(str_encode);
 
     compressed_image_writer_->Write(compressedimage);
-  };
+  }
 
  protected:
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
