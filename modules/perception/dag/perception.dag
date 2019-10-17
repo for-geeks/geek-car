@@ -5,6 +5,11 @@ module_config {
     class_name : "PerceptionComponent"
     config {
       name: "perception_component"
+      readers:[
+        {
+          channel: "/realsense/point_cloud"
+        }
+      ]
     }
   }
 }
