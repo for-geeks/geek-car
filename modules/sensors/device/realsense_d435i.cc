@@ -206,6 +206,8 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
       static_cast<float>(FLAGS_point_cloud_max_distance));
 
   depth_frame = thr_filter.process(depth_frame);
+  rs2::temporal_filter temp_filter;
+  depth_frame = temp_filter.process(depth_frame);
 
   filtered_data.enqueue(depth_frame);
 }
