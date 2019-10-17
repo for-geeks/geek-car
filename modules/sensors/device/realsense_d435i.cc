@@ -99,6 +99,10 @@ void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
     color_image_writer_ = node_->CreateWriter<Image>(FLAGS_color_image_channel);
   }
 
+  if(FLAGS_publish_depth_image) {
+    depth_image_writer_ = node_->CreateWriter<Image>(FLAGS_depth_image_channel);
+  }
+
   // Point cloud channel
   if (FLAGS_publish_point_cloud) {
     point_cloud_writer_ =
@@ -130,6 +134,11 @@ void D435I::Run() {
 
     rs2::frame color_frame = frames.get_color_frame();
     OnColorImage(color_frame);
+
+    if(FLAGS_publish_depth_image) {
+      rs2::frame depth_frame = frames.get_depth_frame();
+      OnDepthImage(depth_frame);
+    }
 
     if (FLAGS_publish_acc) {
       rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
@@ -178,7 +187,7 @@ void D435I::OnColorImage(const rs2::frame &color_frame) {
   cv::Mat mat(cv::Size(FLAGS_color_image_width, FLAGS_color_image_height),
               CV_8UC3, const_cast<void *>(color_frame.get_data()),
               cv::Mat::AUTO_STEP);
-  AINFO << "FRAME NUMBER:" << color_frame.get_frame_number();
+  AINFO << "COLOR FRAME NUMBER:" << color_frame.get_frame_number();
   if (FLAGS_publish_color_image) {
     auto image_proto = std::make_shared<Image>();
     image_proto->set_frame_no(color_frame.get_frame_number());
@@ -200,12 +209,36 @@ void D435I::OnColorImage(const rs2::frame &color_frame) {
   }
 }
 
+void D435I::OnDepthImage(const rs2::frame &f) {
+  // Creating OpenCV Matrix from a color image
+  cv::Mat mat(cv::Size(FLAGS_color_image_width, FLAGS_color_image_height),
+              CV_16UC1, const_cast<void *>(f.get_data()),
+              cv::Mat::AUTO_STEP);
+  AINFO << "DEPTH FRAME NUMBER:" << f.get_frame_number();
+  if(FLAGS_publish_depth_image) {
+    auto image_proto = std::make_shared<Image>();
+    image_proto->set_frame_no(f.get_frame_number());
+    image_proto->set_height(mat.rows);
+    image_proto->set_width(mat.cols);
+    // encoding 16-bit linear depth values.
+    // The depth is meters is equal to depth scale * pixel value.
+    image_proto->set_encoding(
+        rs2_format_to_string(f.get_profile().format()));
+
+    image_proto->set_measurement_time(Time::Now().ToSecond());
+    auto m_size = mat.rows * mat.cols * mat.elemSize();
+    image_proto->set_data(mat.data, m_size);
+    depth_image_writer_->Write(image_proto);
+  }
+}
+
 void D435I::OnPointCloud(rs2::frame depth_frame) {
   rs2::threshold_filter thr_filter(
       static_cast<float>(FLAGS_point_cloud_min_distance),
       static_cast<float>(FLAGS_point_cloud_max_distance));
 
   depth_frame = thr_filter.process(depth_frame);
+
   rs2::temporal_filter temp_filter;
   depth_frame = temp_filter.process(depth_frame);
 

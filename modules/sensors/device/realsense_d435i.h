@@ -64,9 +64,11 @@ class D435I : public DeviceBase {
  private:
   void Run();
   void OnColorImage(const rs2::frame &f);
+  void OnDepthImage(const rs2::frame &f);
   void OnPointCloud(rs2::frame depth_frame);
   void PublishPointCloud();
   std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
+  std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
   std::shared_ptr<Writer<PointCloud>> point_cloud_writer_ = nullptr;
 
   std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
