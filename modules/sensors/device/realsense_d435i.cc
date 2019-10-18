@@ -183,18 +183,14 @@ void D435I::Run() {
 }
 
 void D435I::OnColorImage(const rs2::frame &color_frame) {
-  // Creating OpenCV Matrix from a color image
-  cv::Mat mat(cv::Size(FLAGS_color_image_width, FLAGS_color_image_height),
-              CV_8UC3, const_cast<void *>(color_frame.get_data()),
-              cv::Mat::AUTO_STEP);
   AINFO << "COLOR FRAME NUMBER:" << color_frame.get_frame_number();
+  auto mat = frame_to_mat(color_frame);
+
   if (FLAGS_publish_color_image) {
     auto image_proto = std::make_shared<Image>();
     image_proto->set_frame_no(color_frame.get_frame_number());
     image_proto->set_height(mat.rows);
     image_proto->set_width(mat.cols);
-    // encoding 16-bit linear depth values.
-    // The depth is meters is equal to depth scale * pixel value.
     image_proto->set_encoding(
         rs2_format_to_string(color_frame.get_profile().format()));
 
@@ -210,11 +206,9 @@ void D435I::OnColorImage(const rs2::frame &color_frame) {
 }
 
 void D435I::OnDepthImage(const rs2::frame &f) {
-  // Creating OpenCV Matrix from a color image
-  cv::Mat mat(cv::Size(FLAGS_color_image_width, FLAGS_color_image_height),
-              CV_16UC1, const_cast<void *>(f.get_data()),
-              cv::Mat::AUTO_STEP);
   AINFO << "DEPTH FRAME NUMBER:" << f.get_frame_number();
+  auto mat = frame_to_mat(f);
+
   if(FLAGS_publish_depth_image) {
     auto image_proto = std::make_shared<Image>();
     image_proto->set_frame_no(f.get_frame_number());
