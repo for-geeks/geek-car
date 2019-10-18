@@ -99,7 +99,7 @@ void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
     color_image_writer_ = node_->CreateWriter<Image>(FLAGS_color_image_channel);
   }
 
-  if(FLAGS_publish_depth_image) {
+  if (FLAGS_publish_depth_image) {
     depth_image_writer_ = node_->CreateWriter<Image>(FLAGS_depth_image_channel);
   }
 
@@ -135,7 +135,7 @@ void D435I::Run() {
     rs2::frame color_frame = frames.get_color_frame();
     OnColorImage(color_frame);
 
-    if(FLAGS_publish_depth_image) {
+    if (FLAGS_publish_depth_image) {
       rs2::frame depth_frame = frames.get_depth_frame();
       OnDepthImage(depth_frame);
     }
@@ -152,29 +152,7 @@ void D435I::Run() {
 
     if (FLAGS_publish_point_cloud) {
       // Calculate the angle
-      if (FLAGS_enable_point_cloud_transform) {
-        auto angle = algo_.get_theta();
-        AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
-
-        transform = Eigen::Matrix4f::Identity();
-        ::Eigen::Vector3d ea0(0, angle.x, angle.z);
-        ::Eigen::Matrix3d R;
-        R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
-            ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
-            ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
-        std::cout << "ROTATION :" << R << std::endl << std::endl;
-        Eigen::MatrixXf RR = R.cast<float>();
-        transform(0, 0) = RR(0, 0);
-        transform(0, 1) = RR(0, 1);
-        transform(0, 2) = RR(0, 2);
-        transform(1, 0) = RR(1, 0);
-        transform(1, 1) = RR(1, 1);
-        transform(1, 2) = RR(1, 2);
-        transform(2, 0) = RR(2, 0);
-        transform(2, 1) = RR(2, 1);
-        transform(2, 2) = RR(2, 2);
-        std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
-      }
+      PointCloudTransform();
 
       rs2::frame depth_frame = frames.get_depth_frame();
       OnPointCloud(depth_frame);
@@ -209,15 +187,14 @@ void D435I::OnDepthImage(const rs2::frame &f) {
   AINFO << "DEPTH FRAME NUMBER:" << f.get_frame_number();
   auto mat = frame_to_mat(f);
 
-  if(FLAGS_publish_depth_image) {
+  if (FLAGS_publish_depth_image) {
     auto image_proto = std::make_shared<Image>();
     image_proto->set_frame_no(f.get_frame_number());
     image_proto->set_height(mat.rows);
     image_proto->set_width(mat.cols);
     // encoding 16-bit linear depth values.
     // The depth is meters is equal to depth scale * pixel value.
-    image_proto->set_encoding(
-        rs2_format_to_string(f.get_profile().format()));
+    image_proto->set_encoding(rs2_format_to_string(f.get_profile().format()));
 
     image_proto->set_measurement_time(Time::Now().ToSecond());
     auto m_size = mat.rows * mat.cols * mat.elemSize();
@@ -239,6 +216,32 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
   filtered_data.enqueue(depth_frame);
 }
 
+void D435I::PointCloudTransform() {
+  if (FLAGS_enable_point_cloud_transform) {
+    auto angle = algo_.get_theta();
+    AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
+
+    transform = Eigen::Matrix4f::Identity();
+    ::Eigen::Vector3d ea0(0, angle.x, angle.z);
+    ::Eigen::Matrix3d R;
+    R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
+        ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
+        ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
+    std::cout << "ROTATION :" << R << std::endl << std::endl;
+    Eigen::MatrixXf RR = R.cast<float>();
+    transform(0, 0) = RR(0, 0);
+    transform(0, 1) = RR(0, 1);
+    transform(0, 2) = RR(0, 2);
+    transform(1, 0) = RR(1, 0);
+    transform(1, 1) = RR(1, 1);
+    transform(1, 2) = RR(1, 2);
+    transform(2, 0) = RR(2, 0);
+    transform(2, 1) = RR(2, 1);
+    transform(2, 2) = RR(2, 2);
+    std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
+  }
+}
+
 void D435I::PublishPointCloud() {
   while (!stop_) {
     // Declare pointcloud object, for calculating pointclouds
@@ -250,7 +253,7 @@ void D435I::PublishPointCloud() {
     rs2::frame depth_frame;
     filtered_data.poll_for_frame(&depth_frame);
     if (!depth_frame) {
-      AINFO << "FRAME QUEUE IS EMPTY, WAIT FOR ENQUEUE;";
+      AINFO << "POINT CLOUD FRAME QUEUE IS EMPTY, WAIT FOR ENQUEUE;";
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       continue;
     }
@@ -260,7 +263,7 @@ void D435I::PublishPointCloud() {
     auto t1 = Time::Now().ToSecond();
     auto pcl_points = points_to_pcl(points);
     auto t2 = Time::Now().ToSecond();
-    AINFO << "time for realsense point to point cloud:" << t2 - t1;
+    AINFO << "Time for realsense point to point cloud:" << t2 - t1;
 
     pcl_ptr cloud_(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -274,12 +277,12 @@ void D435I::PublishPointCloud() {
     std::shared_ptr<PointCloud> point_cloud_out =
         point_cloud_pool_->GetObject();
     if (point_cloud_out == nullptr) {
-      AWARN << "point cloud pool return nullptr, will be create new.";
+      AWARN << "Point cloud pool return nullptr, will be create new.";
       point_cloud_out = std::make_shared<PointCloud>();
       point_cloud_out->mutable_point()->Reserve(point_size_);
     }
     if (point_cloud_out == nullptr) {
-      AWARN << "point cloud out is nullptr";
+      AWARN << "Point cloud out is nullptr";
       return;
     }
     point_cloud_out->Clear();
@@ -318,6 +321,6 @@ D435I::~D435I() {
   }
 }
 
-}  // namespace device
-}  // namespace sensors
-}  // namespace apollo
+} // namespace device
+} // namespace sensors
+} // namespace apollo
