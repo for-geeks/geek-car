@@ -27,6 +27,7 @@ apt update -y && \
     libswscale-dev \
     libcurl4-nss-dev \
     libpoco-dev \
+    libconsole-bridge-dev \
     libeigen3-dev \
     libflann-dev \
     libqhull-dev \
