@@ -34,6 +34,7 @@ RUN apt update -y && \
     libcurl4-nss-dev \
     libpoco-dev \
     libeigen3-dev \
+    libconsole-bridge-dev \
     libflann-dev \
     libqhull-dev \
     libpcap0.8 \
