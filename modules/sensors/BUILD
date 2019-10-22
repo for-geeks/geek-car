@@ -25,13 +25,13 @@ cc_library(
         ":realsense_motion",
         "//cyber",
         "//modules/common:global_gflags",
-        "//modules/sensors/proto:sensors_cc_proto",
-        "//modules/sensors/device:device_base",
         "//modules/sensors/device:d435_lib",
+        "//modules/sensors/device:device_base",
         "//modules/sensors/device:t265_lib",
+        "//modules/sensors/proto:sensors_cc_proto",
         "@eigen",
+        "@opencv",
         "@pcl",
-	"@opencv",
     ],
 )
 
@@ -44,8 +44,8 @@ cc_library(
     ],
     deps = [
         "//cyber",
+        "@opencv",
         "@pcl",
-	"@opencv",
     ],
 )
 
@@ -67,7 +67,7 @@ cc_binary(
         "//cyber",
         "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
-	"@opencv",
+        "@opencv",
     ],
 )
 

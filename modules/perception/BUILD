@@ -27,4 +27,27 @@ cc_library(
     ],
 )
 
+cc_binary(
+    name = "pcd_read",
+    srcs = ["pcd_read_test.cc"],
+    linkopts = [
+        # "-lrealsense2",
+    ],
+    deps = [
+        "@pcl",
+    ],
+)
+
+cc_binary(
+    name = "euclidean_segmentation",
+    srcs = ["euclidean_segmentation.cc"],
+    linkopts = [
+        "-llz4",
+    ],
+    deps = [
+        "@pcl",
+        "@eigen",
+    ],
+)
+
 cpplint()

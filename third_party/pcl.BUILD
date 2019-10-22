@@ -2,16 +2,15 @@ licenses(["notice"])
 
 package(default_visibility = ["//visibility:public"])
 
-# This assumes you have pcl 1.7 pre-installed in your system.
 cc_library(
     name = "pcl",
     defines = ["PCL_NO_PRECOMPILE"],
     includes = [
         ".",
-        "/usr/local/include",
     ],
     linkopts = [
-        "-L/usr/lib/aarch64-linux-gnu",
+        # "-L/usr/lib/aarch64-linux-gnu",
+        # "-L/usr/lib/x86_64-linux-gnu/",
         "-lboost_system",
         "-lpcl_common",
         "-lpcl_features",

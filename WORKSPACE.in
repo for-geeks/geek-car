@@ -63,13 +63,11 @@ new_local_repository(
     path = "/usr/local/Qt5.9.8/5.9/gcc_64",
 )
 
-# PCL 1.7
-# =======
-# This requires libpcl-dev to be installed in your Ubuntu/Debian.
+# PCL
 new_local_repository(
     name = "pcl",
     build_file = "third_party/pcl.BUILD",
-    path = "/usr/include/pcl-1.8",
+    path = "/usr/local/include/pcl-1.9",
 )
 
 # eigen

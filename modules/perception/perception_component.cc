@@ -51,10 +51,9 @@ bool PerceptionComponent::Proc(const std::shared_ptr<PointCloud> &point) {
   pcl::PCDReader reader;
   pcl_ptr cloud(new pcl::PointCloud<pcl::PointXYZ>),
       cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
-  // reader.read("/home/apollo/Downloads/tracking_train_pcd_1/result_9053_11_frame/102.pcd", *cloud);
-  if (-1 == pcl::io::loadPCDFile<pcl::PointXYZ>(
-                "102.pcd",
-                *cloud)) {
+  // reader.read("/home/apollo/Downloads/tracking_train_pcd_1/result_9053_11_frame/102.pcd",
+  // *cloud);
+  if (-1 == pcl::io::loadPCDFile<pcl::PointXYZ>("102.pcd", *cloud)) {
     AERROR << "Read PCD file failed";
   }
   AINFO << "PointCloud before filtering has: " << cloud->points.size()
@@ -63,26 +62,26 @@ bool PerceptionComponent::Proc(const std::shared_ptr<PointCloud> &point) {
   // 因是来加速处理过程，越少的点意味着分割循环中处理起来越快。
   // Create the filtering object: downsample the dataset using a leaf size of
   // 1cm
-  pcl::VoxelGrid<pcl::PointXYZ> vg; // 体素栅格下采样对象
+  pcl::VoxelGrid<pcl::PointXYZ> vg;  // 体素栅格下采样对象
   pcl_ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
   vg.setInputCloud(cloud);
-  vg.setLeafSize(0.01f, 0.01f, 0.01f); // 设置采样的体素大小
-  vg.filter(*cloud_filtered);          // 执行采样保存数据
+  vg.setLeafSize(0.01f, 0.01f, 0.01f);  // 设置采样的体素大小
+  vg.filter(*cloud_filtered);           // 执行采样保存数据
   AINFO << "PointCloud after filtering has: " << cloud_filtered->points.size()
         << " data points.";
 
   // Create the segmentation object for the planar model and set all the
   // parameters
-  pcl::SACSegmentation<pcl::PointXYZ> seg; // 创建分割对象
+  pcl::SACSegmentation<pcl::PointXYZ> seg;  // 创建分割对象
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
   pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
   pcl_ptr cloud_plane(new pcl::PointCloud<pcl::PointXYZ>());
   // pcl::PCDWriter writer;
-  seg.setOptimizeCoefficients(true); // 设置对估计的模型参数进行优化处理
-  seg.setModelType(pcl::SACMODEL_PLANE); // 设置分割模型类别
-  seg.setMethodType(pcl::SAC_RANSAC); // 设置用哪个随机参数估计方法
-  seg.setMaxIterations(100);          // 设置最大迭代次数
-  seg.setDistanceThreshold(0.02); // 设置判断是否为模型内点的距离阈值
+  seg.setOptimizeCoefficients(true);  // 设置对估计的模型参数进行优化处理
+  seg.setModelType(pcl::SACMODEL_PLANE);  // 设置分割模型类别
+  seg.setMethodType(pcl::SAC_RANSAC);  // 设置用哪个随机参数估计方法
+  seg.setMaxIterations(100);           // 设置最大迭代次数
+  seg.setDistanceThreshold(0.02);  // 设置判断是否为模型内点的距离阈值
 
   int nr_points = static_cast<int>(cloud_filtered->points.size());
   while (cloud_filtered->points.size() > 0.3 * nr_points) {
@@ -98,12 +97,12 @@ bool PerceptionComponent::Proc(const std::shared_ptr<PointCloud> &point) {
     }
 
     // 移去平面局内点，提取剩余点云
-    pcl::ExtractIndices<pcl::PointXYZ> extract; // 创建点云提取对象
-    extract.setInputCloud(cloud_filtered);      // 设置输入点云
-    extract.setIndices(inliers); // 设置分割后的内点为需要提取的点集
-    extract.setNegative(false); // 设置提取内点而非外点
+    pcl::ExtractIndices<pcl::PointXYZ> extract;  // 创建点云提取对象
+    extract.setInputCloud(cloud_filtered);       // 设置输入点云
+    extract.setIndices(inliers);  // 设置分割后的内点为需要提取的点集
+    extract.setNegative(false);  // 设置提取内点而非外点
     // Get the points associated with the planar surface
-    extract.filter(*cloud_plane); // 提取输出存储到cloud_plane
+    extract.filter(*cloud_plane);  // 提取输出存储到cloud_plane
     std::cout << "PointCloud representing the planar component: "
               << cloud_plane->points.size() << " data points." << std::endl;
 
@@ -117,14 +116,14 @@ bool PerceptionComponent::Proc(const std::shared_ptr<PointCloud> &point) {
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
       new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud(
-      cloud_filtered); // 创建点云索引向量，用于存储实际的点云信息
+      cloud_filtered);  // 创建点云索引向量，用于存储实际的点云信息
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance(0.02); // 设置近邻搜索的搜索半径为2cm
-  ec.setMinClusterSize(100); // 设置一个聚类需要的最少点数目为100
-  ec.setMaxClusterSize(25000); // 设置一个聚类需要的最大点数目为25000
-  ec.setSearchMethod(tree); // 设置点云的搜索机制
+  ec.setClusterTolerance(0.02);  // 设置近邻搜索的搜索半径为2cm
+  ec.setMinClusterSize(100);  // 设置一个聚类需要的最少点数目为100
+  ec.setMaxClusterSize(25000);  // 设置一个聚类需要的最大点数目为25000
+  ec.setSearchMethod(tree);  // 设置点云的搜索机制
   ec.setInputCloud(cloud_filtered);
   ec.extract(cluster_indices);
   // 从点云中提取聚类，并将点云索引保存在cluster_indices中
@@ -159,5 +158,5 @@ bool PerceptionComponent::Proc(const std::shared_ptr<PointCloud> &point) {
   return true;
 }
 
-} // namespace perception
-} // namespace apollo
+}  // namespace perception
+}  // namespace apollo
