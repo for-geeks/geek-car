@@ -41,7 +41,6 @@ Uart::Uart(const char* dev) {
   // snprintf(tty, sizeof(tty), "%s%s", tty, dev);
 
   fd = open(tty, O_RDWR | O_NOCTTY);
-  // fd = open(tty, O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd > 0) {
     AINFO << "opened :" << tty;
   } else {

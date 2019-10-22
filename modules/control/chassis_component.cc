@@ -35,7 +35,7 @@ typedef struct _vehicle_info_s {
 bool chassis_flag = false;
 
 bool ChassisComponent::Init() {
-  arduino_.SetOpt(9600, 8, 'N', 1);
+  arduino_.SetOpt(115200, 8, 'N', 1);
 
   // Read and copy control message
   control_reader_ = node_->CreateReader<Control_Command>(
