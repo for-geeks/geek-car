@@ -132,12 +132,11 @@ int main(int argc, char **argv) {
     ss << "cloud_cluster_" << j << ".pcd";
     // writer.write<pcl::PointXYZ>(ss.str(), *cloud_cluster, false);
 
-    //————————————以上就是实现所有的聚类的步骤，并且保存了————————————————————————————//
-    //以下就是我为了回答网友提问解决可视化除了平面以后的可视化的代码也就两行
+    // Result visualization
     j++;
     *add_cloud += *cloud_cluster;
     // pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
   }
 
-  return (0);
+  return 0;
 }

@@ -27,6 +27,7 @@
 #include <iomanip>
 #include <iostream>
 #include <thread>
+#include <typeinfo>
 #include <utility>
 
 #include "cyber/common/log.h"
@@ -49,6 +50,9 @@ bool RealsenseComponent::Init() {
 void RealsenseComponent::InitDeviceAndSensor() {
   device_ = first_connected_device();
 
+  AINFO << "CONNECTED FIRST DEVICE INFO:";
+  RealSense::printDeviceInformation(device_);
+
   if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
     device_object_ = new T265();
   } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
@@ -56,6 +60,8 @@ void RealsenseComponent::InitDeviceAndSensor() {
   } else {
     AERROR << "The device data is not yet supported for parsing";
   }
+
+  AINFO << "INIT device OBJECT IS " << typeid(device_object_).name();
 
   // Channel writer
   if (!device_object_->Init(node_)) {
@@ -72,5 +78,5 @@ RealsenseComponent::~RealsenseComponent() {
   }
 }
 
-}  // namespace sensors
-}  // namespace apollo
+} // namespace sensors
+} // namespace apollo
