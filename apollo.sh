@@ -87,7 +87,7 @@ function generate_build_targets() {
     BUILD_TARGETS=`bazel query //modules/... except //modules/perception/... union //cyber/...`
     ;;
   *)
-    BUILD_TARGETS=`bazel query //modules/... union //cyber/...`
+    BUILD_TARGETS=`bazel query //modules/... union //cyber/... except //modules/examples/...`
   esac
 
   if [ $? -ne 0 ]; then
@@ -120,7 +120,7 @@ function build() {
   MACHINE_ARCH=$(uname -m)
   JOB_ARG="--jobs=$(nproc) --ram_utilization_factor 80"
   if [ "$MACHINE_ARCH" == 'aarch64' ]; then
-	  JOB_ARG="--jobs=$(nproc)"
+	  JOB_ARG="--jobs=3"
   fi
   info "Building with $JOB_ARG for $MACHINE_ARCH"
 

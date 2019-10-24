@@ -24,7 +24,7 @@
 #include "modules/common/global_gflags.h"
 
 // Arduino
-DEFINE_string(device_name, "ttyACM0", "Arduino device name ");
+DEFINE_string(device_name, "ttyArduino", "Arduino device name ");
 
 // Realsense
 DEFINE_string(device_model, "T265", "RealSense Device Model Name");

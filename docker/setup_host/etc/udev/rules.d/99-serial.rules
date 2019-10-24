@@ -1,0 +1,10 @@
+# need to test
+
+#SUBSYSTEM=="tty" ATTRS{manufacturer}=="Arduino*" SYMLINK+="arduino%n"
+
+# SUBSYSTEM=="tty" ATTRS{product}=="Olimex AVR-ISP500" SYMLINK+="stk500-programmer%n"
+
+#the unshielded FTDI cables have difficulty running at full speed
+KERNEL=="ttyACM[0-9]*" SUBSYSTEM=="tty", ATTRS{idVendor}=="1eaf", ATTRS{idProduct}=="0004", SYMLINK+="ttyArduino", OWNER="geek-car", GROUP="geek-car"
+KERNEL=="ttyACM[0-9]*" SUBSYSTEM=="tty", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="0002", SYMLINK+="ttyArduino", OWNER="geek-car", GROUP="geek-car"
+KERNEL=="ttyACM[0-9]*" SUBSYSTEM=="tty", ATTRS{idVendor}=="1d6b", ATTRS{idProduct}=="0002", SYMLINK+="ttyArduino", OWNER="geek-car", GROUP="geek-car"
