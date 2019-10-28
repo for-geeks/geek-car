@@ -78,5 +78,5 @@ RealsenseComponent::~RealsenseComponent() {
   }
 }
 
-} // namespace sensors
-} // namespace apollo
+}  // namespace sensors
+}  // namespace apollo

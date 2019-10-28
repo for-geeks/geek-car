@@ -47,6 +47,7 @@ bool ControlComponent::Init() {
       FLAGS_chassis_channel, [this](const std::shared_ptr<Chassis>& chassis) {
         chassis_.CopyFrom(*chassis);
       });
+  // TODO(zongbao) need to depend on the sensors
   pose_reader_ = node_->CreateReader<Pose>(
       FLAGS_pose_channel,
       [this](const std::shared_ptr<Pose>& Pose) { pose_.CopyFrom(*Pose); });

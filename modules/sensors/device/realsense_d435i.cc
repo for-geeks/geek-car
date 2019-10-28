@@ -321,6 +321,6 @@ D435I::~D435I() {
   }
 }
 
-} // namespace device
-} // namespace sensors
-} // namespace apollo
+}  // namespace device
+}  // namespace sensors
+}  // namespace apollo
