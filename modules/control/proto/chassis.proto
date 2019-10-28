@@ -2,9 +2,20 @@ syntax = "proto2";
 
 package apollo.control;
 
+message RangeMeasure {
+  optional uint64 addr = 1;
+  optional float distance = 2;
+}
+
+
 message Chassis {
   optional float steer_angle = 1;
   optional float throttle = 2;
   optional float speed = 3;
+  optional float v_bat = 4;
+  optional float nano_current = 5;
+  optional float motor_current = 6;
+  repeated RangeMeasure range_measure = 7;
+  optional uint64 device_num = 8;
 }
 

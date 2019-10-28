@@ -26,16 +26,26 @@
 namespace apollo {
 namespace control {
 
+typedef struct  _range_measure {
+  unsigned int addr;
+  float distance;
+}range_measure_s;
+
 typedef struct _vehicle_info_s {
   float steerangle;
   float throttle;
   float speed_now;
+  float v_bat;
+  float nano_current;
+  float motor_current;
+  range_measure_s range_measure[4];
+  int device_num;
 } vehicle_info_s;
 
 bool chassis_flag = false;
 
 bool ChassisComponent::Init() {
-  arduino_.SetOpt(9600, 8, 'N', 1);
+  arduino_.SetOpt(115200, 8, 'N', 1);
 
   // Read and copy control message
   control_reader_ = node_->CreateReader<Control_Command>(
@@ -113,8 +123,8 @@ void ChassisComponent::OnChassis() {
         count++;
       }
     }
-    if (count == 12) {
-      std::memcpy(&vehicle_info, buffer, 12);
+    if (count == 60) {
+      std::memcpy(&vehicle_info, buffer, 60);
       ADEBUG << "chassis feedback , steer_angle: " << vehicle_info.steerangle
              << " throttle:" << vehicle_info.throttle
              << " speed: " << vehicle_info.speed_now;
@@ -123,6 +133,18 @@ void ChassisComponent::OnChassis() {
       proto_chassis->set_throttle(vehicle_info.throttle);
       proto_chassis->set_speed(vehicle_info.speed_now / 5544 *
                                (float)FLAGS_speed_feedback);
+      proto_chassis->set_v_bat(vehicle_info.v_bat);
+      proto_chassis->set_nano_current(vehicle_info.nano_current);
+      proto_chassis->set_motor_current(vehicle_info.motor_current);
+      for(int i = 0; i < vehicle_info.device_num; i++) {
+	RangeMeasure rm;
+	rm.set_addr(vehicle_info.range_measure[i].addr);
+	rm.set_distance(vehicle_info.range_measure[i].distance);
+	auto next_range_measure = proto_chassis->add_range_measure();
+	next_range_measure->CopyFrom(rm);
+      }
+      proto_chassis->set_device_num(vehicle_info.device_num);
+
       chassis_writer_->Write(proto_chassis);
     }
   }
