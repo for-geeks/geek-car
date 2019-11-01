@@ -115,7 +115,6 @@ void ChassisComponent::OnChassis() {
     while (1) {
       int ret = arduino_.Read(&buf, 1);
       if (ret == 1) {
-        // ADEBUG << "Arduino return state:" << ret;
         if (buf == 0x0A) {
           break;
         }
@@ -132,7 +131,7 @@ void ChassisComponent::OnChassis() {
       proto_chassis->set_steer_angle(vehicle_info.steerangle);
       proto_chassis->set_throttle(vehicle_info.throttle);
       proto_chassis->set_speed(vehicle_info.speed_now / 5544 *
-                               static_cast<float>(FLAGS_speed_feedback);
+                               static_cast<float>(FLAGS_speed_feedback));
       proto_chassis->set_v_bat(vehicle_info.v_bat);
       proto_chassis->set_nano_current(vehicle_info.nano_current);
       proto_chassis->set_motor_current(vehicle_info.motor_current);
