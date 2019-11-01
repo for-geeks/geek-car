@@ -4,6 +4,9 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "libmonitor_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"monitor\\\"",
+    ],
     linkshared = True,
     linkstatic = False,
     deps = [
@@ -16,6 +19,9 @@ cc_library(
     srcs = ["monitor_component.cc"],
     hdrs = [
         "monitor_component.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"monitor\\\"",
     ],
     linkopts = [
         "-lrealsense2",
@@ -32,6 +38,9 @@ cc_library(
 cc_binary(
     name = "realsense_monitor",
     srcs = ["realsense_monitor.cc"],
+    copts = [
+        "-DMODULE_NAME=\\\"monitor\\\"",
+    ],
     deps = [
         "//cyber",
         "//modules/common:global_gflags",

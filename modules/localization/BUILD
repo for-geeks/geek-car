@@ -14,6 +14,9 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "liblocalization_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"localization\\\"",
+    ],
     linkshared = True,
     linkstatic = False,
     deps = [
@@ -29,6 +32,9 @@ cc_library(
     hdrs = [
         "localization_component.h",
     ],
+    copts = [
+        "-DMODULE_NAME=\\\"localization\\\"",
+    ],
     linkopts = [
         "-lrealsense2",
         "-lapriltag",
@@ -39,7 +45,7 @@ cc_library(
         "//modules/localization/proto:localization_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
         "@apriltag",
-	"@opencv",
+        "@opencv",
     ],
 )
 

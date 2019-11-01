@@ -7,6 +7,9 @@ cc_binary(
     srcs = [
         "pose_reader.cc",
     ],
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
+    ],
     deps = [
         "//cyber",
     ],
@@ -15,6 +18,9 @@ cc_binary(
 cc_binary(
     name = "pose_listener",
     srcs = ["pose_listener.cc"],
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
+    ],
     deps = [
         "//cyber",
         "//modules/common:global_gflags",
@@ -25,6 +31,9 @@ cc_binary(
 cc_binary(
     name = "teleop",
     srcs = ["teleop.cc"],
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
+    ],
     deps = [
         "//cyber",
         "//external:gflags",
@@ -34,6 +43,9 @@ cc_binary(
 
 cc_binary(
     name = "libcalibration_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
+    ],
     linkshared = True,
     linkstatic = False,
     deps = [
@@ -48,6 +60,9 @@ cc_library(
     ],
     hdrs = [
         "control_calibration.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
     ],
     deps = [
         "//cyber",

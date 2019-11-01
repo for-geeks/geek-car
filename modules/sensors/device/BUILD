@@ -6,6 +6,9 @@ cc_library(
     hdrs = [
         "realsense_d435i.h",
     ],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
     linkopts = [
         "-lopencv_core",
         "-lopencv_imgproc",
@@ -17,9 +20,9 @@ cc_library(
         ":device_base",
         "//cyber",
         "//modules/common:global_gflags",
-        "//modules/sensors/proto:sensors_cc_proto",
-        "//modules/sensors:realsense_motion",
         "//modules/sensors:realsense_api",
+        "//modules/sensors:realsense_motion",
+        "//modules/sensors/proto:sensors_cc_proto",
         "@eigen",
         "@pcl",
     ],
@@ -31,6 +34,9 @@ cc_library(
     hdrs = [
         "realsense_t265.h",
     ],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
     linkopts = [
         "-lopencv_core",
         "-lopencv_imgproc",
@@ -42,15 +48,18 @@ cc_library(
         ":device_base",
         "//cyber",
         "//modules/common:global_gflags",
-        "//modules/sensors/proto:sensors_cc_proto",
         "//modules/sensors:realsense_api",
         "//modules/sensors:realsense_motion",
+        "//modules/sensors/proto:sensors_cc_proto",
     ],
 )
 
 cc_library(
     name = "device_base",
     srcs = ["device_base.h"],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
     linkopts = [
         "-lopencv_core",
         "-lopencv_imgproc",
