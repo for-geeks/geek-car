@@ -4,6 +4,9 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "libcontrol_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
+    ],
     linkshared = True,
     linkstatic = False,
     deps = [
@@ -16,6 +19,9 @@ cc_binary(
     srcs = [
         "control_reference_gen.cc",
     ],
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
+    ],
     deps = [
         "//cyber",
         "//modules/common:curve_fitting",
@@ -27,6 +33,9 @@ cc_binary(
 
 cc_binary(
     name = "libchassis_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
+    ],
     linkshared = True,
     linkstatic = False,
     deps = [
@@ -41,6 +50,9 @@ cc_library(
     ],
     hdrs = [
         "control_component.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
     ],
     deps = [
         "//cyber",
@@ -59,6 +71,9 @@ cc_library(
     hdrs = [
         "Uart.h",
         "chassis_component.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"control\\\"",
     ],
     deps = [
         "//cyber",

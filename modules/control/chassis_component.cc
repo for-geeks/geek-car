@@ -26,10 +26,10 @@
 namespace apollo {
 namespace control {
 
-typedef struct  _range_measure {
+typedef struct _range_measure {
   unsigned int addr;
   float distance;
-}range_measure_s;
+} range_measure_s;
 
 typedef struct _vehicle_info_s {
   float steerangle;
@@ -115,7 +115,6 @@ void ChassisComponent::OnChassis() {
     while (1) {
       int ret = arduino_.Read(&buf, 1);
       if (ret == 1) {
-        // ADEBUG << "Arduino return state:" << ret;
         if (buf == 0x0A) {
           break;
         }
@@ -132,16 +131,16 @@ void ChassisComponent::OnChassis() {
       proto_chassis->set_steer_angle(vehicle_info.steerangle);
       proto_chassis->set_throttle(vehicle_info.throttle);
       proto_chassis->set_speed(vehicle_info.speed_now / 5544 *
-                               (float)FLAGS_speed_feedback);
+                               static_cast<float>(FLAGS_speed_feedback));
       proto_chassis->set_v_bat(vehicle_info.v_bat);
       proto_chassis->set_nano_current(vehicle_info.nano_current);
       proto_chassis->set_motor_current(vehicle_info.motor_current);
-      for(int i = 0; i < vehicle_info.device_num; i++) {
-	RangeMeasure rm;
-	rm.set_addr(vehicle_info.range_measure[i].addr);
-	rm.set_distance(vehicle_info.range_measure[i].distance);
-	auto next_range_measure = proto_chassis->add_range_measure();
-	next_range_measure->CopyFrom(rm);
+      for (int i = 0; i < vehicle_info.device_num; i++) {
+        RangeMeasure rm;
+        rm.set_addr(vehicle_info.range_measure[i].addr);
+        rm.set_distance(vehicle_info.range_measure[i].distance);
+        auto next_range_measure = proto_chassis->add_range_measure();
+        next_range_measure->CopyFrom(rm);
       }
       proto_chassis->set_device_num(vehicle_info.device_num);
 

@@ -4,6 +4,9 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "librealsense_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
     linkshared = True,
     linkstatic = False,
     deps = [
@@ -16,6 +19,9 @@ cc_library(
     srcs = ["realsense_component.cc"],
     hdrs = [
         "realsense_component.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
     ],
     linkopts = [
         "-lrealsense2",
@@ -39,6 +45,9 @@ cc_library(
     name = "realsense_api",
     srcs = ["realsense.cc"],
     hdrs = ["realsense.h"],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
     linkopts = [
         "-lrealsense2",
     ],
@@ -52,6 +61,9 @@ cc_library(
 cc_library(
     name = "realsense_motion",
     srcs = ["realsense_motion.h"],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
     linkopts = [
         "-lrealsense2",
     ],

@@ -33,6 +33,11 @@
 #include "librealsense2/rs.hpp"
 #include "librealsense2/rsutil.h"
 
+/**
+ * @brief  RealSense T265 Map TEST
+ *
+ * @return double
+ */
 double timestamp() {
   auto now = std::chrono::system_clock::now().time_since_epoch();
   return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();

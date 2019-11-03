@@ -10,6 +10,9 @@ cc_library(
     hdrs = [
         "global_gflags.h",
     ],
+    copts = [
+        "-DMODULE_NAME=\\\"common\\\"",
+    ],
     deps = [
         "//external:gflags",
     ],
@@ -18,6 +21,9 @@ cc_library(
 cc_library(
     name = "curve_fitting",
     srcs = ["curve_fitting.h"],
+    copts = [
+        "-DMODULE_NAME=\\\"common\\\"",
+    ],
 )
 
 cpplint()

@@ -4,6 +4,9 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = "libperception_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"perception\\\"",
+    ],
     linkshared = True,
     linkstatic = False,
     deps = [
@@ -19,6 +22,9 @@ cc_library(
     hdrs = [
         "perception_component.h",
     ],
+    copts = [
+        "-DMODULE_NAME=\\\"perception\\\"",
+    ],
     deps = [
         "//cyber",
         "//modules/perception/proto:perception_cc_proto",
@@ -30,6 +36,9 @@ cc_library(
 cc_binary(
     name = "pcd_read",
     srcs = ["pcd_read_test.cc"],
+    copts = [
+        "-DMODULE_NAME=\\\"perception\\\"",
+    ],
     linkopts = [
         # "-lrealsense2",
     ],
@@ -41,12 +50,15 @@ cc_binary(
 cc_binary(
     name = "euclidean_segmentation",
     srcs = ["euclidean_segmentation.cc"],
+    copts = [
+        "-DMODULE_NAME=\\\"perception\\\"",
+    ],
     linkopts = [
         "-llz4",
     ],
     deps = [
-        "@pcl",
         "@eigen",
+        "@pcl",
     ],
 )
 
