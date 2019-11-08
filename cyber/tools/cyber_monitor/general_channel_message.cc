@@ -83,7 +83,9 @@ bool GeneralChannelMessage::isErrorCode(void* ptr) {
 }
 
 double GeneralChannelMessage::frame_ratio(void) {
-  if (!is_enabled() || !has_message_come()) return 0.0;
+  if (!is_enabled() || !has_message_come()) {
+    return 0.0;
+  }
   auto time_now = apollo::cyber::Time::MonoTime();
   auto interval = time_now - time_last_calc_;
   if (interval.ToNanosecond() > 1000000000) {

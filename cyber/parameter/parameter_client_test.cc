@@ -18,6 +18,7 @@
 
 #include <gtest/gtest.h>
 #include <memory>
+#include <thread>
 #include <vector>
 
 #include "cyber/cyber.h"
@@ -32,6 +33,7 @@ class ParameterClientTest : public ::testing::Test {
  protected:
   ParameterClientTest() {
     apollo::cyber::Init("parameter_client_test");
+    SetState(STATE_INITIALIZED);
     node_ = CreateNode("parameter_server");
   }
 
@@ -55,7 +57,7 @@ class ParameterClientTest : public ::testing::Test {
 
 TEST_F(ParameterClientTest, set_parameter) {
   EXPECT_TRUE(pc_->SetParameter(Parameter("int", 1)));
-  usleep(100000);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   ps_.reset();
   EXPECT_FALSE(pc_->SetParameter(Parameter("int", 1)));
