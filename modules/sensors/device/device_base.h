@@ -97,7 +97,7 @@ class DeviceBase {
     param[0] = cv::IMWRITE_JPEG_QUALITY;
     param[1] = FLAGS_compress_rate;
     cv::Mat tmp_mat;
-    //cv::cvtColor(raw_image, tmp_mat, cv::COLOR_RGB2BGR);
+    // cv::cvtColor(raw_image, tmp_mat, cv::COLOR_RGB2BGR);
     std::vector<uchar> data_encode;
     cv::imencode(".jpeg", raw_image, data_encode, param);
     std::string str_encode(data_encode.begin(), data_encode.end());
