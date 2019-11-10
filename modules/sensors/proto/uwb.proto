@@ -1,0 +1,26 @@
+syntax = "proto2";
+package apollo.sensors;
+
+import "modules/common/proto/header.proto";
+
+// Protocol for noolloop LTS product, more detail you can found
+// here:http://www.nooploop.com/download/nlink/NlinkUnpack_V1.2.1.zip
+
+message TagFrame {
+  optional float pos = 1;
+  optional float eop = 2;
+  optional float vel = 3;
+  optional float dis = 4;
+  optional float angle = 5;
+}
+
+message AnchorFrame {
+  optional uint32 id = 1;
+  optional float dis = 2;  // distance from current tag to other anchor
+  optional float supply_voltage = 3;
+}
+
+message RawDistanceTag2Anchor {
+  optional uint32 id = 1;
+  optional uint32 distance = 2;
+}
