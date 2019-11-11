@@ -10,11 +10,12 @@ cc_proto_library(
 proto_library(
     name = "sensors_proto",
     srcs = [
-        "sensors.proto",
         "mobileye.proto",
+        "nooploop.proto",
         "pointcloud.proto",
-        "sensor_image.proto",
         "radar.proto",
+        "sensor_image.proto",
+        "sensors.proto",
         "ultrasonic_radar.proto",
     ],
     deps = [

@@ -11,7 +11,6 @@ cc_library(
         "logger.h",
     ],
     deps = [
-        "//cyber/base:macros",
         "//cyber/common",
         "//cyber/logger:log_file_object",
     ],
@@ -41,6 +40,18 @@ cc_library(
         "//cyber/base:macros",
         "//cyber/common",
         "//cyber/logger:log_file_object",
+    ],
+)
+
+cc_test(
+    name = "async_logger_test",
+    size = "small",
+    srcs = [
+        "async_logger_test.cc",
+    ],
+    deps = [
+        "//cyber",
+        "@gtest//:main",
     ],
 )
 
