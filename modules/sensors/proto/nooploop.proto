@@ -1,0 +1,42 @@
+syntax = "proto2";
+package apollo.sensors;
+
+import "modules/common/proto/header.proto";
+import "modules/common/proto/geometry.proto";
+
+// Noolloop LTS product Protocol, more details you can found here:
+// www.nooploop.com/download/products/uwb/doc/LinkTrack_User_Manual_V1.1.pdf
+message TagFrame {
+  optional uint32 tag_id = 1;
+  optional unit32 network_system_time = 2;  // ms
+  optional Point3D pos = 3;
+  optional Point3D eop = 4;
+  optional Point3D vel = 5;
+  optional Point3D angle = 6;
+  optional Point3D acc = 7;
+  optional Point3D gyro = 8;
+  optional Quaternion rotation = 9;
+  optional float supply_voltage = 10;
+  repeated DistanceAnchor2Tag distance = 11;
+}
+
+message EulerAngle {
+  optional float roll = 1;
+  optional float yaw = 2;
+  optional float pitch = 3;
+}
+
+message DistanceAnchor2Tag {
+  optional uint32 anchor_id = 1;
+  optional float distance = 2;
+}
+
+// gyro.hardware: online
+// gyro.work: normal
+// acc.hardware: online
+// acc.work: normal
+enum SensorStatus {
+  NORMAL = 1;
+  ERROR = 2;
+  ONLINE = 3;
+}

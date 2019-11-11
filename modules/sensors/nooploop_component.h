@@ -3,7 +3,7 @@
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 
-#include "modules/sensors/proto/uwb.pb.h"
+#include "modules/sensors/proto/nooploop.pb.h"
 
 namespace apollo {
 namespace sensors {
