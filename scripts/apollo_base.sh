@@ -450,11 +450,6 @@ if [ ! -d /apollo ];then
   sudo ln -s $APOLLO_ROOT_DIR /apollo
 fi
 
-local CYBER_SETUP="/apollo/cyber/setup.bash"
-if [ -e "${CYBER_SETUP}" ]; then
-  source "${CYBER_SETUP}"
-fi
-
 set_lib_path
 if [ -z $APOLLO_BASE_SOURCED ]; then
   determine_bin_prefix

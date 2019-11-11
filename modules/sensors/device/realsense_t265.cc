@@ -79,7 +79,7 @@ void T265::InitChannelWriter(std::shared_ptr<Node> node_) {
   }
 
   if (FLAGS_publish_compressed_gray_image) {
-    compressed_image_writer_ = node_->CreateWriter<CompressedImage>(
+    compressed_image_writer_ = node_->CreateWriter<Image>(
         FLAGS_compressed_gray_image_channel);
   }
 

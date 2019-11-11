@@ -102,9 +102,11 @@ class DeviceBase {
     cv::imencode(".jpeg", raw_image, data_encode, param);
     std::string str_encode(data_encode.begin(), data_encode.end());
 
-    auto compressedimage = std::make_shared<CompressedImage>();
+    auto compressedimage = std::make_shared<Image>();
     compressedimage->set_frame_no(f.get_frame_number());
-    compressedimage->set_format("jpeg");
+    compressedimage->set_encoding(rs2_format_to_string(f.get_profile().format()));
+    compressedimage->set_height(FLAGS_color_image_height);
+    compressedimage->set_width(FLAGS_color_image_width);
     compressedimage->set_measurement_time(f.get_timestamp());
     compressedimage->set_data(str_encode);
 
@@ -114,7 +116,7 @@ class DeviceBase {
  protected:
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;
-  std::shared_ptr<Writer<CompressedImage>> compressed_image_writer_ = nullptr;
+  std::shared_ptr<Writer<Image>> compressed_image_writer_ = nullptr;
 
   std::future<void> async_result_;
 

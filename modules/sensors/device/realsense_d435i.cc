@@ -75,9 +75,9 @@ void D435I::DeviceConfig() {
                     FLAGS_color_image_height, RS2_FORMAT_BGR8,
                     FLAGS_color_image_frequency);
   // Use a configuration object to request only depth from the pipeline
-  cfg.enable_stream(RS2_STREAM_DEPTH, FLAGS_color_image_width,
-                    FLAGS_color_image_height, RS2_FORMAT_Z16,
-                    FLAGS_color_image_frequency);
+  cfg.enable_stream(RS2_STREAM_DEPTH, FLAGS_depth_image_width,
+                    FLAGS_depth_image_height, RS2_FORMAT_Z16,
+                    FLAGS_depth_image_frequency);
   // Add streams of gyro and accelerometer to configuration
   cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
   cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
@@ -121,7 +121,7 @@ void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
 
   // compreessed image channel
   if (FLAGS_publish_compressed_color_image) {
-    compressed_image_writer_ = node_->CreateWriter<CompressedImage>(
+    compressed_image_writer_ = node_->CreateWriter<Image>(
         FLAGS_compressed_color_image_channel);
   }
 }

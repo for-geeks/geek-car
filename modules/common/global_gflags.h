@@ -87,6 +87,10 @@ DECLARE_int32(color_image_height);
 DECLARE_int32(color_image_width);
 DECLARE_int32(color_image_frequency);
 
+DECLARE_int32(depth_image_height);
+DECLARE_int32(depth_image_width);
+DECLARE_int32(depth_image_frequency);
+
 // TOOLS
 DECLARE_string(image_export_dir);
 DECLARE_string(odometry_file);

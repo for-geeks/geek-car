@@ -91,6 +91,9 @@ DEFINE_int32(compress_rate, 95, "image compressed rate");
 DEFINE_int32(color_image_height, 480, "image compressed rate");
 DEFINE_int32(color_image_width, 640, "image compressed rate");
 DEFINE_int32(color_image_frequency, 30, "image color_image_frequency");
+DEFINE_int32(depth_image_height, 240, "depth image height");
+DEFINE_int32(depth_image_width, 424, "depth image width");
+DEFINE_int32(depth_image_frequency, 15, "depth image frequency");
 
 // TOOLS
 DEFINE_string(image_export_dir, "/apollo/data/", "tools image saver dir");
