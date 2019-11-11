@@ -67,7 +67,7 @@ new_local_repository(
 new_local_repository(
     name = "pcl",
     build_file = "third_party/pcl.BUILD",
-    path = "/usr/local/include/pcl-1.9",
+    path = "/usr/include/pcl-1.8",
 )
 
 # eigen
@@ -92,6 +92,11 @@ new_local_repository(
     path = "/usr",
 )
 
+new_local_repository(
+    name = "python3",
+    build_file = "third_party/python3.BUILD",
+    path = "/usr",
+)
 
 new_local_repository(
     name = "apriltag",
