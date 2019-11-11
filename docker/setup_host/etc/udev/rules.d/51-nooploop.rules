@@ -1,0 +1,1 @@
+ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",ATTRS{serial}=="b2f4043f48b6e7118609b350d4b43ea0", OWNER="apollo", GROUP="apollo", MODE="0777", SYMLINK+="nooploop"
