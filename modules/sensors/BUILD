@@ -32,7 +32,6 @@ cc_library(
         "//cyber",
         "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
-        "//modules/sensors/realsense:d435_lib",
         "//modules/sensors/realsense:d435i_lib",
         "//modules/sensors/realsense:device_base",
         "//modules/sensors/realsense:t265_lib",

@@ -41,6 +41,8 @@ using apollo::cyber::Reader;
 using apollo::cyber::Writer;
 using apollo::localization::Tags;
 using apollo::sensors::Image;
+using apollo::localization::Matrix;
+using apollo::localization::Tag;
 
 class ApriltagComponent : public Component<> {
  public:

@@ -33,7 +33,6 @@
 #include "pcl/filters/passthrough.h"
 
 #include "modules/common/global_gflags.h"
-#include "modules/sensors/realsense.h"
 
 namespace apollo {
 namespace sensors {
@@ -60,12 +59,12 @@ bool D435::Init(std::shared_ptr<Node> node_) {
   }
 
   // 4.1 Thread to handle frames
-  realsense_t1 = std::thread(&D435I::Run, this);
+  realsense_t1 = std::thread(&D435::Run, this);
 
   // 4.2 Thread to get point cloud from frame queue, and publish
-  realsense_t2 = std::thread(&D435I::PublishPointCloud, this);
+  realsense_t2 = std::thread(&D435::PublishPointCloud, this);
 
-  AINFO << "Realsense Device D435I Init Successfuly";
+  AINFO << "Realsense Device D435 Init Successfuly";
   return true;
 }
 
@@ -121,7 +120,7 @@ void D435::InitChannelWriter(std::shared_ptr<Node> node_) {
 
   // compreessed image channel
   if (FLAGS_publish_compressed_color_image) {
-    compressed_image_writer_ = node_->CreateWriter<CompressedImage>(
+    compressed_image_writer_ = node_->CreateWriter<Image>(
         FLAGS_compressed_color_image_channel);
   }
 }

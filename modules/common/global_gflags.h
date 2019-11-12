@@ -42,7 +42,7 @@ DECLARE_string(compressed_gray_image_channel);
 DECLARE_string(compressed_color_image_channel);
 DECLARE_string(acc_channel);
 DECLARE_string(gyro_channel);
-DECLARE_string(pose_channel);
+DECLARE_string(uwb_pose_channel);
 
 // Module Channel
 DECLARE_string(control_channel);

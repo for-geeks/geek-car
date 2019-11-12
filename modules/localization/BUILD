@@ -50,14 +50,14 @@ cc_library(
 )
 
 cc_binary(
-    name = "libapril_component.so",
+    name = "libapriltag_component.so",
     copts = [
         "-DMODULE_NAME=\\\"localization\\\"",
     ],
     linkshared = True,
     linkstatic = False,
     deps = [
-        ":localization_lib",
+        ":apriltag_lib",
     ],
 )
 

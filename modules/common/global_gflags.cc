@@ -41,7 +41,7 @@ DEFINE_string(point_cloud_channel, "/realsense/point_cloud", "points object ");
 
 DEFINE_string(acc_channel, "/geek/acc", "acc data from RealSense Device");
 DEFINE_string(gyro_channel, "/geek/gyro", "gyro data from RealSense Device");
-DEFINE_string(pose_channel, "/geek/sensor/pose",
+DEFINE_string(uwb_pose_channel, "/geek/uwb/pose",
               "pose message from nooploop sensor");
 
 DEFINE_string(tags_channel, "/localization/tag", "localization tag result");

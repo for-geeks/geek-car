@@ -23,6 +23,8 @@
 ******************************************************************************/
 #pragma once
 
+#include "modules/sensors/realsense/device_base.h"
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -35,7 +37,7 @@
 
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
-#include "modules/sensors/realsense/device_base.h"
+
 
 namespace apollo {
 namespace sensors {

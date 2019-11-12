@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "modules/localization/localization_component.h"
+#include "modules/localization/apriltag_component.h"
 
 #include <float.h>
 #include <math.h>
@@ -36,10 +36,7 @@
 namespace apollo {
 namespace localization {
 
-using apollo::localization::Matrix;
-using apollo::localization::Tag;
-using apollo::localization::Tags;
-using apollo::sensors::Image;
+
 
 // rotation matrix to euler angles
 // https://www.learnopencv.com/rotation-matrix-to-euler-angles/
