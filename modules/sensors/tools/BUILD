@@ -3,8 +3,8 @@ load("//tools:cpplint.bzl", "cpplint")
 package(default_visibility = ["//visibility:public"])
 
 cc_binary(
-    name = "realsense_connection_check",
-    srcs = ["realsense_connection_check.cc"],
+    name = "rs_connection_check",
+    srcs = ["rs_connection_check.cc"],
     linkopts = [
         "-lrealsense2",
     ],

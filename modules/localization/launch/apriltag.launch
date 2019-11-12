@@ -1,0 +1,7 @@
+<cyber>
+  <module>
+    <name>apriltag_component</name>
+    <dag_conf>../modules/localization/dag/apriltag.dag</dag_conf>
+    <process_name>apriltag_component</process_name>
+  </module>
+</cyber>

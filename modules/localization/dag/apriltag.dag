@@ -1,0 +1,11 @@
+# Dag all comes in DAG streming.
+module_config {
+  module_library : "../bazel-bin/modules/localization/apriltag_component.so"
+  components {
+    class_name : "ApriltagComponent"
+    config {
+      name: "apriltag_component"
+      flag_file_path:"../modules/localization/conf/localization.conf"
+    }
+  }
+}

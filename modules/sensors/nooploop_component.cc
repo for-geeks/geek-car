@@ -1,12 +1,32 @@
+/******************************************************************************
+ * MIT License
 
+ * Copyright (c) 2019 Geekstyle
+
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+******************************************************************************/
 #include "modules/sensors/nooploop_component.h"
 
-#include "modules/common/global_gflags.h"
 #include "modules/sensors/nooploop/ncommon.h"
 
 namespace apollo {
 namespace sensors {
-
 
 bool NooploopComponent::Init() {
   device_.SetOpt(921600, 8, 'N', 1);
@@ -20,7 +40,7 @@ bool NooploopComponent::Init() {
   }
 
   if (FLAGS_publish_tagframe) {
-    tagframe_writer_ = node_->CreateWriter<TagFrame>(FLAGS_tagframe_channel);
+    tagframe_writer_ = node_->CreateWriter<TagFrame>(FLAGS_pose_channel);
   }
 
   cyber::Async(&NooploopComponent::Run, this);
@@ -33,7 +53,7 @@ void NooploopComponent::Run() {
     std::memset(buffer, 0, 512);
     device_.Read((char*)buffer, 128);
     if ((buffer[0] == 0x55) && (buffer[1] == 0x01)) {
-      AINFO << "Get data from Nooploop";
+      ADEBUG << "Get data from Nooploop";
       unpackTagFrame0Data(buffer);
       // tagFrame0Data_;
       TagFrame0Data data = tagFrame0Data_;
@@ -64,9 +84,8 @@ void NooploopComponent::Run() {
 
       proto_tag->set_supply_voltage(data.supplyVoltage);
 
-      for (size_t i = 0; i < 8; i++)
-      {
-        if(data.dis[i] != 1) {
+      for (size_t i = 0; i < 8; i++) {
+        if (data.dis[i] != 1) {
           proto_tag->add_distance(data.dis[i]);
         }
       }
@@ -96,7 +115,7 @@ void NooploopComponent::OnGyro(float gyro[3]) {
   gyro_writer_->Write(proto_gyro);
 }
 
-NooploopComponent::~NooploopComponent(){
+NooploopComponent::~NooploopComponent() {
   AINFO << "Destructor from NooploopComponent";
 
   if (!stop_.load()) {

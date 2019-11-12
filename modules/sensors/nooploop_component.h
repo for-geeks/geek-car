@@ -1,3 +1,26 @@
+/******************************************************************************
+ * MIT License
+
+ * Copyright (c) 2019 Geekstyle
+
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+******************************************************************************/
 #pragma once
 
 #include <memory>
@@ -8,7 +31,8 @@
 #include "cyber/node/node.h"
 #include "cyber/node/writer.h"
 
-#include "modules/common/Uart.h"
+#include "modules/common/global_gflags.h"
+#include "modules/common/uart.h"
 #include "modules/sensors/nooploop/nlink_linktrack_tag_frame0.h"
 #include "modules/sensors/proto/nooploop.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
@@ -35,7 +59,7 @@ class NooploopComponent : public Component<> {
   void OnGyro(float gyro[3]);
 
  private:
-  Uart device_ = Uart("ttyUSB0");
+  Uart device_ = Uart(FLAGS_nooploop_device_name.c_str());
 
   std::shared_ptr<Writer<Acc>> acc_writer_ = nullptr;
   std::shared_ptr<Writer<Gyro>> gyro_writer_ = nullptr;

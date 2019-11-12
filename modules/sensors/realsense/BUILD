@@ -2,6 +2,34 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "d435_lib",
+    srcs = ["realsense_d435.cc"],
+    hdrs = [
+        "realsense_d435.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
+    linkopts = [
+        "-lopencv_core",
+        "-lopencv_imgproc",
+        "-lopencv_calib3d",
+        "-lopencv_highgui",
+        "-lrealsense2",
+    ],
+    deps = [
+        ":device_base",
+        "//cyber",
+        "//modules/common:global_gflags",
+        "//modules/sensors:realsense_api",
+        "//modules/sensors:realsense_motion",
+        "//modules/sensors/proto:sensors_cc_proto",
+        "@eigen",
+        "@pcl",
+    ],
+)
+
+cc_library(
+    name = "d435i_lib",
     srcs = ["realsense_d435i.cc"],
     hdrs = [
         "realsense_d435i.h",

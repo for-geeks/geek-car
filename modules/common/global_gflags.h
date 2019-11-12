@@ -27,10 +27,10 @@
 #include "gflags/gflags.h"
 
 // Arduino
-DECLARE_string(device_name);
+DECLARE_string(arduino_device_name);
+DECLARE_string(nooploop_device_name);
 
 // RealSense
-DECLARE_string(device_model);
 DECLARE_string(serial_number);
 
 DECLARE_string(pose_channel);
@@ -42,6 +42,7 @@ DECLARE_string(compressed_gray_image_channel);
 DECLARE_string(compressed_color_image_channel);
 DECLARE_string(acc_channel);
 DECLARE_string(gyro_channel);
+DECLARE_string(pose_channel);
 
 // Module Channel
 DECLARE_string(control_channel);
@@ -51,7 +52,6 @@ DECLARE_string(control_coefficient);
 DECLARE_string(tags_channel);
 DECLARE_string(routing_channel);
 DECLARE_string(planning_channel);
-DECLARE_string(tagframe_channel);
 
 // switch
 DECLARE_bool(publish_acc);
