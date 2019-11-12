@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "modules/common/Uart.h"
+#include "modules/common/uart.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -159,7 +159,7 @@ int Uart::Write(char* buf, int size) {
     AERROR << "Uart Init failed";
   }
 
-  int ret = write(fd, buf, size);
+  int ret = static_cast<int>(write(fd, buf, size));
   if (ret < 0) {
     AERROR << "uart write failed";
   }
@@ -184,7 +184,7 @@ int Uart::Read(char* buf, int size) {
   int ret = select(fd + 1, &set, NULL, NULL, &timeout);
 
   if (ret > 0) {
-    ret = read(fd, buf, size);
+    ret = static_cast<int>(read(fd, buf, size));
   }
 
   return ret;

@@ -24,13 +24,38 @@
 
 #pragma once
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <memory>
+#include <thread>
+
+#include "cyber/base/concurrent_object_pool.h"
+#include "cyber/node/node.h"
+#include "cyber/node/writer.h"
+
 #include "modules/sensors/realsense/device_base.h"
+#include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense.h"
 
 namespace apollo {
-namespace sensor {
+namespace sensors {
 namespace realsense {
 
+using apollo::cyber::Node;
+using apollo::cyber::Time;
+using apollo::cyber::Writer;
+using apollo::cyber::base::CCObjectPool;
+using apollo::sensors::Acc;
+using apollo::sensors::CompressedImage;
+using apollo::sensors::Gyro;
+using apollo::sensors::Image;
+using apollo::sensors::PointCloud;
+using apollo::sensors::realsense::DeviceBase;
+
 class D435 : public DeviceBase {
+ public:
   D435(){};
   ~D435();
 

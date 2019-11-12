@@ -40,7 +40,7 @@ bool NooploopComponent::Init() {
   }
 
   if (FLAGS_publish_tagframe) {
-    tagframe_writer_ = node_->CreateWriter<TagFrame>(FLAGS_pose_channel);
+    tagframe_writer_ = node_->CreateWriter<TagFrame>(FLAGS_uwb_pose_channel);
   }
 
   cyber::Async(&NooploopComponent::Run, this);
