@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include <queue>
 #include "cyber/cyber.h"
 #include "cyber/task/task.h"
 #include "modules/common/global_gflags.h"
@@ -42,10 +41,8 @@ void ImageCallback(
   //                            static_cast<int>(image->width()), CV_8UC3,
   //                            const_cast<char*>(image->data().c_str()));
   std::string image_name =
-      "/home/geek-car/out_test/" + std::to_string(image->frame_no()) + ".jpg";
-
+      FLAGS_image_export_dir + std::to_string(image->frame_no()) + ".jpg";
   cv::imwrite(image_name, new_image);
-
   ADEBUG << "Saved image :" << image_name;
 }
 

@@ -24,10 +24,10 @@
 #include "modules/common/global_gflags.h"
 
 // Arduino
-DEFINE_string(device_name, "ttyArduino", "Arduino device name ");
+DEFINE_string(arduino_device_name, "ttyArduino", "Arduino device name ");
+DEFINE_string(nooploop_device_name, "ttyUSB0", "Nooploop device name ");
 
-// Realsense
-DEFINE_string(device_model, "T265", "RealSense Device Model Name");
+// Device include Realsense and Nooploop
 DEFINE_string(serial_number, "908412111198", "RealSense serial number");
 DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
 DEFINE_string(gray_image_channel, "/realsense/gray_image", "raw image");
@@ -39,9 +39,10 @@ DEFINE_string(compressed_color_image_channel,
 DEFINE_string(depth_image_channel, "/realsense/depth_image", "raw depth image");
 DEFINE_string(point_cloud_channel, "/realsense/point_cloud", "points object ");
 
-DEFINE_string(acc_channel, "/realsense/acc", "acc data from RealSense Device");
-DEFINE_string(gyro_channel, "/realsense/gyro",
-              "gyro data from RealSense Device");
+DEFINE_string(acc_channel, "/geek/acc", "acc data from RealSense Device");
+DEFINE_string(gyro_channel, "/geek/gyro", "gyro data from RealSense Device");
+DEFINE_string(pose_channel, "/geek/sensor/pose",
+              "pose message from nooploop sensor");
 
 DEFINE_string(tags_channel, "/localization/tag", "localization tag result");
 DEFINE_string(routing_channel, "/planning/target",
@@ -55,7 +56,6 @@ DEFINE_string(chassis_channel, "/chassis", "chassis message channel");
 DEFINE_string(control_ref_channel, "/control_reference", "control message ref");
 DEFINE_string(control_coefficient, "/control_coefficient",
               "control coefficient");
-DEFINE_string(tagframe_channel, "/geek_lite/tagframe", "localization");
 
 // switch
 DEFINE_bool(publish_acc, false, "publish acc data");
@@ -100,5 +100,5 @@ DEFINE_int32(depth_image_frequency, 15, "depth image frequency");
 // TOOLS
 DEFINE_string(image_export_dir, "/apollo/data/", "tools image saver dir");
 DEFINE_string(odometry_file,
-              "../modules/sensors/conf/calibration_odometry.json",
+              "../modules/sensors/conf/t265_calibration_odometry.json",
               "odometry calibration file ");

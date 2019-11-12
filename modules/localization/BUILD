@@ -49,4 +49,42 @@ cc_library(
     ],
 )
 
+cc_binary(
+    name = "libapril_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"localization\\\"",
+    ],
+    linkshared = True,
+    linkstatic = False,
+    deps = [
+        ":localization_lib",
+    ],
+)
+
+
+cc_library(
+    name = "apriltag_lib",
+    srcs = [
+        "apriltag_component.cc",
+    ],
+    hdrs = [
+        "apriltag_component.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"localization\\\"",
+    ],
+    linkopts = [
+        "-lrealsense2",
+        "-lapriltag",
+    ],
+    deps = [
+        "//cyber",
+        "//modules/common:global_gflags",
+        "//modules/localization/proto:localization_cc_proto",
+        "//modules/sensors/proto:sensors_cc_proto",
+        "@apriltag",
+        "@opencv",
+    ],
+)
+
 cpplint()

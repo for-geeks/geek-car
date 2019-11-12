@@ -22,47 +22,43 @@
  * SOFTWARE.
 ******************************************************************************/
 #pragma once
+
 #include <memory>
+#include "apriltag.h"
+#include "librealsense2/rs.hpp"
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
-#include "modules/common/global_gflags.h"
-#include "modules/common/uart.h"
-#include "modules/control/proto/chassis.pb.h"
-#include "modules/control/proto/control.pb.h"
+#include "modules/localization/proto/localization.pb.h"
+#include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {
-namespace control {
+namespace localization {
 
-using apollo::control::Chassis;
-using apollo::control::Control_Command;
 using apollo::cyber::Component;
 using apollo::cyber::Reader;
 using apollo::cyber::Writer;
+using apollo::localization::Tags;
+using apollo::sensors::Image;
 
-class ChassisComponent : public Component<> {
+class ApriltagComponent : public Component<> {
  public:
   bool Init() override;
-  void Action();
-  void OnChassis();
-  ~ChassisComponent();
+  void ApriltagDetection(const std::shared_ptr<Image>& image);
+  ~ApriltagComponent() override;
 
- private:
-  Uart arduino_ = Uart(FLAGS_arduino_device_name.c_str());
-  std::shared_ptr<Reader<Control_Command>> control_reader_ = nullptr;
-  std::shared_ptr<Writer<Chassis>> chassis_writer_ = nullptr;
+  std::shared_ptr<Reader<Pose>> pose_reader_ = nullptr;
+  std::shared_ptr<Reader<Image>> image_reader_ = nullptr;
+  std::shared_ptr<Writer<Tags>> tags_writer_ = nullptr;
+  rs2_pose predicted_pose_;
 
-  Control_Command cmd_;
-  uint32_t message_wait_ = 200;
-
-  std::future<void> async_action_;
-  std::future<void> async_feedback_;
-
-  // atomic flag for action
-  std::atomic<bool> action_ready_ = {false};
+  std::future<void> tag_async_;
+  std::atomic<bool> image_ready_ = {false};
+  apriltag_detector_t* td_ = nullptr;
+  apriltag_family_t* tf_ = nullptr;
 };
 
-CYBER_REGISTER_COMPONENT(ChassisComponent)
-
-}  // namespace control
+CYBER_REGISTER_COMPONENT(ApriltagComponent);
+}  // namespace localization
 }  // namespace apollo

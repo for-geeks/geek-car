@@ -31,10 +31,11 @@ cc_library(
         ":realsense_motion",
         "//cyber",
         "//modules/common:global_gflags",
+        "//modules/sensors/proto:sensors_cc_proto",
         "//modules/sensors/realsense:d435_lib",
+        "//modules/sensors/realsense:d435i_lib",
         "//modules/sensors/realsense:device_base",
         "//modules/sensors/realsense:t265_lib",
-        "//modules/sensors/proto:sensors_cc_proto",
         "@eigen",
         "@opencv",
         "@pcl",
@@ -93,13 +94,11 @@ cc_library(
     deps = [
         "//cyber",
         "//modules/common:global_gflags",
+        "//modules/common:uart",
         "//modules/sensors/nooploop:linktrack_tag_frame0",
         "//modules/sensors/nooploop:ncommon",
         "//modules/sensors/proto:sensors_cc_proto",
-        "//modules/common:uart",
     ],
 )
-
-
 
 cpplint()
