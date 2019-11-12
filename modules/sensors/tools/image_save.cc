@@ -29,12 +29,16 @@
 #include "modules/sensors/proto/sensors.pb.h"
 #include "opencv2/opencv.hpp"
 
-void ImageCallback(const std::shared_ptr<apollo::sensors::CompressedImage>& image) {
-  // ADEBUG << "image, height :" << image->height() << " width:" << image->width();
-  std::vector<uchar> buff((unsigned char*)image->data().c_str(), (unsigned char*)image->data().c_str() + image->data().length());
-  
+void ImageCallback(
+    const std::shared_ptr<apollo::sensors::CompressedImage>& image) {
+  // ADEBUG << "image, height :" << image->height() << " width:" <<
+  // image->width();
+  std::vector<uchar> buff(
+      (unsigned char*)image->data().c_str(),
+      (unsigned char*)image->data().c_str() + image->data().length());
+
   cv::Mat new_image = cv::imdecode(buff, CV_8UC2);
-  //cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
+  // cv::Mat new_image = cv::Mat(static_cast<int>(image->height()),
   //                            static_cast<int>(image->width()), CV_8UC3,
   //                            const_cast<char*>(image->data().c_str()));
   std::string image_name =

@@ -21,41 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
+
 #pragma once
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-#include <memory>
-#include <thread>
-
-#include "cyber/base/concurrent_object_pool.h"
-#include "cyber/node/node.h"
-#include "cyber/node/writer.h"
-
-#include "modules/sensors/device/device_base.h"
-#include "modules/sensors/proto/sensor_image.pb.h"
-#include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense/device_base.h"
 
 namespace apollo {
-namespace sensors {
-namespace device {
+namespace sensor {
+namespace realsense {
 
-using apollo::cyber::Node;
-using apollo::cyber::Time;
-using apollo::cyber::Writer;
-using apollo::cyber::base::CCObjectPool;
-using apollo::sensors::Acc;
-using apollo::sensors::CompressedImage;
-using apollo::sensors::Gyro;
-using apollo::sensors::Image;
-using apollo::sensors::PointCloud;
-using apollo::sensors::device::DeviceBase;
-
-class D435I : public DeviceBase {
- public:
-  D435I(){};
-  ~D435I();
+class D435 : public DeviceBase {
+  D435(){};
+  ~D435();
 
   bool Init(std::shared_ptr<Node> node_) override;
   void DeviceConfig() override;
@@ -89,6 +66,6 @@ class D435I : public DeviceBase {
 
   std::atomic<bool> stop_ = {false};
 };
-}  // namespace device
-}  // namespace sensors
+}  // namespace realsense
+}  // namespace sensor
 }  // namespace apollo

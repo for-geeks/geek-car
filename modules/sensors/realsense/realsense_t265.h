@@ -21,18 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-
 #pragma once
 
-#include "modules/sensors/device/device_base.h"
+#include "modules/sensors/realsense/device_base.h"
+
+#include <memory>
+
+#include "cyber/node/node.h"
+#include "cyber/node/reader.h"
+#include "cyber/node/writer.h"
+#include "modules/common/global_gflags.h"
+#include "modules/control/proto/chassis.pb.h"
+#include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/sensors/proto/sensors.pb.h"
 
 namespace apollo {
-namespace sensor {
-namespace device {
+namespace sensors {
+namespace realsense {
 
-class D435 : public DeviceBase {
-  D435(){};
-  ~D435();
+using apollo::control::Chassis;
+using apollo::cyber::Node;
+using apollo::cyber::Reader;
+using apollo::cyber::Writer;
+using apollo::sensors::Image;
+using apollo::sensors::Pose;
+
+class T265 : public DeviceBase {
+ public:
+  T265(){};
+  ~T265();
 
   bool Init(std::shared_ptr<Node> node_) override;
   void DeviceConfig() override;
@@ -40,32 +57,27 @@ class D435 : public DeviceBase {
 
  private:
   void Run();
-  void OnColorImage(const rs2::frame &f);
-  void OnDepthImage(const rs2::frame &f);
-  void OnPointCloud(rs2::frame depth_frame);
-  void PointCloudTransform();
-  void PublishPointCloud();
-  std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
-  std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
-  std::shared_ptr<Writer<PointCloud>> point_cloud_writer_ = nullptr;
+  void OnGrayImage(const rs2::frame &fisheye_frame);
+  void OnPose(const rs2::pose_frame &pose_frame);
 
-  std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
+  void Calibration();
+  void WheelOdometry();
 
-  // filtered point cloud frame
-  rs2::frame_queue filtered_data;
+  std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
 
-  const int pool_size_ = 8;
-  const int point_size_ = 160000;
+  std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
+  std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
 
-  // Declare object that handles camera pose calculations
-  rotation_estimator algo_;
-  Eigen::Matrix4f transform;
+  Chassis chassis_;
 
-  std::thread realsense_t1;
-  std::thread realsense_t2;
+  // fisheye calibration map
+  cv::Mat map1_;
+  cv::Mat map2_;
 
-  std::atomic<bool> stop_ = {false};
+  double norm_max = 0;
+
+  const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
 };
-}  // namespace device
-}  // namespace sensor
+}  // namespace realsense
+}  // namespace sensors
 }  // namespace apollo

@@ -31,9 +31,9 @@ cc_library(
         ":realsense_motion",
         "//cyber",
         "//modules/common:global_gflags",
-        "//modules/sensors/device:d435_lib",
-        "//modules/sensors/device:device_base",
-        "//modules/sensors/device:t265_lib",
+        "//modules/sensors/realsense:d435_lib",
+        "//modules/sensors/realsense:device_base",
+        "//modules/sensors/realsense:t265_lib",
         "//modules/sensors/proto:sensors_cc_proto",
         "@eigen",
         "@opencv",
@@ -68,5 +68,38 @@ cc_library(
         "-lrealsense2",
     ],
 )
+
+cc_binary(
+    name = "libnooploop_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
+    linkshared = True,
+    linkstatic = False,
+    deps = [
+        ":nooploop_component_lib",
+    ],
+)
+
+cc_library(
+    name = "nooploop_component_lib",
+    srcs = ["nooploop_component.cc"],
+    hdrs = [
+        "nooploop_component.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
+    deps = [
+        "//cyber",
+        "//modules/common:global_gflags",
+        "//modules/sensors/nooploop:linktrack_tag_frame0",
+        "//modules/sensors/nooploop:ncommon",
+        "//modules/sensors/proto:sensors_cc_proto",
+        "//modules/common:uart",
+    ],
+)
+
+
 
 cpplint()

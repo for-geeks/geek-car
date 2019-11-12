@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "modules/control/Uart.h"
+#include "modules/common/Uart.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -127,6 +127,10 @@ int Uart::SetOpt(int speed, int bits, char event, int stop) {
     case 115200:
       cfsetispeed(&newtio, B115200);
       cfsetospeed(&newtio, B115200);
+      break;
+    case 921600:
+      cfsetispeed(&newtio, B921600);
+      cfsetospeed(&newtio, B921600);
       break;
   }
 

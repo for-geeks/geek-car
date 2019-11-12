@@ -26,4 +26,17 @@ cc_library(
     ],
 )
 
+
+cc_library(
+    name ="uart",
+    srcs= ["Uart.cpp"],
+    hdrs= ["Uart.h"],
+    copts = [
+        "-DMODULE_NAME=\\\"common\\\"",
+    ],
+    deps = [
+        "//cyber",
+    ],
+)
+
 cpplint()

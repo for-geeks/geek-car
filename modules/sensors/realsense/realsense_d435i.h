@@ -23,33 +23,39 @@
 ******************************************************************************/
 #pragma once
 
-#include "modules/sensors/device/device_base.h"
-
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <memory>
+#include <thread>
 
+#include "cyber/base/concurrent_object_pool.h"
 #include "cyber/node/node.h"
-#include "cyber/node/reader.h"
 #include "cyber/node/writer.h"
-#include "modules/common/global_gflags.h"
-#include "modules/control/proto/chassis.pb.h"
+
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense/device_base.h"
 
 namespace apollo {
 namespace sensors {
-namespace device {
+namespace realsense {
 
-using apollo::control::Chassis;
 using apollo::cyber::Node;
-using apollo::cyber::Reader;
+using apollo::cyber::Time;
 using apollo::cyber::Writer;
+using apollo::cyber::base::CCObjectPool;
+using apollo::sensors::Acc;
+using apollo::sensors::CompressedImage;
+using apollo::sensors::Gyro;
 using apollo::sensors::Image;
-using apollo::sensors::Pose;
+using apollo::sensors::PointCloud;
+using apollo::sensors::realsense::DeviceBase;
 
-class T265 : public DeviceBase {
+class D435I : public DeviceBase {
  public:
-  T265(){};
-  ~T265();
+  D435I(){};
+  ~D435I();
 
   bool Init(std::shared_ptr<Node> node_) override;
   void DeviceConfig() override;
@@ -57,27 +63,32 @@ class T265 : public DeviceBase {
 
  private:
   void Run();
-  void OnGrayImage(const rs2::frame &fisheye_frame);
-  void OnPose(const rs2::pose_frame &pose_frame);
+  void OnColorImage(const rs2::frame &f);
+  void OnDepthImage(const rs2::frame &f);
+  void OnPointCloud(rs2::frame depth_frame);
+  void PointCloudTransform();
+  void PublishPointCloud();
+  std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
+  std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
+  std::shared_ptr<Writer<PointCloud>> point_cloud_writer_ = nullptr;
 
-  void Calibration();
-  void WheelOdometry();
+  std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
 
-  std::shared_ptr<Reader<Chassis>> chassis_reader_ = nullptr;
+  // filtered point cloud frame
+  rs2::frame_queue filtered_data;
 
-  std::shared_ptr<Writer<Image>> image_writer_ = nullptr;
-  std::shared_ptr<Writer<Pose>> pose_writer_ = nullptr;
+  const int pool_size_ = 8;
+  const int point_size_ = 160000;
 
-  Chassis chassis_;
+  // Declare object that handles camera pose calculations
+  rotation_estimator algo_;
+  Eigen::Matrix4f transform;
 
-  // fisheye calibration map
-  cv::Mat map1_;
-  cv::Mat map2_;
+  std::thread realsense_t1;
+  std::thread realsense_t2;
 
-  double norm_max = 0;
-
-  const int fisheye_sensor_idx = 1;  // for the left fisheye lens of T265
+  std::atomic<bool> stop_ = {false};
 };
-}  // namespace device
+}  // namespace realsense
 }  // namespace sensors
 }  // namespace apollo

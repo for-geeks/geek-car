@@ -1,0 +1,11 @@
+# Dag all comes in DAG streming.
+module_config {
+  module_library : "/apollo/bazel-bin/modules/sensors/libnooploop_component.so"
+  components {
+    class_name : "NooploopComponent"
+    config {
+      name: "nooploop_component"
+      flag_file_path:  "/apollo/modules/sensors/conf/sensors.conf"
+    }
+  }
+}

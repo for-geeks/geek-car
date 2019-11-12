@@ -40,12 +40,12 @@
 
 #include "modules/common/global_gflags.h"
 #include "modules/control/proto/chassis.pb.h"
-#include "modules/sensors/device/device_base.h"
-#include "modules/sensors/device/realsense_d435i.h"
-#include "modules/sensors/device/realsense_t265.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense/device_base.h"
+#include "modules/sensors/realsense/realsense_d435i.h"
+#include "modules/sensors/realsense/realsense_t265.h"
 
 namespace apollo {
 namespace sensors {
@@ -53,9 +53,9 @@ namespace sensors {
 using apollo::control::Chassis;
 using apollo::cyber::Component;
 using apollo::sensors::PointCloud;
-using apollo::sensors::device::D435I;
-using apollo::sensors::device::DeviceBase;
-using apollo::sensors::device::T265;
+using apollo::sensors::realsense::D435I;
+using apollo::sensors::realsense::DeviceBase;
+using apollo::sensors::realsense::T265;
 
 class RealsenseComponent : public Component<> {
  public:

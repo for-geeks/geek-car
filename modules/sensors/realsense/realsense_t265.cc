@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "modules/sensors/device/realsense_t265.h"
+#include "modules/sensors/realsense/realsense_t265.h"
 
 #include <string>
 #include <vector>
@@ -30,7 +30,7 @@
 
 namespace apollo {
 namespace sensors {
-namespace device {
+namespace realsense {
 
 using apollo::cyber::Time;
 using apollo::cyber::common::GetAbsolutePath;
@@ -79,8 +79,8 @@ void T265::InitChannelWriter(std::shared_ptr<Node> node_) {
   }
 
   if (FLAGS_publish_compressed_gray_image) {
-    compressed_image_writer_ = node_->CreateWriter<Image>(
-        FLAGS_compressed_gray_image_channel);
+    compressed_image_writer_ =
+        node_->CreateWriter<Image>(FLAGS_compressed_gray_image_channel);
   }
 
   chassis_reader_ = node_->CreateReader<Chassis>(

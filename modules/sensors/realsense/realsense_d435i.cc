@@ -22,7 +22,7 @@
  * SOFTWARE.
 ******************************************************************************/
 
-#include "modules/sensors/device/realsense_d435i.h"
+#include "modules/sensors/realsense/realsense_d435i.h"
 
 #include <algorithm>
 #include <memory>
@@ -37,7 +37,7 @@
 
 namespace apollo {
 namespace sensors {
-namespace device {
+namespace realsense {
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
@@ -121,8 +121,8 @@ void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
 
   // compreessed image channel
   if (FLAGS_publish_compressed_color_image) {
-    compressed_image_writer_ = node_->CreateWriter<Image>(
-        FLAGS_compressed_color_image_channel);
+    compressed_image_writer_ =
+        node_->CreateWriter<Image>(FLAGS_compressed_color_image_channel);
   }
 }
 
@@ -321,6 +321,6 @@ D435I::~D435I() {
   }
 }
 
-}  // namespace device
+}  // namespace realsense
 }  // namespace sensors
 }  // namespace apollo

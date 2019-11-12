@@ -1,0 +1,7 @@
+<cyber>
+  <module>
+    <name>nooploop_component</name>
+    <dag_conf>/apollo/modules/sensors/dag/nooploop.dag</dag_conf>
+    <process_name>nooploop_component</process_name>
+  </module>
+</cyber>

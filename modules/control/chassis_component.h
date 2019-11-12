@@ -27,7 +27,7 @@
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "modules/common/global_gflags.h"
-#include "modules/control/Uart.h"
+#include "modules/common/Uart.h"
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/control/proto/control.pb.h"
 

@@ -51,6 +51,7 @@ DECLARE_string(control_coefficient);
 DECLARE_string(tags_channel);
 DECLARE_string(routing_channel);
 DECLARE_string(planning_channel);
+DECLARE_string(tagframe_channel);
 
 // switch
 DECLARE_bool(publish_acc);
@@ -64,6 +65,7 @@ DECLARE_bool(publish_color_image);
 DECLARE_bool(publish_compressed_color_image);
 DECLARE_bool(publish_point_cloud);
 DECLARE_bool(enable_point_cloud_transform);
+DECLARE_bool(publish_tagframe);
 
 // CONST
 DECLARE_double(cruise_speed);

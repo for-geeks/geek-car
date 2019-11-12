@@ -55,6 +55,7 @@ DEFINE_string(chassis_channel, "/chassis", "chassis message channel");
 DEFINE_string(control_ref_channel, "/control_reference", "control message ref");
 DEFINE_string(control_coefficient, "/control_coefficient",
               "control coefficient");
+DEFINE_string(tagframe_channel, "/geek_lite/tagframe", "localization");
 
 // switch
 DEFINE_bool(publish_acc, false, "publish acc data");
@@ -69,6 +70,7 @@ DEFINE_bool(publish_compressed_color_image, true, "compressed color image");
 DEFINE_bool(publish_depth_image, true, "depth image from d435");
 DEFINE_bool(publish_point_cloud, true, "publish point cloud for 435I");
 DEFINE_bool(enable_point_cloud_transform, true, "enable_point_cloud_transform");
+DEFINE_bool(publish_tagframe, true, "enable_point_cloud_transform");
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");

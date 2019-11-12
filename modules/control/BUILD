@@ -65,11 +65,9 @@ cc_library(
 cc_library(
     name = "chassis_lib",
     srcs = [
-        "Uart.cpp",
         "chassis_component.cc",
     ],
     hdrs = [
-        "Uart.h",
         "chassis_component.h",
     ],
     copts = [
@@ -77,6 +75,7 @@ cc_library(
     ],
     deps = [
         "//cyber",
+        "//modules/common:uart",
         "//modules/common:global_gflags",
         "//modules/control/proto:control_cc_proto",
     ],

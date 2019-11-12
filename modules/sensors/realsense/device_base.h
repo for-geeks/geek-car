@@ -42,7 +42,7 @@
 
 namespace apollo {
 namespace sensors {
-namespace device {
+namespace realsense {
 
 using apollo::cyber::Node;
 using apollo::cyber::Writer;
@@ -104,7 +104,8 @@ class DeviceBase {
 
     auto compressedimage = std::make_shared<Image>();
     compressedimage->set_frame_no(f.get_frame_number());
-    compressedimage->set_encoding(rs2_format_to_string(f.get_profile().format()));
+    compressedimage->set_encoding(
+        rs2_format_to_string(f.get_profile().format()));
     compressedimage->set_height(FLAGS_color_image_height);
     compressedimage->set_width(FLAGS_color_image_width);
     compressedimage->set_measurement_time(f.get_timestamp());
@@ -134,6 +135,6 @@ class DeviceBase {
   rotation_estimator algo_;
 };
 
-}  // namespace device
+}  // namespace realsense
 }  // namespace sensors
 }  // namespace apollo

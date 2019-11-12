@@ -1,7 +1,6 @@
 syntax = "proto2";
 package apollo.sensors;
 
-import "modules/common/proto/header.proto";
 import "modules/common/proto/geometry.proto";
 
 // Noolloop LTS product Protocol, more details you can found here:
@@ -13,11 +12,9 @@ message TagFrame {
   optional apollo.common.Point3D eop = 4;
   optional apollo.common.Point3D vel = 5;
   optional apollo.common.Point3D angle = 6;
-  optional apollo.common.Point3D acc = 7;
-  optional apollo.common.Point3D gyro = 8;
-  optional apollo.common.Quaternion rotation = 9;
-  optional float supply_voltage = 10;
-  repeated DistanceAnchor2Tag distance = 11;
+  optional apollo.common.Quaternion rotation = 7;
+  optional float supply_voltage = 8;
+  repeated float distance = 9;
 }
 
 message EulerAngle {

@@ -22,7 +22,7 @@
  * SOFTWARE.
 ******************************************************************************/
 
-#include "modules/sensors/device/realsense_d435.h"
+#include "modules/sensors/realsense/realsense_d435.h"
 
 #include <algorithm>
 #include <memory>
@@ -37,7 +37,7 @@
 
 namespace apollo {
 namespace sensors {
-namespace device {
+namespace realsense {
 
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
@@ -321,6 +321,6 @@ D435::~D435() {
   }
 }
 
-}  // namespace device
+}  // namespace realsense
 }  // namespace sensors
 }  // namespace apollo
