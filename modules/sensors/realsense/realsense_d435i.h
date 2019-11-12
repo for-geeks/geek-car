@@ -38,7 +38,6 @@
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 
-
 namespace apollo {
 namespace sensors {
 namespace realsense {

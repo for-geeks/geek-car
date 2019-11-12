@@ -14,7 +14,7 @@ message TagFrame {
   optional apollo.common.Point3D angle = 6;
   optional apollo.common.Quaternion rotation = 7;
   optional float supply_voltage = 8;
-  repeated float distance = 9;
+  repeated DistanceAnchor2Tag dis = 9;
 }
 
 message EulerAngle {
@@ -24,8 +24,8 @@ message EulerAngle {
 }
 
 message DistanceAnchor2Tag {
-  optional uint32 anchor_id = 1;
-  optional float distance = 2;
+  // optional uint32 anchor_id = 1;
+  optional float distance = 1;
 }
 
 // gyro.hardware: online

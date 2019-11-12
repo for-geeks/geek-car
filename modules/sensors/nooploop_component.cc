@@ -51,48 +51,66 @@ void NooploopComponent::Run() {
   uint8_t buffer[512];
   while (!stop_) {
     std::memset(buffer, 0, 512);
-    device_.Read((char*)buffer, 128);
-    if ((buffer[0] == 0x55) && (buffer[1] == 0x01)) {
-      ADEBUG << "Get data from Nooploop";
-      unpackTagFrame0Data(buffer);
-      // tagFrame0Data_;
-      TagFrame0Data data = tagFrame0Data_;
+    char id = 0;
+    char func_mark = 0;
 
-      auto proto_tag = std::make_shared<TagFrame>();
-      proto_tag->set_tag_id(data.frame.id);
-      proto_tag->set_network_system_time(data.frame.systemTime);
-      proto_tag->mutable_pos()->set_x(data.pos[0]);
-      proto_tag->mutable_pos()->set_y(data.pos[1]);
-      proto_tag->mutable_pos()->set_z(data.pos[2]);
+    device_.Read(&id, 1);
 
-      proto_tag->mutable_eop()->set_x(data.eop[0]);
-      proto_tag->mutable_eop()->set_y(data.eop[1]);
-      proto_tag->mutable_eop()->set_z(data.eop[2]);
-
-      proto_tag->mutable_vel()->set_x(data.vel[0]);
-      proto_tag->mutable_vel()->set_y(data.vel[1]);
-      proto_tag->mutable_vel()->set_z(data.vel[2]);
-
-      proto_tag->mutable_angle()->set_x(data.angle[0]);
-      proto_tag->mutable_angle()->set_y(data.angle[1]);
-      proto_tag->mutable_angle()->set_z(data.angle[2]);
-
-      proto_tag->mutable_rotation()->set_qx(data.frame.q[0]);
-      proto_tag->mutable_rotation()->set_qy(data.frame.q[1]);
-      proto_tag->mutable_rotation()->set_qz(data.frame.q[2]);
-      proto_tag->mutable_rotation()->set_qw(data.frame.q[3]);
-
-      proto_tag->set_supply_voltage(data.supplyVoltage);
-
-      for (size_t i = 0; i < 8; i++) {
-        if (data.dis[i] != 1) {
-          proto_tag->add_distance(data.dis[i]);
+    if (id == 0x55){
+      device_.Read(&func_mark, 1);
+      if(func_mark == 0x01 ){
+        buffer[0] = 0x55;
+        buffer[1] = 0x01;
+        for (int i = 0; i < 126; ++i)
+        {
+          device_.Read((char*)(buffer + i +2), 1);
         }
-      }
-      tagframe_writer_->Write(proto_tag);
 
-      OnAcc(data.frame.acc);
-      OnGyro(data.frame.gyro);
+        auto veri = verifyTagFrame0Data(buffer);
+        if(veri){
+          unpackTagFrame0Data(buffer);
+          // tagFrame0Data_;
+          // TagFrame0Data data = tagFrame0Data_;
+          auto proto_tag = std::make_shared<TagFrame>();
+          proto_tag->set_tag_id(tagFrame0Data_.frame.id);
+          proto_tag->set_network_system_time(tagFrame0Data_.frame.systemTime);
+          proto_tag->mutable_pos()->set_x(tagFrame0Data_.pos[0]);
+          proto_tag->mutable_pos()->set_y(tagFrame0Data_.pos[1]);
+          proto_tag->mutable_pos()->set_z(tagFrame0Data_.pos[2]);
+
+          proto_tag->mutable_eop()->set_x(tagFrame0Data_.eop[0]);
+          proto_tag->mutable_eop()->set_y(tagFrame0Data_.eop[1]);
+          proto_tag->mutable_eop()->set_z(tagFrame0Data_.eop[2]);
+
+          proto_tag->mutable_vel()->set_x(tagFrame0Data_.vel[0]);
+          proto_tag->mutable_vel()->set_y(tagFrame0Data_.vel[1]);
+          proto_tag->mutable_vel()->set_z(tagFrame0Data_.vel[2]);
+
+          proto_tag->mutable_angle()->set_x(tagFrame0Data_.angle[0]);
+          proto_tag->mutable_angle()->set_y(tagFrame0Data_.angle[1]);
+          proto_tag->mutable_angle()->set_z(tagFrame0Data_.angle[2]);
+
+          proto_tag->mutable_rotation()->set_qx(tagFrame0Data_.frame.q[0]);
+          proto_tag->mutable_rotation()->set_qy(tagFrame0Data_.frame.q[1]);
+          proto_tag->mutable_rotation()->set_qz(tagFrame0Data_.frame.q[2]);
+          proto_tag->mutable_rotation()->set_qw(tagFrame0Data_.frame.q[3]);
+
+          proto_tag->set_supply_voltage(tagFrame0Data_.supplyVoltage);
+
+          for (size_t i = 0; i < 8; i++) {
+            DistanceAnchor2Tag da2t;
+            da2t.set_distance(tagFrame0Data_.dis[i]);
+            auto next_da2t = proto_tag->add_dis();
+            next_da2t->CopyFrom(da2t);
+          }
+
+          tagframe_writer_->Write(proto_tag);
+
+          OnAcc(tagFrame0Data_.frame.acc);
+          OnGyro(tagFrame0Data_.frame.gyro);
+        }
+
+      }
     }
   }
 }
