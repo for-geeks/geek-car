@@ -96,3 +96,7 @@ DECLARE_int32(depth_image_frequency);
 // TOOLS
 DECLARE_string(image_export_dir);
 DECLARE_string(odometry_file);
+DECLARE_double(angle_x);
+DECLARE_double(angle_y);
+DECLARE_double(angle_z);
+

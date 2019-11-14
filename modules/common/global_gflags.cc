@@ -102,3 +102,8 @@ DEFINE_string(image_export_dir, "/apollo/data/", "tools image saver dir");
 DEFINE_string(odometry_file,
               "../modules/sensors/conf/t265_calibration_odometry.json",
               "odometry calibration file ");
+
+
+DEFINE_double(angle_x, 0, "angle x");
+DEFINE_double(angle_y, 0, "angle x");
+DEFINE_double(angle_z, 0, "angle x");

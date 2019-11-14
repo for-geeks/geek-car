@@ -218,11 +218,11 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 
 void D435I::PointCloudTransform() {
   if (FLAGS_enable_point_cloud_transform) {
-    auto angle = algo_.get_theta();
-    AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
+    // auto angle = algo_.get_theta();
+    // AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
 
     transform = Eigen::Matrix4f::Identity();
-    ::Eigen::Vector3d ea0(0, angle.x, angle.z);
+    ::Eigen::Vector3d ea0(0, FLAGS_angle_x, FLAGS_angle_z);
     ::Eigen::Matrix3d R;
     R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
         ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
@@ -289,8 +289,8 @@ void D435I::PublishPointCloud() {
 
     point_cloud_out->set_is_dense(false);
     point_cloud_out->set_measurement_time(Time::Now().ToSecond());
-    point_cloud_out->set_width(FLAGS_color_image_width);
-    point_cloud_out->set_height(FLAGS_color_image_height);
+    point_cloud_out->set_width(FLAGS_depth_image_width);
+    point_cloud_out->set_height(FLAGS_depth_image_height);
 
     for (size_t i = 0; i < (*cloud_).size(); i++) {
       if ((*cloud_)[i].z) {
