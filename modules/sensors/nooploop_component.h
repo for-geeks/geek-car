@@ -45,6 +45,7 @@ using apollo::cyber::Writer;
 using apollo::sensors::Acc;
 using apollo::sensors::Gyro;
 using apollo::sensors::TagFrame;
+using apollo::sensors::DistanceAnchor2Tag;
 
 class NooploopComponent : public Component<> {
  public:
