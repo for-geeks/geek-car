@@ -125,6 +125,8 @@ bash /tmp/installers/install_realsense.sh
 bash /tmp/installers/install_fast-rtps.sh
 
 #pcl 1.9.1for x86 1.7.2 for aarch64
-bash /tmp/installers/install_pcl.sh build
+#bash /tmp/installers/install_pcl.sh build
 
 rm -fr /tmp/*
+# install pcl 1.8
+apt install libpcl-dev -y
