@@ -97,6 +97,7 @@ function generate_build_targets() {
   if [ ${MACHINE_ARCH} != "x86_64" ]; then
      BUILD_TARGETS=$(echo $BUILD_TARGETS |tr ' ' '\n' | grep -v "visualizer")
   fi
+  BUILD_TARGETS=$(echo $BUILD_TARGETS |tr ' ' '\n' | grep -v "visualizer")
 }
 
 #=================================================
