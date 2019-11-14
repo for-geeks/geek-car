@@ -7,6 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt clean
 RUN apt update -y && \
     apt install -y \
+    --no-install-recommends apt-utils \
     build-essential \
     gcc-4.8 \
     g++-4.8 \
@@ -67,15 +68,11 @@ RUN bash /tmp/installers/install_apriltag.sh
 RUN bash /tmp/installers/install_realsense.sh
 
 # Add Bionic source
-RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic main restricted" > /etc/apt/sources.list
-RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic-updates main restricted" >> /etc/apt/sources.list
-RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic universe" >> /etc/apt/sources.list
-RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic-updates universe" >> /etc/apt/sources.list
-RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic multiverse" >> /etc/apt/sources.list
-RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic-updates multiverse" >> /etc/apt/sources.list
-RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list
-RUN echo "deb http://security.ubuntu.com/ubuntu bionic-security main restricted" >> /etc/apt/sources.list
-RUN echo "deb http://security.ubuntu.com/ubuntu bionic-security multiverse" >> /etc/apt/sources.list
+RUN echo "deb https://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse" > /etc/apt/sources.list
+RUN echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse" >> /etc/apt/sources.list
+RUN echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse" >> /etc/apt/sources.list
+RUN echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse" >> /etc/apt/sources.list
+RUN echo "deb https://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list
 
 #add Trusty universe into apt source for Poco foundation 9
 RUN echo "deb http://dk.archive.ubuntu.com/ubuntu/ trusty main" >> /etc/apt/sources.list
@@ -122,7 +119,7 @@ RUN ln -s /usr/lib/x86_64-linux-gnu/libboost_chrono.so.1.54.0 /usr/lib/x86_64-li
 RUN ln -s /usr/lib/python2.7/dist-packages/vtk/libvtkRenderingPythonTkWidgets.x86_64-linux-gnu.so /usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so
 
 RUN bash /tmp/installers/install_fast-rtps.sh
-RUN bash /tmp/installers/install_pcl.sh
+RUN bash /tmp/installers/install_pcl.sh ${INSTALL_MODE}
 
 WORKDIR /apollo
-#USER apollo
+# USER apollo
