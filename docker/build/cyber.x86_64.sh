@@ -40,7 +40,7 @@ apt update -y && \
     libopenni2-0 \
     libopenni2-dev \
     software-properties-common \
-    liblz4-dev
+    liblz4-tool liblz4-dev liblz4-1 liblz4-1-dbg 
 
 # move eigen include
 cp -r /usr/include/eigen3/Eigen /usr/local/include/
