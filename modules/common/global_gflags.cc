@@ -77,9 +77,9 @@ DEFINE_bool(publish_point_cloud, true, "publish point cloud for 435I");
 DEFINE_bool(enable_point_cloud_transform, true, "enable_point_cloud_transform");
 DEFINE_bool(publish_tagframe, true, "enable_point_cloud_transform");
 
-DECLARE_bool(publish_nooploop_acc, true,
+DEFINE_bool(publish_nooploop_acc, true,
              "enable publish acc for device nooploop");
-DECLARE_bool(publish_nooploop_gyro, true,
+DEFINE_bool(publish_nooploop_gyro, true,
              "enable publish gyro for device nooploop");
 
 // const
