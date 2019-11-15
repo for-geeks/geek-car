@@ -43,9 +43,9 @@ namespace sensors {
 using apollo::cyber::Component;
 using apollo::cyber::Writer;
 using apollo::sensors::Acc;
+using apollo::sensors::DistanceAnchor2Tag;
 using apollo::sensors::Gyro;
 using apollo::sensors::TagFrame;
-using apollo::sensors::DistanceAnchor2Tag;
 
 class NooploopComponent : public Component<> {
  public:
@@ -55,7 +55,7 @@ class NooploopComponent : public Component<> {
   bool Init() override;
 
   void Run();
-
+  void OnFrame();
   void OnAcc(float acc[3]);
   void OnGyro(float gyro[3]);
 

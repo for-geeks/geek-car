@@ -29,6 +29,10 @@ DEFINE_string(nooploop_device_name, "ttyUSB0", "Nooploop device name ");
 
 // Device include Realsense and Nooploop
 DEFINE_string(serial_number, "908412111198", "RealSense serial number");
+DEFINE_string(realsense_acc_channel, "/realsense/acc",
+              "acc data from RealSense Device");
+DEFINE_string(realsense_gyro_channel, "/realsense/gyro",
+              "gyro data from RealSense Device");
 DEFINE_string(pose_channel, "/realsense/pose", "pose data from T265");
 DEFINE_string(gray_image_channel, "/realsense/gray_image", "raw image");
 DEFINE_string(compressed_gray_image_channel, "/realsense/gray_image/compressed",
@@ -39,8 +43,9 @@ DEFINE_string(compressed_color_image_channel,
 DEFINE_string(depth_image_channel, "/realsense/depth_image", "raw depth image");
 DEFINE_string(point_cloud_channel, "/realsense/point_cloud", "points object ");
 
-DEFINE_string(acc_channel, "/geek/acc", "acc data from RealSense Device");
-DEFINE_string(gyro_channel, "/geek/gyro", "gyro data from RealSense Device");
+DEFINE_string(uwb_acc_channel, "/geek/acc", "acc data from RealSense Device");
+DEFINE_string(uwb_gyro_channel, "/geek/gyro",
+              "gyro data from RealSense Device");
 DEFINE_string(uwb_pose_channel, "/geek/uwb/pose",
               "pose message from nooploop sensor");
 
@@ -58,8 +63,8 @@ DEFINE_string(control_coefficient, "/control_coefficient",
               "control coefficient");
 
 // switch
-DEFINE_bool(publish_acc, false, "publish acc data");
-DEFINE_bool(publish_gyro, false, "publish gyro data");
+DEFINE_bool(publish_realsense_acc, false, "publish realsense acc data");
+DEFINE_bool(publish_realsense_gyro, false, "publish realsense gyro data");
 DEFINE_bool(publish_pose, true, "publish pose data");
 DEFINE_bool(publish_raw_gray_image, false, "publish raw gray image data");
 DEFINE_bool(publish_compressed_gray_image, true, "publish raw gray image data");
@@ -71,6 +76,11 @@ DEFINE_bool(publish_depth_image, true, "depth image from d435");
 DEFINE_bool(publish_point_cloud, true, "publish point cloud for 435I");
 DEFINE_bool(enable_point_cloud_transform, true, "enable_point_cloud_transform");
 DEFINE_bool(publish_tagframe, true, "enable_point_cloud_transform");
+
+DECLARE_bool(publish_nooploop_acc, true,
+             "enable publish acc for device nooploop");
+DECLARE_bool(publish_nooploop_gyro, true,
+             "enable publish gyro for device nooploop");
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");
@@ -102,7 +112,6 @@ DEFINE_string(image_export_dir, "/apollo/data/", "tools image saver dir");
 DEFINE_string(odometry_file,
               "../modules/sensors/conf/t265_calibration_odometry.json",
               "odometry calibration file ");
-
 
 DEFINE_double(angle_x, 0, "angle x");
 DEFINE_double(angle_y, 0, "angle x");

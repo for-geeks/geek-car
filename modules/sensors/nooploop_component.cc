@@ -31,12 +31,12 @@ namespace sensors {
 bool NooploopComponent::Init() {
   device_.SetOpt(921600, 8, 'N', 1);
 
-  if (FLAGS_publish_acc) {
-    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
+  if (FLAGS_publish_nooploop_acc) {
+    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_uwb_acc_channel);
   }
 
-  if (FLAGS_publish_gyro) {
-    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  if (FLAGS_publish_nooploop_gyro) {
+    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_uwb_gyro_channel);
   }
 
   if (FLAGS_publish_tagframe) {
@@ -56,63 +56,70 @@ void NooploopComponent::Run() {
 
     device_.Read(&id, 1);
 
-    if (id == 0x55){
+    if (id == 0x55) {
       device_.Read(&func_mark, 1);
-      if(func_mark == 0x01 ){
+      if (func_mark == 0x01) {
         buffer[0] = 0x55;
         buffer[1] = 0x01;
-        for (int i = 0; i < 126; ++i)
-        {
-          device_.Read((char*)(buffer + i +2), 1);
+        for (int i = 0; i < 126; ++i) {
+          device_.Read((char*)(buffer + i + 2), 1);
         }
 
-        auto veri = verifyTagFrame0Data(buffer);
-        if(veri){
+        auto verified = verifyTagFrame0Data(buffer);
+        if (verified) {
           unpackTagFrame0Data(buffer);
           // tagFrame0Data_;
           // TagFrame0Data data = tagFrame0Data_;
-          auto proto_tag = std::make_shared<TagFrame>();
-          proto_tag->set_tag_id(tagFrame0Data_.frame.id);
-          proto_tag->set_network_system_time(tagFrame0Data_.frame.systemTime);
-          proto_tag->mutable_pos()->set_x(tagFrame0Data_.pos[0]);
-          proto_tag->mutable_pos()->set_y(tagFrame0Data_.pos[1]);
-          proto_tag->mutable_pos()->set_z(tagFrame0Data_.pos[2]);
-
-          proto_tag->mutable_eop()->set_x(tagFrame0Data_.eop[0]);
-          proto_tag->mutable_eop()->set_y(tagFrame0Data_.eop[1]);
-          proto_tag->mutable_eop()->set_z(tagFrame0Data_.eop[2]);
-
-          proto_tag->mutable_vel()->set_x(tagFrame0Data_.vel[0]);
-          proto_tag->mutable_vel()->set_y(tagFrame0Data_.vel[1]);
-          proto_tag->mutable_vel()->set_z(tagFrame0Data_.vel[2]);
-
-          proto_tag->mutable_angle()->set_x(tagFrame0Data_.angle[0]);
-          proto_tag->mutable_angle()->set_y(tagFrame0Data_.angle[1]);
-          proto_tag->mutable_angle()->set_z(tagFrame0Data_.angle[2]);
-
-          proto_tag->mutable_rotation()->set_qx(tagFrame0Data_.frame.q[0]);
-          proto_tag->mutable_rotation()->set_qy(tagFrame0Data_.frame.q[1]);
-          proto_tag->mutable_rotation()->set_qz(tagFrame0Data_.frame.q[2]);
-          proto_tag->mutable_rotation()->set_qw(tagFrame0Data_.frame.q[3]);
-
-          proto_tag->set_supply_voltage(tagFrame0Data_.supplyVoltage);
-
-          for (size_t i = 0; i < 8; i++) {
-            DistanceAnchor2Tag da2t;
-            da2t.set_distance(tagFrame0Data_.dis[i]);
-            auto next_da2t = proto_tag->add_dis();
-            next_da2t->CopyFrom(da2t);
-          }
-
-          tagframe_writer_->Write(proto_tag);
-
+          // Publish pose frame
+          OnFrame();
+          // Publish Acc
           OnAcc(tagFrame0Data_.frame.acc);
+          // Publish gyro
           OnGyro(tagFrame0Data_.frame.gyro);
+        } else {
+          AERROR << "TAG FRAME VERIFIED FAILED.";
         }
-
       }
     }
   }
+}
+
+void NooploopComponent::OnFrame() {
+  auto proto_tag = std::make_shared<TagFrame>();
+  proto_tag->set_tag_id(tagFrame0Data_.frame.id);
+  proto_tag->set_network_system_time(tagFrame0Data_.frame.systemTime);
+  proto_tag->mutable_pos()->set_x(tagFrame0Data_.pos[0]);
+  proto_tag->mutable_pos()->set_y(tagFrame0Data_.pos[1]);
+  proto_tag->mutable_pos()->set_z(tagFrame0Data_.pos[2]);
+
+  proto_tag->mutable_eop()->set_x(tagFrame0Data_.eop[0]);
+  proto_tag->mutable_eop()->set_y(tagFrame0Data_.eop[1]);
+  proto_tag->mutable_eop()->set_z(tagFrame0Data_.eop[2]);
+
+  proto_tag->mutable_vel()->set_x(tagFrame0Data_.vel[0]);
+  proto_tag->mutable_vel()->set_y(tagFrame0Data_.vel[1]);
+  proto_tag->mutable_vel()->set_z(tagFrame0Data_.vel[2]);
+
+  proto_tag->mutable_angle()->set_x(tagFrame0Data_.angle[0]);
+  proto_tag->mutable_angle()->set_y(tagFrame0Data_.angle[1]);
+  proto_tag->mutable_angle()->set_z(tagFrame0Data_.angle[2]);
+
+  proto_tag->mutable_rotation()->set_qx(tagFrame0Data_.frame.q[0]);
+  proto_tag->mutable_rotation()->set_qy(tagFrame0Data_.frame.q[1]);
+  proto_tag->mutable_rotation()->set_qz(tagFrame0Data_.frame.q[2]);
+  proto_tag->mutable_rotation()->set_qw(tagFrame0Data_.frame.q[3]);
+
+  proto_tag->set_supply_voltage(tagFrame0Data_.supplyVoltage);
+
+  // Number of Anchor(Base Station) Node of protocol is 8
+  for (size_t i = 0; i < 8; i++) {
+    DistanceAnchor2Tag da2t;
+    da2t.set_distance(tagFrame0Data_.dis[i]);
+    auto next_da2t = proto_tag->add_dis();
+    next_da2t->CopyFrom(da2t);
+  }
+
+  tagframe_writer_->Write(proto_tag);
 }
 
 void NooploopComponent::OnAcc(float acc[3]) {

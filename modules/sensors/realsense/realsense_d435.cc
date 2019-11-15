@@ -109,19 +109,19 @@ void D435::InitChannelWriter(std::shared_ptr<Node> node_) {
   }
 
   // acc channel
-  if (FLAGS_publish_acc) {
-    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
+  if (FLAGS_publish_realsense_acc) {
+    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_realsense_acc_channel);
   }
 
   // gyro channel
-  if (FLAGS_publish_gyro) {
-    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  if (FLAGS_publish_realsense_gyro) {
+    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_realsense_gyro_channel);
   }
 
   // compreessed image channel
   if (FLAGS_publish_compressed_color_image) {
-    compressed_image_writer_ = node_->CreateWriter<Image>(
-        FLAGS_compressed_color_image_channel);
+    compressed_image_writer_ =
+        node_->CreateWriter<Image>(FLAGS_compressed_color_image_channel);
   }
 }
 
@@ -139,12 +139,12 @@ void D435::Run() {
       OnDepthImage(depth_frame);
     }
 
-    if (FLAGS_publish_acc) {
+    if (FLAGS_publish_realsense_acc) {
       rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
       OnAcc(accel_frame);
     }
 
-    if (FLAGS_publish_gyro) {
+    if (FLAGS_publish_realsense_gyro) {
       rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
       OnGyro(gyro_frame);
     }

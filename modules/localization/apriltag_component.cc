@@ -27,6 +27,7 @@
 #include <math.h>
 #include <string>
 #include <vector>
+
 #include "apriltag_pose.h"
 #include "opencv2/opencv.hpp"
 #include "tag36h11.h"
@@ -36,11 +37,9 @@
 namespace apollo {
 namespace localization {
 
-
-
 // rotation matrix to euler angles
 // https://www.learnopencv.com/rotation-matrix-to-euler-angles/
-void rotation_validation(matd_t* R) {
+void rotation2euler_angel(matd_t* R) {
   double r21 = MATD_EL(R, 2, 1);
   double r22 = MATD_EL(R, 2, 2);
   double sy = sqrt(r21 * r21 + r22 * r22);
@@ -138,7 +137,7 @@ void ApriltagComponent::ApriltagDetection(const std::shared_ptr<Image>& image) {
     ADEBUG << "estimate tag pose : t, ";
     matd_print(pose.t, "%15f");
 
-    rotation_validation(pose.R);
+    rotation2euler_angels(pose.R);
 
     Tag tag;
     tag.set_id(det->id);

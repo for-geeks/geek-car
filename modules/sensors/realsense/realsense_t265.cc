@@ -70,12 +70,12 @@ void T265::InitChannelWriter(std::shared_ptr<Node> node_) {
     image_writer_ = node_->CreateWriter<Image>(FLAGS_gray_image_channel);
   }
 
-  if (FLAGS_publish_acc) {
-    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_acc_channel);
+  if (FLAGS_publish_realsense_acc) {
+    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_realsense_acc_channel);
   }
 
-  if (FLAGS_publish_gyro) {
-    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_gyro_channel);
+  if (FLAGS_publish_realsense_gyro) {
+    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_realsense_gyro_channel);
   }
 
   if (FLAGS_publish_compressed_gray_image) {
@@ -98,12 +98,12 @@ void T265::Run() {
     // Wait for all configured streams to produce a frame
     frames = pipe.wait_for_frames();
 
-    if (FLAGS_publish_acc) {
+    if (FLAGS_publish_realsense_acc) {
       rs2::motion_frame accel_frame = frames.first_or_default(RS2_STREAM_ACCEL);
       OnAcc(accel_frame);
     }
 
-    if (FLAGS_publish_gyro) {
+    if (FLAGS_publish_realsense_gyro) {
       rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
       OnGyro(gyro_frame);
     }
@@ -236,6 +236,6 @@ void T265::WheelOdometry() {
 
 T265::~T265() { AINFO << "Destructor from D435I"; }
 
-}  // namespace device
+}  // namespace realsense
 }  // namespace sensors
 }  // namespace apollo

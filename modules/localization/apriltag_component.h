@@ -24,6 +24,7 @@
 #pragma once
 
 #include <memory>
+
 #include "apriltag.h"
 #include "librealsense2/rs.hpp"
 
