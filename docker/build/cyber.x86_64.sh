@@ -40,7 +40,7 @@ apt update -y && \
     libopenni2-0 \
     libopenni2-dev \
     software-properties-common \
-    liblz4-dev
+    liblz4-tool liblz4-dev liblz4-1 liblz4-1-dbg 
 
 # move eigen include
 cp -r /usr/include/eigen3/Eigen /usr/local/include/
@@ -125,6 +125,8 @@ bash /tmp/installers/install_realsense.sh
 bash /tmp/installers/install_fast-rtps.sh
 
 #pcl 1.9.1for x86 1.7.2 for aarch64
-bash /tmp/installers/install_pcl.sh build
+#bash /tmp/installers/install_pcl.sh build
 
 rm -fr /tmp/*
+# install pcl 1.8
+apt install libpcl-dev -y
