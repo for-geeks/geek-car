@@ -24,3 +24,6 @@ h5py
 pypcd
 pytz
 utm
+scipy == 1.17.4
+numpy
+padas

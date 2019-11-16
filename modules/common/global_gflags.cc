@@ -100,7 +100,7 @@ DEFINE_double(point_cloud_min_distance, 0.2f, "point_cloud_min_distance");
 DEFINE_double(point_cloud_max_distance, 3.f, "point_cloud_max_distance");
 // IMAGE
 DEFINE_int32(compress_rate, 95, "image compressed rate");
-DEFINE_int32(color_image_height, 480, "image compressed rate");
+DEFINE_int32(color_image_height, 360, "image compressed rate");
 DEFINE_int32(color_image_width, 640, "image compressed rate");
 DEFINE_int32(color_image_frequency, 30, "image color_image_frequency");
 DEFINE_int32(depth_image_height, 240, "depth image height");

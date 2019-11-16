@@ -31,6 +31,7 @@
 
 #include "pcl/common/transforms.h"
 #include "pcl/filters/passthrough.h"
+#include "pcl/io/pcd_io.h"
 
 #include "modules/common/global_gflags.h"
 #include "modules/sensors/realsense.h"
@@ -273,7 +274,27 @@ void D435I::PublishPointCloud() {
     } else {
       *cloud_ = *pcl_points;
     }
+#if 1
+    // PCL VISUALIZATION TEST 
+    ///////////////////////////////////////////////////////////////////////////
+    pcl::io::savePCDFileASCII("./pcd_" + t1 + ".pcd", cloud);
+    
+    std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer ("3D Viewer"));
+    viewer->setBackgroundColor(0, 0, 0);
+    pcl::visualztion::PointCloudColorHandlerCustom<pcl::PointXYZ> target_color(cloud, 255, 0, 0);
+    viewer->addPoint<pcl::PointXYZ>(cloud, target_color, "target cloud");
+    viewer->setPOintCloudRenderingProperties(pcl::visualzation::PCL_VISUALIZER_POINT_SIZE, 1, "target cloud");
 
+    // Starting Visualizer
+    viewer->addCoordinateSystem(1.0, "global");
+    viewer->initCameraParameters();
+    // Wait until visualizer window is closed.
+    while(!viewer->wasStoped()){
+      viewer->spinOnce(100);
+      std::this_thread::sleep_for(std::chrono::microseconds(100000));
+    }
+    ///////////////////////////////////////////////////////////////////////////
+#endif
     std::shared_ptr<PointCloud> point_cloud_out =
         point_cloud_pool_->GetObject();
     if (point_cloud_out == nullptr) {
