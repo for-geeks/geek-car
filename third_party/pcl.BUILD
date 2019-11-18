@@ -40,3 +40,13 @@ cc_library(
         "-lpcl_visualization",
     ],
 )
+
+config_setting(
+    name = "x86_mode",
+    values = {"cpu": "k8"},
+)
+
+config_setting(
+    name = "arm_mode",
+    values = {"cpu": "arm"},
+)
