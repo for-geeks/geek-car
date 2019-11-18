@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(
       new pcl::PointCloud<pcl::PointXYZ>);
   vg.setInputCloud(cloud);
-  vg.setLeafSize(0.01f, 0.01f, 0.01f);
+  vg.setLeafSize(0.001f, 0.001f, 0.001f);
   vg.filter(*cloud_filtered);
   std::cout << "PointCloud after filtering has: "
             << cloud_filtered->points.size() << " data points." << std::endl;
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     // Result visualization
     j++;
     *add_cloud += *cloud_cluster;
-    // pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
+    pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
   }
 
   return 0;
