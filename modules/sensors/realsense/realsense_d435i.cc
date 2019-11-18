@@ -288,29 +288,33 @@ void D435I::PublishPointCloud() {
     pass_y.setInputCloud(cloud_);
     pass_y.setFilterFieldName("y");
     // y轴区间设置
-    pass_y.setFilterLimits(float(FLAGS_passthrough_y_min), float(FLAGS_passthrough_y_max));
+    pass_y.setFilterLimits(float(FLAGS_passthrough_y_min),
+                           float(FLAGS_passthrough_y_max));
     pass_y.setFilterLimitsNegative(false);
     pass_y.filter(*cloud_);
 
     if (FLAGS_save_pcd) {
-      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-                           *cloud_);
+      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+      //                      *cloud_);
     }
 #if 0
-    // PCL VISUALIZATION TEST 
+    // PCL VISUALIZATION TEST
     ///////////////////////////////////////////////////////////////////////////
-    
-    std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer ("3D Viewer"));
+
+    std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(
+        new pcl::visualization::PCLVisualizer("3D Viewer"));
     viewer->setBackgroundColor(0, 0, 0);
-    pcl::visualztion::PointCloudColorHandlerCustom<pcl::PointXYZ> target_color(cloud_, 255, 0, 0);
+    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ>
+        target_color(cloud_, 255, 0, 0);
     viewer->addPointCloud<pcl::PointXYZ>(cloud_, target_color, "target cloud");
-    viewer->setPOintCloudRenderingProperties(pcl::visualzation::PCL_VISUALIZER_POINT_SIZE, 1, "target cloud");
+    viewer->setPointCloudRenderingProperties(
+        pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "target cloud");
 
     // Starting Visualizer
     viewer->addCoordinateSystem(1.0, "global");
     viewer->initCameraParameters();
     // Wait until visualizer window is closed.
-    while(!viewer->wasStoped()){
+    while (!viewer->wasStopped()) {
       viewer->spinOnce(100);
       std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }

@@ -104,6 +104,12 @@ new_local_repository(
     path = "/usr",
 )
 
+new_local_repository(
+    name = "vtk",
+    build_file = "third_party/vtk.BUILD",
+    path = "/usr",
+)
+
 
 new_local_repository(
     name = "opencv",

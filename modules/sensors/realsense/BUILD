@@ -53,6 +53,7 @@ cc_library(
         "//modules/sensors/proto:sensors_cc_proto",
         "@eigen",
         "@pcl",
+        "@vtk",
     ],
 )
 

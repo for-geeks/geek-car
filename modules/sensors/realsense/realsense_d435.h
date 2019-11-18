@@ -34,10 +34,10 @@
 #include "cyber/node/node.h"
 #include "cyber/node/writer.h"
 
-#include "modules/sensors/realsense/device_base.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/realsense.h"
+#include "modules/sensors/realsense/device_base.h"
 
 namespace apollo {
 namespace sensors {
@@ -92,5 +92,5 @@ class D435 : public DeviceBase {
   std::atomic<bool> stop_ = {false};
 };
 }  // namespace realsense
-}  // namespace sensor
+}  // namespace sensors
 }  // namespace apollo
