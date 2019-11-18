@@ -91,7 +91,7 @@ void D435I::DeviceConfig() {
   auto sensor = profile.get_device().first<rs2::depth_sensor>();
 
   // Set the device to High Accuracy preset of the D400 stereoscopic
-  cameras if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
+  if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
     sensor.set_option(RS2_OPTION_VISUAL_PRESET, RS2_RS400_VISUAL_PRESET_HAND);
   }
 }
@@ -218,9 +218,9 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 
   rs2::temporal_filter temp_filter;
   temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA,
-                         FLAGS_temp_filter_alpha);
+                         float(FLAGS_temp_filter_alpha));
   temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA,
-                         FLAGS_temp_filter_delta);
+                         float(FLAGS_temp_filter_delta));
   depth_frame = temp_filter.process(depth_frame);
 
   filtered_data.enqueue(depth_frame);
@@ -288,7 +288,7 @@ void D435I::PublishPointCloud() {
     pass_y.setInputCloud(cloud_);
     pass_y.setFilterFieldName("y");
     // y轴区间设置
-    pass_y.setFilterLimits(FALGS_passthrough_y_min, FLAGS_passthrough_y_max);
+    pass_y.setFilterLimits(float(FLAGS_passthrough_y_min), float(FLAGS_passthrough_y_max));
     pass_y.setFilterLimitsNegative(false);
     pass_y.filter(*cloud_);
 
