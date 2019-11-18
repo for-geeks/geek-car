@@ -94,6 +94,10 @@ DECLARE_double(passthrough_y_min);
 DECLARE_double(passthrough_y_max);
 DECLARE_double(temp_filter_alpha);
 DECLARE_double(temp_filter_delta);
+DECLARE_double(angle_x);
+DECLARE_double(angle_y);
+DECLARE_double(angle_z);
+DECLARE_double(leaf_size);
 
 // IMAGE
 DECLARE_int32(compress_rate);
@@ -108,6 +112,4 @@ DECLARE_int32(depth_image_frequency);
 // TOOLS
 DECLARE_string(image_export_dir);
 DECLARE_string(odometry_file);
-DECLARE_double(angle_x);
-DECLARE_double(angle_y);
-DECLARE_double(angle_z);
+

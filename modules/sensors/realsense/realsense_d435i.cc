@@ -29,9 +29,11 @@
 #include <string>
 #include <vector>
 
+#include <pcl/filters/voxel_grid.h>
 #include "pcl/common/transforms.h"
 #include "pcl/filters/passthrough.h"
 #include "pcl/io/pcd_io.h"
+
 #if 0
 #include "pcl/visualization/pcl_visualizer.h"
 #endif
@@ -281,11 +283,22 @@ void D435I::PublishPointCloud() {
       *cloud_ = *pcl_points;
     }
 
+    // 下采样，体素叶子大小为0.01
+    pcl::VoxelGrid<pcl::PointXYZ> vg;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(
+        new pcl::PointCloud<pcl::PointXYZ>);
+    vg.setInputCloud(cloud_);
+    vg.setLeafSize(float(FLAGS_leaf_size), float(FLAGS_leaf_size),
+                   float(FLAGS_leaf_size));
+    vg.filter(*cloud_filtered);
+    std::cout << "PointCloud after Voxel Grid filtering has: "
+              << cloud_filtered->points.size() << " data points." << std::endl;
+
     //直通滤波
     pcl::PassThrough<pcl::PointXYZ> pass_y;  //设置滤波器对象
 
     //参数设置
-    pass_y.setInputCloud(cloud_);
+    pass_y.setInputCloud(cloud_filtered);
     pass_y.setFilterFieldName("y");
     // y轴区间设置
     pass_y.setFilterLimits(float(FLAGS_passthrough_y_min),
