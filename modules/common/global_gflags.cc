@@ -54,6 +54,7 @@ DEFINE_string(routing_channel, "/planning/target",
               "planning routing information");
 DEFINE_string(planning_channel, "/planning/trajectory",
               "planning trajectory result");
+DEFINE_string(obstacle_channel, "/perception/obstacle", "perception ");
 
 // Module Channel
 DEFINE_string(control_channel, "/control", "control message channel");

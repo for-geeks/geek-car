@@ -54,6 +54,7 @@ DECLARE_string(control_coefficient);
 DECLARE_string(tags_channel);
 DECLARE_string(routing_channel);
 DECLARE_string(planning_channel);
+DECLARE_string(obstacle_channel);
 
 // switch
 DECLARE_bool(publish_realsense_acc);

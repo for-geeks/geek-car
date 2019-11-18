@@ -1,0 +1,52 @@
+syntax = "proto2";
+
+package apollo.perception;
+
+message BBox2D {
+  optional double xmin = 1;  // in pixels.
+  optional double ymin = 2;  // in pixels.
+  optional double xmax = 3;  // in pixels.
+  optional double ymax = 4;  // in pixels.
+}
+
+message BBox3D {
+  optional double xmin = 1;  // in pixels.
+  optional double ymin = 2;  // in pixels.
+  optional double zmin = 3;  // in pixels.
+  optional double xmax = 4;  // in pixels.
+  optional double ymax = 5;  // in pixels.
+  optional double zmax = 6;  // in pixels.
+}
+
+message PerceptionObstacle {
+  optional int32 id = 1;  // obstacle ID.
+
+  // obstacle position in the world coordinate system.
+  optional apollo.common.Point3D position = 2;
+
+  optional double theta = 3;  // heading in the world coordinate system.
+  optional apollo.common.Point3D velocity = 4;  // obstacle velocity.
+
+  // Size of obstacle bounding box.
+  optional double length = 5;  // obstacle length.
+  optional double width = 6;   // obstacle width.
+  optional double height = 7;  // obstacle height.
+
+  repeated apollo.common.Point3D polygon_point = 8;  // obstacle corner points.
+
+  optional apollo.common.Point3D acceleration = 9;  // obstacle acceleration
+
+  optional apollo.common.Point3D centroid = 9;  // obstacle centroid
+
+  // a stable obstacle point in the world coordinate system
+  // position defined above is the obstacle bounding box ground center
+  optional apollo.common.Point3D anchor_point = 10;
+  // optional BBox2D bbox2d = 18;
+  optional BBox3D bbox3d = 11;
+}
+
+message PerceptionObstacles {
+  repeated PerceptionObstacle perception_obstacle = 1;  // An array of obstacles
+  optional apollo.common.Header header = 2;             // Header
+  optional apollo.common.ErrorCode error_code = 3 [default = OK];
+}
