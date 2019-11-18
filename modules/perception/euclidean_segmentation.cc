@@ -11,8 +11,8 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/segmentation/sac_segmentation.h>
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr
-read_cloud_point(std::string const &file_path) {
+pcl::PointCloud<pcl::PointXYZ>::Ptr read_cloud_point(
+    std::string const &file_path) {
   // Loading first scan.
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
   if (pcl::io::loadPCDFile<pcl::PointXYZ>(file_path, *cloud) == -1) {
@@ -51,26 +51,26 @@ int main(int argc, char **argv) {
 
   //创建平面模型分割的对象并设置参数
   pcl::SACSegmentation<pcl::PointXYZ> seg;
-  pcl::PointIndices::Ptr inliers(new pcl::PointIndices); //设置聚类的内点索引
+  pcl::PointIndices::Ptr inliers(new pcl::PointIndices);  //设置聚类的内点索引
   pcl::ModelCoefficients::Ptr coefficients(
-      new pcl::ModelCoefficients); //平面模型的因子
+      new pcl::ModelCoefficients);  //平面模型的因子
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane(
       new pcl::PointCloud<pcl::PointXYZ>());
 
-//   pcl::PCDWriter writer;
+  //   pcl::PCDWriter writer;
   seg.setOptimizeCoefficients(true);
-  seg.setModelType(pcl::SACMODEL_PLANE); //分割模型
-  seg.setMethodType(pcl::SAC_RANSAC);    //随机参数估计方法
-  seg.setMaxIterations(100);             //最大的迭代的次数
-  seg.setDistanceThreshold(0.02);        //设置阀值
+  seg.setModelType(pcl::SACMODEL_PLANE);  //分割模型
+  seg.setMethodType(pcl::SAC_RANSAC);     //随机参数估计方法
+  seg.setMaxIterations(100);              //最大的迭代的次数
+  seg.setDistanceThreshold(0.02);         //设置阀值
 
-  int nr_points = (int)cloud_filtered->points.size(); //剩余点云的数量
+  int nr_points = (int)cloud_filtered->points.size();  //剩余点云的数量
   while (cloud_filtered->points.size() > 0.3 * nr_points) {
     // 从剩余点云中再分割出最大的平面分量
     // （因为我们要处理的点云的数据是两个平面的存在的）
     seg.setInputCloud(cloud_filtered);
     seg.segment(*inliers, *coefficients);
-    if (inliers->indices.size() == 0) //如果内点的数量已经等于0，就说明没有
+    if (inliers->indices.size() == 0)  //如果内点的数量已经等于0，就说明没有
     {
       std::cout << "Could not estimate a planar model for the given dataset."
                 << std::endl;
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
     // 从输入的点云中提取平面模型的内点
     pcl::ExtractIndices<pcl::PointXYZ> extract;
     extract.setInputCloud(cloud_filtered);
-    extract.setIndices(inliers); //提取内点的索引并存储在其中
+    extract.setIndices(inliers);  //提取内点的索引并存储在其中
     extract.setNegative(false);
 
     // 得到与平面表面相关联的点云数据
@@ -100,11 +100,11 @@ int main(int argc, char **argv) {
   tree->setInputCloud(cloud_filtered);
 
   std::vector<pcl::PointIndices> cluster_indices;
-  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec; //欧式聚类对象
-  ec.setClusterTolerance(0.02); // 设置近邻搜索的搜索半径为2cm
-  ec.setMinClusterSize(100); //设置一个聚类需要的最少的点数目为100
-  ec.setMaxClusterSize(25000); //设置一个聚类需要的最大点数目为25000
-  ec.setSearchMethod(tree);    //设置点云的搜索机制
+  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;  //欧式聚类对象
+  ec.setClusterTolerance(0.02);  // 设置近邻搜索的搜索半径为2cm
+  ec.setMinClusterSize(100);  //设置一个聚类需要的最少的点数目为100
+  ec.setMaxClusterSize(25000);  //设置一个聚类需要的最大点数目为25000
+  ec.setSearchMethod(tree);  //设置点云的搜索机制
   ec.setInputCloud(cloud_filtered);
   ec.extract(cluster_indices);
   //从点云中提取聚类，并将点云索引保存在cluster_indices中
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     // Result visualization
     j++;
     *add_cloud += *cloud_cluster;
-    pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
+    // pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
   }
 
   return 0;
