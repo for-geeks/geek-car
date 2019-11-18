@@ -52,6 +52,8 @@ void RealsenseComponent::InitDeviceAndSensor() {
 
   AINFO << "CONNECTED FIRST DEVICE INFO:";
   RealSense::printDeviceInformation(device_);
+  auto sensor = device_.first<rs2::depth_sensor>();
+  RealSense::getSensorOption(sensor);
 
   if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
     device_object_ = new T265();

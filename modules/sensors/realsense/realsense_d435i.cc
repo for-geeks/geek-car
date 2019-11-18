@@ -32,6 +32,9 @@
 #include "pcl/common/transforms.h"
 #include "pcl/filters/passthrough.h"
 #include "pcl/io/pcd_io.h"
+#if 0
+#include "pcl/visualization/pcl_visualizer.h"
+#endif
 
 #include "modules/common/global_gflags.h"
 #include "modules/sensors/realsense.h"
@@ -87,11 +90,15 @@ void D435I::DeviceConfig() {
   auto profile = pipe.start(cfg);
   auto sensor = profile.get_device().first<rs2::depth_sensor>();
 
+  // sensor.set_option(RS2_OPTION_MIN_DISTANCE, static_cast<float>(FLAGS_point_cloud_min_distance));
+  // sensor.set_option(RS2_OPTION_MAX_DISTANCE, static_cast<float>(FLAGS_point_cloud_max_distance));
   // Set the device to High Accuracy preset of the D400 stereoscopic cameras
-  if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
+   if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
     sensor.set_option(RS2_OPTION_VISUAL_PRESET,
-                      RS2_RS400_VISUAL_PRESET_HIGH_ACCURACY);
-  }
+                      RS2_RS400_VISUAL_PRESET_HAND);
+
+    // RealSense::getSensorOption(sensor);
+   }
 }
 
 void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
@@ -205,13 +212,15 @@ void D435I::OnDepthImage(const rs2::frame &f) {
 }
 
 void D435I::OnPointCloud(rs2::frame depth_frame) {
-  rs2::threshold_filter thr_filter(
-      static_cast<float>(FLAGS_point_cloud_min_distance),
-      static_cast<float>(FLAGS_point_cloud_max_distance));
+  rs2::threshold_filter thr_filter;
 
+  thr_filter.set_option(RS2_OPTION_MIN_DISTANCE, float(FLAGS_point_cloud_min_distance));
+  thr_filter.set_option(RS2_OPTION_MAX_DISTANCE, 1.8f);
   depth_frame = thr_filter.process(depth_frame);
 
   rs2::temporal_filter temp_filter;
+  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, 0.122f);
+  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA, 99.f);
   depth_frame = temp_filter.process(depth_frame);
 
   filtered_data.enqueue(depth_frame);
@@ -270,19 +279,33 @@ void D435I::PublishPointCloud() {
 
     if (FLAGS_enable_point_cloud_transform) {
       // Apply an affine transform defined by an Eigen Transform.
+      AINFO << "TRANSFORM IN PUBLISH POINTCLOUD " << transform;
       pcl::transformPointCloud(*pcl_points, *cloud_, transform);
     } else {
       *cloud_ = *pcl_points;
     }
-#if 1
+    
+    //直通滤波
+	pcl::PassThrough<pcl::PointXYZ> pass_y;//设置滤波器对象
+
+	//参数设置
+	pass_y.setInputCloud(cloud_);
+	pass_y.setFilterFieldName("y");
+	//y轴区间设置
+	pass_y.setFilterLimits(-0.05f, 0.1f);
+	pass_y.setFilterLimitsNegative(false);
+	pass_y.filter(*cloud_);
+    
+
+    pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd", *cloud_);
+#if 0
     // PCL VISUALIZATION TEST 
     ///////////////////////////////////////////////////////////////////////////
-    pcl::io::savePCDFileASCII("./pcd_" + t1 + ".pcd", cloud);
     
     std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer ("3D Viewer"));
     viewer->setBackgroundColor(0, 0, 0);
-    pcl::visualztion::PointCloudColorHandlerCustom<pcl::PointXYZ> target_color(cloud, 255, 0, 0);
-    viewer->addPoint<pcl::PointXYZ>(cloud, target_color, "target cloud");
+    pcl::visualztion::PointCloudColorHandlerCustom<pcl::PointXYZ> target_color(cloud_, 255, 0, 0);
+    viewer->addPointCloud<pcl::PointXYZ>(cloud_, target_color, "target cloud");
     viewer->setPOintCloudRenderingProperties(pcl::visualzation::PCL_VISUALIZER_POINT_SIZE, 1, "target cloud");
 
     // Starting Visualizer
