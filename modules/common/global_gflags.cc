@@ -78,9 +78,10 @@ DEFINE_bool(enable_point_cloud_transform, true, "enable_point_cloud_transform");
 DEFINE_bool(publish_tagframe, true, "enable_point_cloud_transform");
 
 DEFINE_bool(publish_nooploop_acc, true,
-             "enable publish acc for device nooploop");
+            "enable publish acc for device nooploop");
 DEFINE_bool(publish_nooploop_gyro, true,
-             "enable publish gyro for device nooploop");
+            "enable publish gyro for device nooploop");
+DEFINE_bool(save_pcd, false, "save pcl data");
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");
@@ -98,6 +99,11 @@ DEFINE_double(speed_feedback, -2, "chassis speed feedback coefficient");
 
 DEFINE_double(point_cloud_min_distance, 0.2f, "point_cloud_min_distance");
 DEFINE_double(point_cloud_max_distance, 3.f, "point_cloud_max_distance");
+DEFINE_double(passthrough_y_min, -0.05f, "pcl passthrough y min distance");
+DEFINE_double(passthrough_y_max, 0.1f, "pcl passthrough y max distance");
+DEFINE_double(temp_filter_alpha, 0.122f, "temporal filter alpha");
+DEFINE_double(temp_filter_delta, 99.f, "temporal filter delta");
+
 // IMAGE
 DEFINE_int32(compress_rate, 95, "image compressed rate");
 DEFINE_int32(color_image_height, 360, "image compressed rate");

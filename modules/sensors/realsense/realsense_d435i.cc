@@ -90,15 +90,10 @@ void D435I::DeviceConfig() {
   auto profile = pipe.start(cfg);
   auto sensor = profile.get_device().first<rs2::depth_sensor>();
 
-  // sensor.set_option(RS2_OPTION_MIN_DISTANCE, static_cast<float>(FLAGS_point_cloud_min_distance));
-  // sensor.set_option(RS2_OPTION_MAX_DISTANCE, static_cast<float>(FLAGS_point_cloud_max_distance));
-  // Set the device to High Accuracy preset of the D400 stereoscopic cameras
-   if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
-    sensor.set_option(RS2_OPTION_VISUAL_PRESET,
-                      RS2_RS400_VISUAL_PRESET_HAND);
-
-    // RealSense::getSensorOption(sensor);
-   }
+  // Set the device to High Accuracy preset of the D400 stereoscopic
+  cameras if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
+    sensor.set_option(RS2_OPTION_VISUAL_PRESET, RS2_RS400_VISUAL_PRESET_HAND);
+  }
 }
 
 void D435I::InitChannelWriter(std::shared_ptr<Node> node_) {
@@ -159,7 +154,7 @@ void D435I::Run() {
     }
 
     if (FLAGS_publish_point_cloud) {
-      // Calculate the angle
+      // Point Cloud Transform
       PointCloudTransform();
 
       rs2::frame depth_frame = frames.get_depth_frame();
@@ -212,15 +207,20 @@ void D435I::OnDepthImage(const rs2::frame &f) {
 }
 
 void D435I::OnPointCloud(rs2::frame depth_frame) {
+  // Post processing
   rs2::threshold_filter thr_filter;
 
-  thr_filter.set_option(RS2_OPTION_MIN_DISTANCE, float(FLAGS_point_cloud_min_distance));
-  thr_filter.set_option(RS2_OPTION_MAX_DISTANCE, 1.8f);
+  thr_filter.set_option(RS2_OPTION_MIN_DISTANCE,
+                        float(FLAGS_point_cloud_min_distance));
+  thr_filter.set_option(RS2_OPTION_MAX_DISTANCE,
+                        float(FLAGS_point_cloud_max_distance));
   depth_frame = thr_filter.process(depth_frame);
 
   rs2::temporal_filter temp_filter;
-  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, 0.122f);
-  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA, 99.f);
+  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA,
+                         FLAGS_temp_filter_alpha);
+  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA,
+                         FLAGS_temp_filter_delta);
   depth_frame = temp_filter.process(depth_frame);
 
   filtered_data.enqueue(depth_frame);
@@ -228,16 +228,13 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 
 void D435I::PointCloudTransform() {
   if (FLAGS_enable_point_cloud_transform) {
-    // auto angle = algo_.get_theta();
-    // AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
-
     transform = Eigen::Matrix4f::Identity();
     ::Eigen::Vector3d ea0(0, FLAGS_angle_x, FLAGS_angle_z);
     ::Eigen::Matrix3d R;
     R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
         ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
         ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
-    std::cout << "ROTATION :" << R << std::endl << std::endl;
+    std::cout << "ROTATION :" << R << std::endl;
     Eigen::MatrixXf RR = R.cast<float>();
     transform(0, 0) = RR(0, 0);
     transform(0, 1) = RR(0, 1);
@@ -248,7 +245,7 @@ void D435I::PointCloudTransform() {
     transform(2, 0) = RR(2, 0);
     transform(2, 1) = RR(2, 1);
     transform(2, 2) = RR(2, 2);
-    std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
+    std::cout << "TRANSFORM:" << transform << std::endl;
   }
 }
 
@@ -279,25 +276,26 @@ void D435I::PublishPointCloud() {
 
     if (FLAGS_enable_point_cloud_transform) {
       // Apply an affine transform defined by an Eigen Transform.
-      AINFO << "TRANSFORM IN PUBLISH POINTCLOUD " << transform;
       pcl::transformPointCloud(*pcl_points, *cloud_, transform);
     } else {
       *cloud_ = *pcl_points;
     }
-    
+
     //直通滤波
-	pcl::PassThrough<pcl::PointXYZ> pass_y;//设置滤波器对象
+    pcl::PassThrough<pcl::PointXYZ> pass_y;  //设置滤波器对象
 
-	//参数设置
-	pass_y.setInputCloud(cloud_);
-	pass_y.setFilterFieldName("y");
-	//y轴区间设置
-	pass_y.setFilterLimits(-0.05f, 0.1f);
-	pass_y.setFilterLimitsNegative(false);
-	pass_y.filter(*cloud_);
-    
+    //参数设置
+    pass_y.setInputCloud(cloud_);
+    pass_y.setFilterFieldName("y");
+    // y轴区间设置
+    pass_y.setFilterLimits(FALGS_passthrough_y_min, FLAGS_passthrough_y_max);
+    pass_y.setFilterLimitsNegative(false);
+    pass_y.filter(*cloud_);
 
-    pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd", *cloud_);
+    if (FLAGS_save_pcd) {
+      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+                           *cloud_);
+    }
 #if 0
     // PCL VISUALIZATION TEST 
     ///////////////////////////////////////////////////////////////////////////

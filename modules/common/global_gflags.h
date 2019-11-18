@@ -72,6 +72,8 @@ DECLARE_bool(publish_tagframe);
 DECLARE_bool(publish_nooploop_acc);
 DECLARE_bool(publish_nooploop_gyro);
 
+DECLARE_bool(save_pcd);
+
 // CONST
 DECLARE_double(cruise_speed);
 DECLARE_double(longitude_kp);
@@ -87,6 +89,10 @@ DECLARE_double(left_cy);
 DECLARE_double(speed_feedback);
 DECLARE_double(point_cloud_min_distance);
 DECLARE_double(point_cloud_max_distance);
+DECLARE_double(passthrough_y_min);
+DECLARE_double(passthrough_y_max);
+DECLARE_double(temp_filter_alpha);
+DECLARE_double(temp_filter_delta);
 
 // IMAGE
 DECLARE_int32(compress_rate);
