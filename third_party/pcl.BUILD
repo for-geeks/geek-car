@@ -8,9 +8,17 @@ cc_library(
     includes = [
         ".",
     ],
-    linkopts = [
-        # "-L/usr/lib/aarch64-linux-gnu",
-        # "-L/usr/lib/x86_64-linux-gnu/",
+    linkopts = select(
+        {
+            ":x86_mode": [
+                "-L/usr/lib/x86_64-linux-gnu/",
+            ],
+            ":arm_mode": [
+                "-L/usr/lib/aarch64-linux-gnu/",
+            ],
+        },
+        no_match_error = "Please Build with an ARM or Linux x86_64 platform",
+    ) + [
         "-lboost_system",
         "-lpcl_common",
         "-lpcl_features",
