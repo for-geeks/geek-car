@@ -2,6 +2,10 @@ syntax = "proto2";
 
 package apollo.perception;
 
+import "modules/common/proto/header.proto";
+import "modules/common/proto/error_code.proto";
+import "modules/common/proto/geometry.proto";
+
 message BBox2D {
   optional double xmin = 1;  // in pixels.
   optional double ymin = 2;  // in pixels.
@@ -36,13 +40,13 @@ message PerceptionObstacle {
 
   optional apollo.common.Point3D acceleration = 9;  // obstacle acceleration
 
-  optional apollo.common.Point3D centroid = 9;  // obstacle centroid
+  optional apollo.common.Point3D centroid = 10;  // obstacle centroid
 
   // a stable obstacle point in the world coordinate system
   // position defined above is the obstacle bounding box ground center
-  optional apollo.common.Point3D anchor_point = 10;
+  optional apollo.common.Point3D anchor_point = 11;
   // optional BBox2D bbox2d = 18;
-  optional BBox3D bbox3d = 11;
+  optional BBox3D bbox3d = 12;
 }
 
 message PerceptionObstacles {
