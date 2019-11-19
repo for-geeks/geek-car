@@ -9,12 +9,12 @@ void PbMsg2PointCloud(std::shared_ptr<PointCloud> pb_cloud, pcl_ptr pcl_pc) {
   pcl_pc->width = pb_cloud->width();
   pcl_pc->height = pb_cloud->height();
   pcl_pc->is_dense = false;
-  pcl_pc->points.resize(pb_cloud->point.size());
-  auto ptr = pb_cloud->mutable_point();
+  pcl_pc->points.resize(pb_cloud->point_size());
+  auto ptr = pb_cloud->mutable_point(0);
   for (auto &p : pcl_pc->points) {
-    p.x = ptr->x;
-    p.y = ptr->y;
-    p.z = ptr->z;
+    p.x = ptr->x();
+    p.y = ptr->y();
+    p.z = ptr->z();
     ptr++;
   }
 }
@@ -87,9 +87,11 @@ void EuClusterCore::ClusterSegment(
       p.y = in_pc->points[*pit].y;
       p.z = in_pc->points[*pit].z;
 
-      obj_info->centroid.x += p.x;
-      obj_info->centroid.y += p.y;
-      obj_info->centroid.z += p.z;
+      // auto centroid = obj_info->mutable_centroid();
+
+      // centroid->set_x(centroid->x() + p.x);
+      // centroid->set_y(centroid->y() + p.y);
+      // centroid->set_z(centroid->z() + p.z);
 
       if (p.x < min_x) min_x = p.x;
       if (p.y < min_y) min_y = p.y;
@@ -99,10 +101,10 @@ void EuClusterCore::ClusterSegment(
       if (p.z > max_z) max_z = p.z;
     }
 
-    obj_info->set_id(i);
+    obj_info->set_id(static_cast<int32_t>(i));
 
     // min, max points
-    auto bbox_3d = obj_info->mutable_bbox3d();
+    auto bbox3d = obj_info->mutable_bbox3d();
     bbox3d->set_xmin(min_x);
     bbox3d->set_ymin(min_y);
     bbox3d->set_zmin(min_z);
@@ -111,32 +113,33 @@ void EuClusterCore::ClusterSegment(
     bbox3d->set_zmax(max_z);
 
     // calculate centroid, average
-    if (local_indices[i].indices.size() > 0) {
-      obj_info->centroid.x /= local_indices[i].indices.size();
-      obj_info->centroid.y /= local_indices[i].indices.size();
-      obj_info->centroid.z /= local_indices[i].indices.size();
-    }
+    // if (local_indices[i].indices.size() > 0) {
+    //   centroid->set_x(centroid.x() / local_indices[i].indices.size());
+    //   obj_info->centroid.y /= local_indices[i].indices.size();
+    //   obj_info->centroid.z /= local_indices[i].indices.size();
+    // }
+
+        // calculate bounding box
+    double length_ = obj_info->mutable_bbox3d()->xmax() - obj_info->mutable_bbox3d()->xmin();
+    double width_ = obj_info->mutable_bbox3d()->ymax() - obj_info->mutable_bbox3d()->ymin();
+    double height_ = obj_info->mutable_bbox3d()->zmax() - obj_info->mutable_bbox3d()->zmin();
 
     // Position
     auto position = obj_info->mutable_position();
-    position->set_x(obj_info->bbox3d.zmin + length_ / 2);
-    position->set_y(obj_info->bbox3d.ymin + width_ / 2);
-    position->set_z(obj_info->bbox3d.zmin + height_ / 2);
+    position->set_x(obj_info->mutable_bbox3d()->zmin() + length_ / 2);
+    position->set_y(obj_info->mutable_bbox3d()->ymin() + width_ / 2);
+    position->set_z(obj_info->mutable_bbox3d()->zmin() + height_ / 2);
 
-    // calculate bounding box
-    double length_ = obj_info->bbox3d.xmax - obj_info->bbox3d.xmin;
-    double width_ = obj_info->bbox3d.ymax - obj_info->bbox3d.ymin;
-    double height_ = obj_info->bbox3d.zmax - obj_info->bbox3d.zmin;
 
     obj_info->set_length((length_ < 0) ? -1 * length_ : length_);
     obj_info->set_width((width_ < 0) ? -1 * width_ : width_);
     obj_info->set_height((height_ < 0) ? -1 * height_ : height_);
     // Length < 5, width < 5, height > 0.2 for now
-    if (obj_info->length < 5 && obj_info->position.y < 8 &&
-        obj_info->position.y > -5 && obj_info->width < 5 &&
-        obj_info->position.z > 0.2 && obj_info->height > 0.2) {
+    if (obj_info->length() < 5 && obj_info->mutable_position()->y() < 8 &&
+        obj_info->mutable_position()->y() > -5 && obj_info->width() < 5 &&
+        obj_info->mutable_position()->z() > 0.2 && obj_info->height() > 0.2) {
       auto next_obstacle = obstacles->add_perception_obstacle();
-      next_obstacle->CopyFrom(obj_info);
+      next_obstacle->CopyFrom(*obj_info);
     } else {
       AINFO
           << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP FOR THIS CLUSTER";
@@ -162,7 +165,7 @@ void EuClusterCore::ClusterByDistance(
     current_point.y = in_pc->points[i].y;
     current_point.z = in_pc->points[i].z;
 
-    float origin_distance =
+    double origin_distance =
         std::sqrt(std::pow(current_point.x, 2) + std::pow(current_point.y, 2));
 
     // 如果点的距离大于5m, 忽略该点
@@ -211,7 +214,7 @@ void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
       endTime - startTime);
   AINFO << "cluster took " << elapsedTime.count() << "milliseconds";
 
-  obstacle_writer_->Write(obstacles);
+  obstacles_writer_->Write(obstacles);
 }
 
 EuClusterCore::~EuClusterCore() { AINFO << "Destructor from EuClusterCore"; }

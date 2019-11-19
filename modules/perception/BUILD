@@ -26,6 +26,7 @@ cc_library(
         "-DMODULE_NAME=\\\"perception\\\"",
     ],
     deps = [
+        ":cluster_core_lib",
         "//cyber",
         "//modules/perception/proto:perception_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
@@ -74,6 +75,7 @@ cc_library(
         "//cyber",
         "//modules/perception/proto:perception_cc_proto",
         "//modules/sensors/proto:sensors_cc_proto",
+        "//modules/common:global_gflags",
         "@pcl",
     ],
 )

@@ -38,6 +38,8 @@ bool PerceptionComponent::Proc(const std::shared_ptr<PointCloud> &point) {
   ADEBUG << point->DebugString();
 
   // Bind to PROC API WHO WANT HANDLER IT
+  auto core = new EuClusterCore(node_);
+  core->Proc(point);
 
   return true;
 }
