@@ -99,14 +99,14 @@ DEFINE_double(left_cy, 200.011, "cy");
 DEFINE_double(speed_feedback, -2, "chassis speed feedback coefficient");
 
 DEFINE_double(point_cloud_min_distance, 0.2f, "point_cloud_min_distance");
-DEFINE_double(point_cloud_max_distance, 3.f, "point_cloud_max_distance");
+DEFINE_double(point_cloud_max_distance, 2.f, "point_cloud_max_distance");
 DEFINE_double(passthrough_y_min, -0.05f, "pcl passthrough y min distance");
 DEFINE_double(passthrough_y_max, 0.1f, "pcl passthrough y max distance");
 DEFINE_double(temp_filter_alpha, 0.122f, "temporal filter alpha");
 DEFINE_double(temp_filter_delta, 99.f, "temporal filter delta");
 DEFINE_double(angle_x, 0, "angle x");
 DEFINE_double(angle_y, 0, "angle y");
-DEFINE_double(angle_z, 0, "angle z");
+DEFINE_double(angle_z, -0.261667, "angle z");
 DEFINE_double(leaf_size, 0.01f, "voxel grid leaf size");
 
 // IMAGE

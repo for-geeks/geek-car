@@ -33,8 +33,9 @@
 #include "pcl/common/transforms.h"
 #include "pcl/filters/passthrough.h"
 #include "pcl/io/pcd_io.h"
+#include "pcl/visualization/cloud_viewer.h"
 
-#if 0
+#if 1
 #include "pcl/visualization/pcl_visualizer.h"
 #endif
 
@@ -230,13 +231,20 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 
 void D435I::PointCloudTransform() {
   if (FLAGS_enable_point_cloud_transform) {
+  #if 1
     transform = Eigen::Matrix4f::Identity();
+    AINFO << "FLAGS ANGLE X :" << FLAGS_angle_x << " angle z:" << FLAGS_angle_z;
     ::Eigen::Vector3d ea0(0, FLAGS_angle_x, FLAGS_angle_z);
     ::Eigen::Matrix3d R;
     R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
         ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
         ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
     std::cout << "ROTATION :" << R << std::endl;
+    
+    // ROTATION :        1        -0         0
+    //     0   0.96596  0.258691
+    //    -0 -0.258691   0.96596
+
     Eigen::MatrixXf RR = R.cast<float>();
     transform(0, 0) = RR(0, 0);
     transform(0, 1) = RR(0, 1);
@@ -248,6 +256,16 @@ void D435I::PointCloudTransform() {
     transform(2, 1) = RR(2, 1);
     transform(2, 2) = RR(2, 2);
     std::cout << "TRANSFORM:" << transform << std::endl;
+    #endif
+    // TRANSFORM:        1        -0         0         0
+    //    0   0.96596  0.258691         0
+    //   -0 -0.258691   0.96596         0
+    //    0         0         0         1
+    //transform << 1,         -0,        0,         0,
+    //             0,          0.96596,  0.258691,  0,
+    //            -0,         -0.258691, 0.96596,   0,
+    //             0,         0,         0,         1;
+
   }
 }
 
@@ -272,17 +290,21 @@ void D435I::PublishPointCloud() {
     auto t1 = Time::Now().ToSecond();
     auto pcl_points = points_to_pcl(points);
     auto t2 = Time::Now().ToSecond();
-    AINFO << "Time for realsense point to point cloud:" << t2 - t1;
+    AWARN << "Time for realsense point to point cloud:" << t2 - t1;
 
     pcl_ptr cloud_(new pcl::PointCloud<pcl::PointXYZ>);
 
+    auto t3 = Time::Now().ToSecond();
     if (FLAGS_enable_point_cloud_transform) {
       // Apply an affine transform defined by an Eigen Transform.
       pcl::transformPointCloud(*pcl_points, *cloud_, transform);
     } else {
       *cloud_ = *pcl_points;
     }
-
+    auto t4 = Time::Now().ToSecond();
+    AWARN << "Time for point cloud transform:" << t4 - t3;
+#if 0
+    auto t5 = Time::Now().ToSecond();
     // 下采样，体素叶子大小为0.01
     pcl::VoxelGrid<pcl::PointXYZ> vg;
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(
@@ -293,22 +315,28 @@ void D435I::PublishPointCloud() {
     vg.filter(*cloud_filtered);
     std::cout << "PointCloud after Voxel Grid filtering has: "
               << cloud_filtered->points.size() << " data points." << std::endl;
+    auto t6 = Time::Now().ToSecond();
+    AWARN << "Time for voxel grid filter:" << t6 - t5;
+#endif
 
+    auto t7 = Time::Now().ToSecond();
     //直通滤波
     pcl::PassThrough<pcl::PointXYZ> pass_y;  //设置滤波器对象
 
     //参数设置
-    pass_y.setInputCloud(cloud_filtered);
+    pass_y.setInputCloud(cloud_);
     pass_y.setFilterFieldName("y");
     // y轴区间设置
     pass_y.setFilterLimits(float(FLAGS_passthrough_y_min),
                            float(FLAGS_passthrough_y_max));
     pass_y.setFilterLimitsNegative(false);
     pass_y.filter(*cloud_);
+    auto t8 = Time::Now().ToSecond();
+    AWARN << "Time for Y PASSTHROUGH :" << t8 - t7;
 
     if (FLAGS_save_pcd) {
-      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-      //                      *cloud_);
+      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+                            *cloud_);
     }
 #if 0
     // PCL VISUALIZATION TEST
@@ -328,11 +356,13 @@ void D435I::PublishPointCloud() {
     viewer->initCameraParameters();
     // Wait until visualizer window is closed.
     while (!viewer->wasStopped()) {
+      viewer->updatePointCloud<pcl::PointXYZ>(cloud_, target_color, "new point cloud");
       viewer->spinOnce(100);
-      std::this_thread::sleep_for(std::chrono::microseconds(100000));
+      // std::this_thread::sleep_for(std::chrono::microseconds(100000));
     }
     ///////////////////////////////////////////////////////////////////////////
 #endif
+    
     std::shared_ptr<PointCloud> point_cloud_out =
         point_cloud_pool_->GetObject();
     if (point_cloud_out == nullptr) {

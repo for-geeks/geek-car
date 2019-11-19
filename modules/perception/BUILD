@@ -59,23 +59,23 @@ cc_binary(
     ],
 )
 
-# cc_library(
-#     name = "cluster_core_lib",
-#     srcs = [
-#         "euclidean_cluster_core.cc",
-#     ],
-#     hdrs = [
-#         "euclidean_cluster_core.h",
-#     ],
-#     copts = [
-#         "-DMODULE_NAME=\\\"perception\\\"",
-#     ],
-#     deps = [
-#         "//cyber",
-#         "//modules/perception/proto:perception_cc_proto",
-#         "//modules/sensors/proto:sensors_cc_proto",
-#         "@pcl",
-#     ],
-# )
+cc_library(
+     name = "cluster_core_lib",
+     srcs = [
+         "euclidean_cluster_core.cc",
+     ],
+     hdrs = [
+         "euclidean_cluster_core.h",
+     ],
+     copts = [
+         "-DMODULE_NAME=\\\"perception\\\"",
+     ],
+     deps = [
+         "//cyber",
+         "//modules/perception/proto:perception_cc_proto",
+         "//modules/sensors/proto:sensors_cc_proto",
+         "@pcl",
+     ],
+)
 
 cpplint()

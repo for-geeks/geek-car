@@ -4,13 +4,11 @@
 
 namespace apollo {
 namespace perception {
-EuClusterCore::EuClusterCore(std::shared_ptr<Node> node_)
-    : cluster_distance_({0.05, 0.1, 0.125, 0.15, 0.20}),
-                        seg_distance_({0.5, 1.0, 1.5, 2.0})) {
+EuClusterCore::EuClusterCore(std::shared_ptr<Node> node_) {
   // 欧几里德聚类最重要的参数是聚类半径阈值，为了达到更好的聚类效果，
   // 我们在不同距离的区域使用不同的聚类半径阈值
-  // seg_distance_ = {0.5, 1.0, 1.5, 2.0};
-  // cluster_distance_ = {0.05, 0.1, 0.125, 0.15, 0.20};
+  seg_distance_ = {0.5, 1.0, 1.5, 2.0};
+  cluster_distance_ = {0.05, 0.1, 0.125, 0.15, 0.20};
 
   obstacle_writer_ =
       node_->CreateWriter<PerceptionObstacle>(FLAGS_obstacle_channel);
@@ -18,7 +16,7 @@ EuClusterCore::EuClusterCore(std::shared_ptr<Node> node_)
 
 void EuClusterCore::VoxelGridFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
                                     pcl::PointCloud<pcl::PointXYZ>::Ptr out,
-                                    double leaf_size) {
+                                    float leaf_size) {
   pcl::VoxelGrid<pcl::PointXYZ> filter;
   filter.setInputCloud(in);
   filter.setLeafSize(leaf_size, leaf_size, leaf_size);
@@ -28,7 +26,7 @@ void EuClusterCore::VoxelGridFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
 void EuClusterCore::CropBoxFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
                                   pcl::PointCloud<pcl::PointXYZ>::Ptr out) {
   pcl::CropBox<pcl::PointXYZ> region(true);
-  region.setMin(Eigen::Vector4f(0, -1.5, -0.6, 1));
+  region.setMin(Eigen::Vector4f(0, -1.5f, -0.6f, 1.f));
   region.setMax(Eigen::Vector4f(80, 3, 2, 1));
   region.setInputCloud(in);
   region.filter(*out);
@@ -191,7 +189,7 @@ void EuClusterCore::ClusterByDistance(
   }
 }
 
-void EuClusterCore::Proc(std::shared<PointCloud> in_cloud_ptr) {
+void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
   auto startTime = std::chrono::steady_clock::now();
   pcl::PointCloud<pcl::PointXYZ>::Ptr current_pc_ptr(
       new pcl::PointCloud<pcl::PointXYZ>);
@@ -201,7 +199,8 @@ void EuClusterCore::Proc(std::shared<PointCloud> in_cloud_ptr) {
 
   // point_cloud_header_ = in_cloud_ptr->header;
 
-  pcl::fromROSMsg(*in_cloud_ptr, *current_pc_ptr);
+  // pcl::fromROSMsg(*in_cloud_ptr, *current_pc_ptr);
+  // TODO transfrom pb to PointCloud
   // down sampling the point cloud before cluster
   // VoxelGridFilter(current_pc_ptr, current_pc_ptr, LEAF_SIZE);
   // CropBoxFilter(current_pc_ptr,current_pc_ptr);
@@ -211,7 +210,7 @@ void EuClusterCore::Proc(std::shared<PointCloud> in_cloud_ptr) {
   ClusterByDistance(current_pc_ptr, global_obj_list);
   // ClusterByDistance(CropBox_filtered_pc_ptr, global_obj_list);
 
-  PerceptionObstacles obstacles;
+  auto obstacles = std::make_shared<PerceptionObstacles>();
 
   for (size_t i = 0; i < global_obj_list.size(); i++) {
     // bbox_array.boxes.push_back(global_obj_list[i].bounding_box_);

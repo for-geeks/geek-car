@@ -25,6 +25,8 @@
 
 #include <vector>
 
+#include "modules/perception/euclidean_cluster_core.h"
+
 namespace apollo {
 namespace perception {
 
