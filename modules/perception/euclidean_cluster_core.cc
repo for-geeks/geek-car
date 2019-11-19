@@ -4,27 +4,35 @@
 
 namespace apollo {
 namespace perception {
-EuClusterCore::EuClusterCore(std::shared_ptr<Node> node_) {
-  // 欧几里德聚类最重要的参数是聚类半径阈值，为了达到更好的聚类效果，
-  // 我们在不同距离的区域使用不同的聚类半径阈值
-  seg_distance_ = {0.5, 1.0, 1.5, 2.0};
-  cluster_distance_ = {0.05, 0.1, 0.125, 0.15, 0.20};
 
-  obstacle_writer_ =
-      node_->CreateWriter<PerceptionObstacle>(FLAGS_obstacle_channel);
+void PbMsg2PointCloud(std::shared_ptr<PointCloud> pb_cloud, pcl_ptr pcl_pc) {
+  pcl_pc->width = pb_cloud->width();
+  pcl_pc->height = pb_cloud->height();
+  pcl_pc->is_dense = false;
+  pcl_pc->points.resize(pb_cloud->point.size());
+  auto ptr = pb_cloud->mutable_point();
+  for (auto &p : pcl_pc->points) {
+    p.x = ptr->x;
+    p.y = ptr->y;
+    p.z = ptr->z;
+    ptr++;
+  }
 }
 
-void EuClusterCore::VoxelGridFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
-                                    pcl::PointCloud<pcl::PointXYZ>::Ptr out,
-                                    float leaf_size) {
+EuClusterCore::EuClusterCore(std::shared_ptr<Node> node_) {
+  obstacles_writer_ =
+      node_->CreateWriter<PerceptionObstacles>(FLAGS_obstacle_channel);
+}
+
+void EuClusterCore::VoxelGridFilter(pcl_ptr in, pcl_ptr out) {
   pcl::VoxelGrid<pcl::PointXYZ> filter;
   filter.setInputCloud(in);
-  filter.setLeafSize(leaf_size, leaf_size, leaf_size);
+  filter.setLeafSize(float(FLAGS_leaf_size), float(FLAGS_leaf_size),
+                     float(FLAGS_leaf_size));
   filter.filter(*out);
 }
 
-void EuClusterCore::CropBoxFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
-                                  pcl::PointCloud<pcl::PointXYZ>::Ptr out) {
+void EuClusterCore::CropBoxFilter(pcl_ptr in, pcl_ptr out) {
   pcl::CropBox<pcl::PointXYZ> region(true);
   region.setMin(Eigen::Vector4f(0, -1.5f, -0.6f, 1.f));
   region.setMax(Eigen::Vector4f(80, 3, 2, 1));
@@ -32,15 +40,14 @@ void EuClusterCore::CropBoxFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr in,
   region.filter(*out);
 }
 
-void EuClusterCore::ClusterSegment(pcl::PointCloud<pcl::PointXYZ>::Ptr in_pc,
-                                   double in_max_cluster_distance,
-                                   std::vector<PerceptionObstacle> &obj_list) {
+void EuClusterCore::ClusterSegment(
+    pcl_ptr in_pc, double in_max_cluster_distance,
+    std::shared_ptr<PerceptionObstacles> obstacles) {
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
       new pcl::search::KdTree<pcl::PointXYZ>);
 
   // create 2d pc
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_2d(
-      new pcl::PointCloud<pcl::PointXYZ>);
+  pcl_ptr cloud_2d(new pcl::PointCloud<pcl::PointXYZ>);
   pcl::copyPointCloud(*in_pc, *cloud_2d);
   // make it flat
   for (size_t i = 0; i < cloud_2d->points.size(); i++) {
@@ -74,8 +81,6 @@ void EuClusterCore::ClusterSegment(pcl::PointCloud<pcl::PointXYZ>::Ptr in_pc,
 
     for (auto pit = local_indices[i].indices.begin();
          pit != local_indices[i].indices.end(); ++pit) {
-      double sum = 0;
-
       // fill new colored cluster point by point
       pcl::PointXYZ p;
       p.x = in_pc->points[*pit].x;
@@ -130,30 +135,24 @@ void EuClusterCore::ClusterSegment(pcl::PointCloud<pcl::PointXYZ>::Ptr in_pc,
     if (obj_info->length < 5 && obj_info->position.y < 8 &&
         obj_info->position.y > -5 && obj_info->width < 5 &&
         obj_info->position.z > 0.2 && obj_info->height > 0.2) {
-      obj_list.push_back(obj_info);
+      auto next_obstacle = obstacles->add_perception_obstacle();
+      next_obstacle->CopyFrom(obj_info);
     } else {
-      AINFO << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP";
+      AINFO
+          << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP FOR THIS CLUSTER";
     }
   }
 }
 
 void EuClusterCore::ClusterByDistance(
-    pcl::PointCloud<pcl::PointXYZ>::Ptr in_pc,
-    const std::vector<PerceptionObstacle> &obj_list) {
+    pcl_ptr in_pc, std::shared_ptr<PerceptionObstacles> obstacles) {
   // cluster the pointcloud according to the distance of the points using
   // different thresholds (not only one for the entire pc) in this way, the
   // points farther in the pc will also be clustered
-
-  // 0 => 0-15m d=0.5
-  // 1 => 15-30 d=1
-  // 2 => 30-45 d=1.6
-  // 3 => 45-60 d=2.1
-  // 4 => >60   d=2.6
-
-  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> segment_pc_array(5);
+  std::vector<pcl_ptr> segment_pc_array(5);
 
   for (size_t i = 0; i < segment_pc_array.size(); i++) {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr tmp(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl_ptr tmp(new pcl::PointCloud<pcl::PointXYZ>);
     segment_pc_array[i] = tmp;
   }
 
@@ -185,38 +184,27 @@ void EuClusterCore::ClusterByDistance(
   }
 
   for (size_t i = 0; i < segment_pc_array.size(); i++) {
-    ClusterSegment(segment_pc_array[i], cluster_distance_[i], obj_list);
+    ClusterSegment(segment_pc_array[i], cluster_distance_[i], obstacles);
   }
 }
 
 void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
   auto startTime = std::chrono::steady_clock::now();
-  pcl::PointCloud<pcl::PointXYZ>::Ptr current_pc_ptr(
-      new pcl::PointCloud<pcl::PointXYZ>);
-  // pcl::PointCloud<pcl::PointXYZ>::Ptr voxel_grid_filtered_pc_ptr(new
-  // pcl::PointCloud<pcl::PointXYZ>); pcl::PointCloud<pcl::PointXYZ>::Ptr
+  pcl_ptr current_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>);
+  // pcl_ptr voxel_grid_filtered_pc_ptr(new
+  // pcl::PointCloud<pcl::PointXYZ>); pcl_ptr
   // CropBox_filtered_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
-  // point_cloud_header_ = in_cloud_ptr->header;
-
-  // pcl::fromROSMsg(*in_cloud_ptr, *current_pc_ptr);
-  // TODO transfrom pb to PointCloud
+  PbMsg2PointCloud(in_cloud_ptr, current_pc_ptr);
   // down sampling the point cloud before cluster
-  // VoxelGridFilter(current_pc_ptr, current_pc_ptr, LEAF_SIZE);
-  // CropBoxFilter(current_pc_ptr,current_pc_ptr);
+  VoxelGridFilter(current_pc_ptr, current_pc_ptr);
+  CropBoxFilter(current_pc_ptr, current_pc_ptr);
 
   std::vector<PerceptionObstacle> global_obj_list;
-  // ClusterByDistance(filtered_pc_ptr, global_obj_list);
-  ClusterByDistance(current_pc_ptr, global_obj_list);
-  // ClusterByDistance(CropBox_filtered_pc_ptr, global_obj_list);
-
   auto obstacles = std::make_shared<PerceptionObstacles>();
-
-  for (size_t i = 0; i < global_obj_list.size(); i++) {
-    // bbox_array.boxes.push_back(global_obj_list[i].bounding_box_);
-    auto next_obstacle = obstacles->add_obstacle();
-    next_obstacle->CopyFrom(global_obj_list[i]);
-  }
+  // ClusterByDistance(filtered_pc_ptr, global_obj_list);
+  ClusterByDistance(current_pc_ptr, obstacles);
+  // ClusterByDistance(CropBox_filtered_pc_ptr, global_obj_list);
 
   auto endTime = std::chrono::steady_clock::now();
   auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(

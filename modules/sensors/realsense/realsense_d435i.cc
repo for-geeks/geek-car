@@ -231,7 +231,7 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 
 void D435I::PointCloudTransform() {
   if (FLAGS_enable_point_cloud_transform) {
-  #if 1
+#if 1
     transform = Eigen::Matrix4f::Identity();
     AINFO << "FLAGS ANGLE X :" << FLAGS_angle_x << " angle z:" << FLAGS_angle_z;
     ::Eigen::Vector3d ea0(0, FLAGS_angle_x, FLAGS_angle_z);
@@ -240,7 +240,7 @@ void D435I::PointCloudTransform() {
         ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
         ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
     std::cout << "ROTATION :" << R << std::endl;
-    
+
     // ROTATION :        1        -0         0
     //     0   0.96596  0.258691
     //    -0 -0.258691   0.96596
@@ -256,16 +256,15 @@ void D435I::PointCloudTransform() {
     transform(2, 1) = RR(2, 1);
     transform(2, 2) = RR(2, 2);
     std::cout << "TRANSFORM:" << transform << std::endl;
-    #endif
+#endif
     // TRANSFORM:        1        -0         0         0
     //    0   0.96596  0.258691         0
     //   -0 -0.258691   0.96596         0
     //    0         0         0         1
-    //transform << 1,         -0,        0,         0,
+    // transform << 1,         -0,        0,         0,
     //             0,          0.96596,  0.258691,  0,
     //            -0,         -0.258691, 0.96596,   0,
     //             0,         0,         0,         1;
-
   }
 }
 
@@ -336,7 +335,7 @@ void D435I::PublishPointCloud() {
 
     if (FLAGS_save_pcd) {
       pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-                            *cloud_);
+                           *cloud_);
     }
 #if 0
     // PCL VISUALIZATION TEST
@@ -362,7 +361,7 @@ void D435I::PublishPointCloud() {
     }
     ///////////////////////////////////////////////////////////////////////////
 #endif
-    
+
     std::shared_ptr<PointCloud> point_cloud_out =
         point_cloud_pool_->GetObject();
     if (point_cloud_out == nullptr) {
