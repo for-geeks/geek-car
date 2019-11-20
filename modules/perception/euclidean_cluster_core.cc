@@ -1,9 +1,10 @@
-#include "euclidean_cluster_core.h"
+#include "modules/perception/euclidean_cluster_core.h"
 
 #include "modules/common/global_gflags.h"
 
 namespace apollo {
 namespace perception {
+using apollo::cyber::Time;
 
 void PbMsg2PointCloud(std::shared_ptr<PointCloud> pb_cloud, pcl_ptr pcl_pc) {
   pcl_pc->width = pb_cloud->width();
@@ -30,6 +31,7 @@ void EuClusterCore::VoxelGridFilter(pcl_ptr in, pcl_ptr out) {
   filter.setLeafSize(float(FLAGS_leaf_size), float(FLAGS_leaf_size),
                      float(FLAGS_leaf_size));
   filter.filter(*out);
+  AINFO << "AFTER VOXEL GRIDFILTER, POINT SIZE IS: " << out->points.size();
 }
 
 void EuClusterCore::CropBoxFilter(pcl_ptr in, pcl_ptr out) {
@@ -38,6 +40,7 @@ void EuClusterCore::CropBoxFilter(pcl_ptr in, pcl_ptr out) {
   region.setMax(Eigen::Vector4f(80, 3, 2, 1));
   region.setInputCloud(in);
   region.filter(*out);
+  AINFO << "AFTER CROP BOX FILTER, POINT SIZE IS: " << out->points.size();
 }
 
 void EuClusterCore::ClusterSegment(
@@ -152,6 +155,7 @@ void EuClusterCore::ClusterByDistance(
   // cluster the pointcloud according to the distance of the points using
   // different thresholds (not only one for the entire pc) in this way, the
   // points farther in the pc will also be clustered
+  auto t1 = Time::Now().ToSecond();
   std::vector<pcl_ptr> segment_pc_array(5);
 
   for (size_t i = 0; i < segment_pc_array.size(); i++) {
@@ -185,6 +189,8 @@ void EuClusterCore::ClusterByDistance(
       segment_pc_array[4]->points.push_back(current_point);
     }
   }
+  auto t2 = Time::Now().ToSecond();
+  AWARN << "Time for cluster segmentation:" << t2 - t1;
 
   for (size_t i = 0; i < segment_pc_array.size(); i++) {
     ClusterSegment(segment_pc_array[i], cluster_distance_[i], obstacles);
@@ -192,22 +198,29 @@ void EuClusterCore::ClusterByDistance(
 }
 
 void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
+  AINFO << "I'M IN EUCLUSTERCORE PROC METHOD";
   auto startTime = std::chrono::steady_clock::now();
   pcl_ptr current_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>);
   // pcl_ptr voxel_grid_filtered_pc_ptr(new
   // pcl::PointCloud<pcl::PointXYZ>); pcl_ptr
   // CropBox_filtered_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
+  AINFO << "FLAGS LEAF_SIZE:" << FLAGS_leaf_size;
+
+  AINFO << "RECEIVED POINT SIZE IS : " << in_cloud_ptr->point_size();
+
   PbMsg2PointCloud(in_cloud_ptr, current_pc_ptr);
   // down sampling the point cloud before cluster
   VoxelGridFilter(current_pc_ptr, current_pc_ptr);
-  CropBoxFilter(current_pc_ptr, current_pc_ptr);
+  // CropBoxFilter(current_pc_ptr, current_pc_ptr);
+  AINFO << "BEFORE CLUSTER, POINT SIZE IS : " << current_pc_ptr->points.size();
 
-  std::vector<PerceptionObstacle> global_obj_list;
   auto obstacles = std::make_shared<PerceptionObstacles>();
-  // ClusterByDistance(filtered_pc_ptr, global_obj_list);
+  // ClusterByDistance(filtered_pc_ptr, obstacles);
   ClusterByDistance(current_pc_ptr, obstacles);
-  // ClusterByDistance(CropBox_filtered_pc_ptr, global_obj_list);
+  // ClusterByDistance(CropBox_filtered_pc_ptr, obstacles);
+
+  //AINFO << obstacles->DebugString();
 
   auto endTime = std::chrono::steady_clock::now();
   auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -217,7 +230,10 @@ void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
   obstacles_writer_->Write(obstacles);
 }
 
-EuClusterCore::~EuClusterCore() { AINFO << "Destructor from EuClusterCore"; }
+EuClusterCore::~EuClusterCore() { 
+  AINFO << "Destructor from EuClusterCore";
+  // delete node_;
+}
 
 }  // namespace perception
 }  // namespace apollo

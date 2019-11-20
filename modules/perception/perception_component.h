@@ -28,6 +28,7 @@
 #include "cyber/component/component.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
+#include "modules/perception/euclidean_cluster_core.h"
 
 namespace apollo {
 namespace perception {
@@ -40,6 +41,9 @@ class PerceptionComponent : public Component<PointCloud> {
  public:
   bool Init() override;
   bool Proc(const std::shared_ptr<PointCloud>& point) override;
+
+ private:
+  EuClusterCore* core_;
 };
 
 CYBER_REGISTER_COMPONENT(PerceptionComponent)

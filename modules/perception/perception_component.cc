@@ -25,21 +25,19 @@
 
 #include <vector>
 
-#include "modules/perception/euclidean_cluster_core.h"
-
 namespace apollo {
 namespace perception {
 
 using apollo::cyber::common::GetAbsolutePath;
 
-bool PerceptionComponent::Init() { return true; }
+bool PerceptionComponent::Init() {
+  core_ = new EuClusterCore(node_);
+  return true;
+}
 
 bool PerceptionComponent::Proc(const std::shared_ptr<PointCloud> &point) {
-  ADEBUG << point->DebugString();
-
   // Bind to PROC API WHO WANT HANDLER IT
-  auto core = new EuClusterCore(node_);
-  core->Proc(point);
+  core_->Proc(point);
 
   return true;
 }

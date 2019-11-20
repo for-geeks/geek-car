@@ -1,10 +1,11 @@
 # Dag all comes in DAG streming.
 module_config {
-  module_library : "../bazel-bin/modules/perception/libperception_component.so"
+  module_library : "/apollo/bazel-bin/modules/perception/libperception_component.so"
   components {
     class_name : "PerceptionComponent"
     config {
       name: "perception_component"
+      flag_file_path:  "/apollo/modules/perception/conf/perception.conf"
       readers:[
         {
           channel: "/realsense/point_cloud"

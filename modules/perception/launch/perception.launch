@@ -1,7 +1,7 @@
 <cyber>
   <module>
     <name>perception_component</name>
-    <dag_conf>../modules/perception/dag/perception.dag</dag_conf>
+    <dag_conf>/apollo/modules/perception/dag/perception.dag</dag_conf>
     <process_name>perception_component</process_name>
   </module>
 </cyber>
