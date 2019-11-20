@@ -5,9 +5,10 @@ import time
 import numpy as np
 
 from cyber_py import cyber
-from modules.control.proto.chassis_pb2 import Chassis
+#from modules.control.proto.chassis_pb2 import Chassis
 from modules.localization.proto.localization_pb2 import localization
-
+from modules.localization.proto.localization_pb2 import pos
+from modules.sensors.proto.nooploop_pb2 import TagFrame
 
 class Exercise(object):
     def __init__(self, node):
@@ -16,8 +17,8 @@ class Exercise(object):
         self.maxTimes = 100
         self.x = np.array([0.725, 0.7]);
         # base station matrix
-        self.base_x = np.array([0, 0, 1.28, 1.28])
-        self.base_y = np.array([0, 1.38 ,0, 1.38])
+        self.base_x = np.array([0, 0, 2.49, 2.49])
+        self.base_y = np.array([3.66, 0 ,3.66, 0])
         
         self.xi = np.array([])
         self.yi = np.array([])
@@ -26,20 +27,21 @@ class Exercise(object):
         #self.di = np.array([8, 9.303, 0, 4.75])
         
         self.localization = localization()
-        self.node.create_reader("/chassis", Chassis, self.chassiscallback)
-        self.writer = self.node.create_writer("/localization", localization)
+        self.pos = pos()
+        self.node.create_reader("/geek/uwb/pose", TagFrame, self.tagcallback)
+        self.writer = self.node.create_writer("/geek/uwb/localization", pos)
 
 
-    def chassiscallback(self, chassis):
+    def tagcallback(self, tag):
         self.di = np.array([])
         self.xi = np.array([])
         self.yi = np.array([])
-        for k in range (chassis.device_num):
-            if chassis.range_measure[k].distance < 0:
+        for k in range (0, 4):
+            if tag.dis[k].distance == 1:
                 continue
-            self.di = np.append(self.di, chassis.range_measure[k].distance)
-            self.xi = np.append(self.xi, self.base_x[chassis.range_measure[k].addr - 1])
-            self.yi = np.append(self.yi, self.base_y[chassis.range_measure[k].addr - 1])
+            self.di = np.append(self.di, tag.dis[k].distance)
+            self.xi = np.append(self.xi, self.base_x[k])
+            self.yi = np.append(self.yi, self.base_y[k])
             
         datas = np.array([[self.xi], [self.yi], [self.di]])
         datas = datas.T
@@ -93,8 +95,11 @@ class Exercise(object):
         self.localization.predict.y = -1
         self.localization.predict.z = x[1]
         self.localization.predict.yaw = -1
-        
-        self.writer.write(self.localization)
+        self.pos.x = x[0]
+        self.pos.y = x[1]
+        self.pos.z = -1
+        self.pos.yaw = 0
+        self.writer.write(self.pos)
 
 
 if __name__ == '__main__':
