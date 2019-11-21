@@ -46,6 +46,7 @@ void EuClusterCore::CropBoxFilter(pcl_ptr in, pcl_ptr out) {
 void EuClusterCore::ClusterSegment(
     pcl_ptr in_pc, double in_max_cluster_distance,
     std::shared_ptr<PerceptionObstacles> obstacles) {
+  auto t1 = Time::Now().ToSecond();
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
       new pcl::search::KdTree<pcl::PointXYZ>);
 
@@ -70,7 +71,14 @@ void EuClusterCore::ClusterSegment(
   euclid.setMaxClusterSize(MAX_CLUSTER_SIZE);
   euclid.setSearchMethod(tree);
   euclid.extract(local_indices);
-
+  AWARN << "AFTER EUCLIDEAN CLUSTER EXTRACTION, INDICES IS: " << local_indices.size();
+  auto t2 = Time::Now().ToSecond();
+  AWARN << "Time for Euclidean Cluster Extraction:" << t2 - t1;
+  /**
+   *
+   * mainboard: external/pcl/pcl/kdtree/impl/kdtree_flann.hpp:172: 
+   * int pcl::KdTreeFLANN<PointT, Dist>::radiusSearch(const PointT&, double, std::vector<int>&, std::vector<float>&, unsigned int) const [with PointT = pcl::PointXYZ; Dist = flann::L2_Simple<float>]: Assertion `point_representation_->isValid (point) && "Invalid (NaN, Inf) point coordinates given to radiusSearch!"' failed.
+   **/
   for (size_t i = 0; i < local_indices.size(); i++) {
     // the structure to save one detected object
     PerceptionObstacle *obj_info;
@@ -137,17 +145,20 @@ void EuClusterCore::ClusterSegment(
     obj_info->set_length((length_ < 0) ? -1 * length_ : length_);
     obj_info->set_width((width_ < 0) ? -1 * width_ : width_);
     obj_info->set_height((height_ < 0) ? -1 * height_ : height_);
+    AWARN << "Obj_info debug info :" << obj_info->DebugString();
     // Length < 5, width < 5, height > 0.2 for now
     if (obj_info->length() < 5 && obj_info->mutable_position()->y() < 8 &&
         obj_info->mutable_position()->y() > -5 && obj_info->width() < 5 &&
         obj_info->mutable_position()->z() > 0.2 && obj_info->height() > 0.2) {
-      auto next_obstacle = obstacles->add_perception_obstacle();
-      next_obstacle->CopyFrom(*obj_info);
+      // auto next_obstacle = obstacles->add_perception_obstacle();
+      // next_obstacle->CopyFrom(*obj_info);
     } else {
       AINFO
           << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP FOR THIS CLUSTER";
     }
   }
+  auto te = Time::Now().ToSecond();
+  AWARN << "Time for DISTANCE segmentation:" << te - t1;
 }
 
 void EuClusterCore::ClusterByDistance(
@@ -157,6 +168,7 @@ void EuClusterCore::ClusterByDistance(
   // points farther in the pc will also be clustered
   auto t1 = Time::Now().ToSecond();
   std::vector<pcl_ptr> segment_pc_array(5);
+  // pcl_ptr pc_array(new pcl::PointCloud<pcl::PointXYZ>);
 
   for (size_t i = 0; i < segment_pc_array.size(); i++) {
     pcl_ptr tmp(new pcl::PointCloud<pcl::PointXYZ>);
@@ -171,11 +183,13 @@ void EuClusterCore::ClusterByDistance(
 
     double origin_distance =
         std::sqrt(std::pow(current_point.x, 2) + std::pow(current_point.y, 2));
+    // AINFO << "point: " <<  std::to_string(i) << " origin_distance: " << origin_distance;
 
-    // 如果点的距离大于5m, 忽略该点
-    if (origin_distance >= 5) {
+    // 如果点的距离大于3m, 忽略该点
+    if (origin_distance >= 3 || origin_distance <= 0) {
       continue;
     }
+    // pc_array->points.push_back(current_point);
 
     if (origin_distance < seg_distance_[0]) {
       segment_pc_array[0]->points.push_back(current_point);
@@ -189,11 +203,19 @@ void EuClusterCore::ClusterByDistance(
       segment_pc_array[4]->points.push_back(current_point);
     }
   }
+  // AINFO << "PC_ARRAY POINT SIZE: " <<  pc_array->points.size();
   auto t2 = Time::Now().ToSecond();
-  AWARN << "Time for cluster segmentation:" << t2 - t1;
+  AWARN << "Time for cluster segmentation: " << t2 - t1;
+  // ClusterSegment(segment_pc_array[0], cluster_distance_[0], obstacles);
+  // AWARN << "RADIUS : " << seg_distance_[0]<< " CLUSTER DISTANCE:" 
+  //       << cluster_distance_[0] << " POINT SIZE IS :" 
+  //       <<  segment_pc_array[0]->points.size();
 
   for (size_t i = 0; i < segment_pc_array.size(); i++) {
     ClusterSegment(segment_pc_array[i], cluster_distance_[i], obstacles);
+    AINFO << "RADIUS : " << seg_distance_[i]<< " CLUSTER DISTANCE:" 
+          << cluster_distance_[i] << " POINT SIZE IS :" 
+          <<  segment_pc_array[i]->points.size();
   }
 }
 
@@ -211,7 +233,7 @@ void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
 
   PbMsg2PointCloud(in_cloud_ptr, current_pc_ptr);
   // down sampling the point cloud before cluster
-  VoxelGridFilter(current_pc_ptr, current_pc_ptr);
+  // VoxelGridFilter(current_pc_ptr, current_pc_ptr);
   // CropBoxFilter(current_pc_ptr, current_pc_ptr);
   AINFO << "BEFORE CLUSTER, POINT SIZE IS : " << current_pc_ptr->points.size();
 
@@ -220,7 +242,7 @@ void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
   ClusterByDistance(current_pc_ptr, obstacles);
   // ClusterByDistance(CropBox_filtered_pc_ptr, obstacles);
 
-  //AINFO << obstacles->DebugString();
+  AINFO << "OBSTACLES OUTPUT DEBUG MSG:" << obstacles->DebugString();
 
   auto endTime = std::chrono::steady_clock::now();
   auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -232,7 +254,6 @@ void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
 
 EuClusterCore::~EuClusterCore() { 
   AINFO << "Destructor from EuClusterCore";
-  // delete node_;
 }
 
 }  // namespace perception

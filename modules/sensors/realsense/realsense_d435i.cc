@@ -219,6 +219,8 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
                         float(FLAGS_point_cloud_max_distance));
   depth_frame = thr_filter.process(depth_frame);
 
+  AWARN << "point_cloud_max_distance:" << FLAGS_point_cloud_max_distance;
+
   rs2::temporal_filter temp_filter;
   temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA,
                          float(FLAGS_temp_filter_alpha));
@@ -231,8 +233,7 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
 
 void D435I::PointCloudTransform() {
   if (FLAGS_enable_point_cloud_transform) {
-#if 1
-    transform = Eigen::Matrix4f::Identity();
+    transform = Eigen::Matrix4d::Identity();
     AINFO << "FLAGS ANGLE X :" << FLAGS_angle_x << " angle z:" << FLAGS_angle_z;
     ::Eigen::Vector3d ea0(0, FLAGS_angle_x, FLAGS_angle_z);
     ::Eigen::Matrix3d R;
@@ -240,23 +241,19 @@ void D435I::PointCloudTransform() {
         ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
         ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
     std::cout << "ROTATION :" << R << std::endl;
-
     // ROTATION :        1        -0         0
     //     0   0.96596  0.258691
     //    -0 -0.258691   0.96596
-
-    Eigen::MatrixXf RR = R.cast<float>();
-    transform(0, 0) = RR(0, 0);
-    transform(0, 1) = RR(0, 1);
-    transform(0, 2) = RR(0, 2);
-    transform(1, 0) = RR(1, 0);
-    transform(1, 1) = RR(1, 1);
-    transform(1, 2) = RR(1, 2);
-    transform(2, 0) = RR(2, 0);
-    transform(2, 1) = RR(2, 1);
-    transform(2, 2) = RR(2, 2);
+    transform(0, 0) = R(0, 0);
+    transform(0, 1) = R(0, 1);
+    transform(0, 2) = R(0, 2);
+    transform(1, 0) = R(1, 0);
+    transform(1, 1) = R(1, 1);
+    transform(1, 2) = R(1, 2);
+    transform(2, 0) = R(2, 0);
+    transform(2, 1) = R(2, 1);
+    transform(2, 2) = R(2, 2);
     std::cout << "TRANSFORM:" << transform << std::endl;
-#endif
     // TRANSFORM:        1        -0         0         0
     //    0   0.96596  0.258691         0
     //   -0 -0.258691   0.96596         0
@@ -280,7 +277,7 @@ void D435I::PublishPointCloud() {
     filtered_data.poll_for_frame(&depth_frame);
     if (!depth_frame) {
       AINFO << "POINT CLOUD FRAME QUEUE IS EMPTY, WAIT FOR ENQUEUE;";
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
       continue;
     }
     // Generate the pointcloud and texture mappings
@@ -293,15 +290,16 @@ void D435I::PublishPointCloud() {
 
     pcl_ptr cloud_(new pcl::PointCloud<pcl::PointXYZ>);
 
-    auto t3 = Time::Now().ToSecond();
     if (FLAGS_enable_point_cloud_transform) {
+      // auto t3 = Time::Now().ToSecond();
       // Apply an affine transform defined by an Eigen Transform.
-      pcl::transformPointCloud(*pcl_points, *cloud_, transform);
+      // pcl::transformPointCloud(*pcl_points, *cloud_, transform);
+      // auto t4 = Time::Now().ToSecond();
+      // AWARN << "Time for point cloud transform:" << t4 - t3;
     } else {
       *cloud_ = *pcl_points;
     }
-    auto t4 = Time::Now().ToSecond();
-    AWARN << "Time for point cloud transform:" << t4 - t3;
+
 #if 0
     auto t5 = Time::Now().ToSecond();
     // 下采样，体素叶子大小为0.01
@@ -316,7 +314,7 @@ void D435I::PublishPointCloud() {
               << cloud_filtered->points.size() << " data points." << std::endl;
     auto t6 = Time::Now().ToSecond();
     AWARN << "Time for voxel grid filter:" << t6 - t5;
-#endif
+
 
     auto t7 = Time::Now().ToSecond();
     //直通滤波
@@ -332,15 +330,14 @@ void D435I::PublishPointCloud() {
     pass_y.filter(*cloud_);
     auto t8 = Time::Now().ToSecond();
     AWARN << "Time for Y PASSTHROUGH :" << t8 - t7;
-
+#endif
     if (FLAGS_save_pcd) {
-      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-                           *cloud_);
+      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+      //                      *cloud_);
     }
 #if 0
     // PCL VISUALIZATION TEST
     ///////////////////////////////////////////////////////////////////////////
-
     std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(
         new pcl::visualization::PCLVisualizer("3D Viewer"));
     viewer->setBackgroundColor(0, 0, 0);
@@ -379,13 +376,21 @@ void D435I::PublishPointCloud() {
     point_cloud_out->set_measurement_time(Time::Now().ToSecond());
     point_cloud_out->set_width(FLAGS_depth_image_width);
     point_cloud_out->set_height(FLAGS_depth_image_height);
-
+    int counter = 0;
     for (size_t i = 0; i < (*cloud_).size(); i++) {
       if ((*cloud_)[i].z) {
-        apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
-        p->set_x((*cloud_)[i].x);
-        p->set_y((*cloud_)[i].y);
-        p->set_z((*cloud_)[i].z);
+        ::Eigen::Vector4d pos((*cloud_)[i].x, (*cloud_)[i].x, (*cloud_)[i].z,
+                              1);
+        auto pos_trans = transform * pos;
+        if (pos_trans[1] > -0.05 && pos_trans[1] < 0.1) {
+          if ((counter % 3) == 0) {
+            apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
+            p->set_x(static_cast<float>(pos_trans[0]));
+            p->set_y(static_cast<float>(pos_trans[1]));
+            p->set_z(static_cast<float>(pos_trans[2]));
+            counter++;
+          }
+        }
         // p->set_intensity(0);
         // p->set_timestamp(depth_frame.get_timestamp());
       }

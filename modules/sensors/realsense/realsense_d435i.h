@@ -83,7 +83,7 @@ class D435I : public DeviceBase {
 
   // Declare object that handles camera pose calculations
   rotation_estimator algo_;
-  Eigen::Matrix4f transform;
+  Eigen::Matrix4d transform;
 
   std::thread realsense_t1;
   std::thread realsense_t2;

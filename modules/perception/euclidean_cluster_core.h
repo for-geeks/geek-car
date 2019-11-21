@@ -23,8 +23,8 @@
 #include "modules/perception/proto/perception_obstacle.pb.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
 
-#define MIN_CLUSTER_SIZE 15
-#define MAX_CLUSTER_SIZE 1500
+#define MIN_CLUSTER_SIZE 100
+#define MAX_CLUSTER_SIZE 2500
 
 namespace apollo {
 namespace perception {
@@ -48,8 +48,8 @@ class EuClusterCore {
 
   // 欧几里德聚类最重要的参数是聚类半径阈值，为了达到更好的聚类效果，
   // 我们在不同距离的区域使用不同的聚类半径阈值
-  std::vector<double> seg_distance_ = {0.2, 0.6, 1.0, 1.4};
-  std::vector<double> cluster_distance_ = {0.05, 0.1, 0.125, 0.15, 0.20};
+  std::vector<double> seg_distance_ = {0.05, 0.1, 0.15, 0.2};
+  std::vector<double> cluster_distance_ = {0.01, 0.015, 0.020, 0.025, 0.03};
 
   // 聚类是一个费时运算，为了减少计算量，我们通常先进行降采样
   void VoxelGridFilter(pcl_ptr in, pcl_ptr out);

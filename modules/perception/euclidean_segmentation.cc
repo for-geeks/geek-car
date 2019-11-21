@@ -1,4 +1,6 @@
 
+#include <chrono>
+
 #include <pcl/ModelCoefficients.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/filters/extract_indices.h>
@@ -99,6 +101,8 @@ int main(int argc, char **argv) {
       new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud(cloud_filtered);
 
+  auto startTime = std::chrono::steady_clock::now();
+
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;  //欧式聚类对象
   ec.setClusterTolerance(0.02);  // 设置近邻搜索的搜索半径为2cm
@@ -135,8 +139,14 @@ int main(int argc, char **argv) {
     // Result visualization
     j++;
     *add_cloud += *cloud_cluster;
-    // pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
   }
+  
+  auto endTime = std::chrono::steady_clock::now();
+  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+      endTime - startTime);
+  std::cout << "Euclidean Cluster Extraction took " << elapsedTime.count() 
+            << "milliseconds" << std::endl;
+  // pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
 
   return 0;
 }
