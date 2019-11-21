@@ -93,7 +93,7 @@ pcl_ptr points_to_pcl(const rs2::points& points) {
   cloud->is_dense = false;
   // TODO(zongbao) : 使用Voxel Grid对点云降采样
   cloud->points.resize(points.size());
-  AINFO << "POINTS SIZE IS:" << points.size();
+  AINFO << "DEPTH POINTS SIZE(424*240) IS:" << points.size();
   auto ptr = points.get_vertices();
   for (auto& p : cloud->points) {
     p.x = ptr->x;

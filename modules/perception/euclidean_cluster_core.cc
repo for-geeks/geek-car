@@ -81,14 +81,14 @@ void EuClusterCore::ClusterSegment(
    **/
   for (size_t i = 0; i < local_indices.size(); i++) {
     // the structure to save one detected object
-    PerceptionObstacle *obj_info;
+    PerceptionObstacle *obj_info = nullptr;
 
-    float min_x = std::numeric_limits<float>::max();  //编译器允许的最大值
-    float max_x = -std::numeric_limits<float>::max();
-    float min_y = std::numeric_limits<float>::max();
-    float max_y = -std::numeric_limits<float>::max();
-    float min_z = std::numeric_limits<float>::max();
-    float max_z = -std::numeric_limits<float>::max();
+    float min_x = std::numeric_limits<float>::min();  //编译器允许的最大值
+    float max_x = std::numeric_limits<float>::max();
+    float min_y = std::numeric_limits<float>::min();
+    float max_y = std::numeric_limits<float>::max();
+    float min_z = std::numeric_limits<float>::min();
+    float max_z = std::numeric_limits<float>::max();
 
     for (auto pit = local_indices[i].indices.begin();
          pit != local_indices[i].indices.end(); ++pit) {
@@ -99,7 +99,6 @@ void EuClusterCore::ClusterSegment(
       p.z = in_pc->points[*pit].z;
 
       // auto centroid = obj_info->mutable_centroid();
-
       // centroid->set_x(centroid->x() + p.x);
       // centroid->set_y(centroid->y() + p.y);
       // centroid->set_z(centroid->z() + p.z);
@@ -111,6 +110,8 @@ void EuClusterCore::ClusterSegment(
       if (p.y > max_y) max_y = p.y;
       if (p.z > max_z) max_z = p.z;
     }
+
+    AWARN << "MIN_X:" << min_x << " MAX_X: " << max_x;
 
     obj_info->set_id(static_cast<int32_t>(i));
 
@@ -150,8 +151,8 @@ void EuClusterCore::ClusterSegment(
     if (obj_info->length() < 5 && obj_info->mutable_position()->y() < 8 &&
         obj_info->mutable_position()->y() > -5 && obj_info->width() < 5 &&
         obj_info->mutable_position()->z() > 0.2 && obj_info->height() > 0.2) {
-      // auto next_obstacle = obstacles->add_perception_obstacle();
-      // next_obstacle->CopyFrom(*obj_info);
+      auto next_obstacle = obstacles->add_perception_obstacle();
+      next_obstacle->CopyFrom(*obj_info);
     } else {
       AINFO
           << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP FOR THIS CLUSTER";
@@ -166,7 +167,6 @@ void EuClusterCore::ClusterByDistance(
   // cluster the pointcloud according to the distance of the points using
   // different thresholds (not only one for the entire pc) in this way, the
   // points farther in the pc will also be clustered
-  auto t1 = Time::Now().ToSecond();
   std::vector<pcl_ptr> segment_pc_array(5);
   // pcl_ptr pc_array(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -204,23 +204,20 @@ void EuClusterCore::ClusterByDistance(
     }
   }
   // AINFO << "PC_ARRAY POINT SIZE: " <<  pc_array->points.size();
-  auto t2 = Time::Now().ToSecond();
-  AWARN << "Time for cluster segmentation: " << t2 - t1;
   // ClusterSegment(segment_pc_array[0], cluster_distance_[0], obstacles);
   // AWARN << "RADIUS : " << seg_distance_[0]<< " CLUSTER DISTANCE:" 
   //       << cluster_distance_[0] << " POINT SIZE IS :" 
   //       <<  segment_pc_array[0]->points.size();
 
   for (size_t i = 0; i < segment_pc_array.size(); i++) {
-    ClusterSegment(segment_pc_array[i], cluster_distance_[i], obstacles);
     AINFO << "RADIUS : " << seg_distance_[i]<< " CLUSTER DISTANCE:" 
           << cluster_distance_[i] << " POINT SIZE IS :" 
           <<  segment_pc_array[i]->points.size();
+    ClusterSegment(segment_pc_array[i], cluster_distance_[i], obstacles);
   }
 }
 
 void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
-  AINFO << "I'M IN EUCLUSTERCORE PROC METHOD";
   auto startTime = std::chrono::steady_clock::now();
   pcl_ptr current_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>);
   // pcl_ptr voxel_grid_filtered_pc_ptr(new

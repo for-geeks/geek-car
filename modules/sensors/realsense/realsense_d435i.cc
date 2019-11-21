@@ -296,9 +296,8 @@ void D435I::PublishPointCloud() {
       // pcl::transformPointCloud(*pcl_points, *cloud_, transform);
       // auto t4 = Time::Now().ToSecond();
       // AWARN << "Time for point cloud transform:" << t4 - t3;
-    } else {
-      *cloud_ = *pcl_points;
     }
+    *cloud_ = *pcl_points;
 
 #if 0
     auto t5 = Time::Now().ToSecond();
@@ -314,7 +313,6 @@ void D435I::PublishPointCloud() {
               << cloud_filtered->points.size() << " data points." << std::endl;
     auto t6 = Time::Now().ToSecond();
     AWARN << "Time for voxel grid filter:" << t6 - t5;
-
 
     auto t7 = Time::Now().ToSecond();
     //直通滤波
@@ -374,27 +372,32 @@ void D435I::PublishPointCloud() {
 
     point_cloud_out->set_is_dense(false);
     point_cloud_out->set_measurement_time(Time::Now().ToSecond());
-    point_cloud_out->set_width(FLAGS_depth_image_width);
-    point_cloud_out->set_height(FLAGS_depth_image_height);
     int counter = 0;
+    AWARN << "POINT CLOUD SIZE :" << (*cloud_).size();
     for (size_t i = 0; i < (*cloud_).size(); i++) {
       if ((*cloud_)[i].z) {
+        // apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
+        // p->set_x((*cloud_)[i].x);
+        // p->set_y((*cloud_)[i].y);
+        // p->set_z((*cloud_)[i].z);
         ::Eigen::Vector4d pos((*cloud_)[i].x, (*cloud_)[i].x, (*cloud_)[i].z,
                               1);
         auto pos_trans = transform * pos;
         if (pos_trans[1] > -0.05 && pos_trans[1] < 0.1) {
-          if ((counter % 3) == 0) {
+          if ((counter % 8) == 0) {
             apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
             p->set_x(static_cast<float>(pos_trans[0]));
             p->set_y(static_cast<float>(pos_trans[1]));
             p->set_z(static_cast<float>(pos_trans[2]));
-            counter++;
           }
+          counter++;
         }
         // p->set_intensity(0);
         // p->set_timestamp(depth_frame.get_timestamp());
       }
     }
+    point_cloud_out->set_width(point_cloud_out->point_size());
+    point_cloud_out->set_height(1);
 
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
