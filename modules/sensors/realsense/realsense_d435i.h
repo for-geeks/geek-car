@@ -37,6 +37,7 @@
 
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/perception/euclidean_cluster_core.h"
 
 namespace apollo {
 namespace sensors {
@@ -52,6 +53,7 @@ using apollo::sensors::Gyro;
 using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
 using apollo::sensors::realsense::DeviceBase;
+using apollo::perception::EuClusterCore;
 
 class D435I : public DeviceBase {
  public:
@@ -87,6 +89,8 @@ class D435I : public DeviceBase {
 
   std::thread realsense_t1;
   std::thread realsense_t2;
+
+  EuClusterCore* core_ = nullptr;
 
   std::atomic<bool> stop_ = {false};
 };

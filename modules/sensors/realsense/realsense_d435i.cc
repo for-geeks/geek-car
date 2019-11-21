@@ -49,6 +49,7 @@ namespace realsense {
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 bool D435I::Init(std::shared_ptr<Node> node_) {
+  core_ = new EuClusterCore(node_);
   // 1. Init Device
   DeviceConfig();
   // 2. Channel Writer Config
@@ -240,7 +241,7 @@ void D435I::PointCloudTransform() {
     R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
         ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
         ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
-    std::cout << "ROTATION :" << R << std::endl;
+    // std::cout << "ROTATION :" << R << std::endl;
     // ROTATION :        1        -0         0
     //     0   0.96596  0.258691
     //    -0 -0.258691   0.96596
@@ -253,7 +254,7 @@ void D435I::PointCloudTransform() {
     transform(2, 0) = R(2, 0);
     transform(2, 1) = R(2, 1);
     transform(2, 2) = R(2, 2);
-    std::cout << "TRANSFORM:" << transform << std::endl;
+    // std::cout << "TRANSFORM:" << transform << std::endl;
     // TRANSFORM:        1        -0         0         0
     //    0   0.96596  0.258691         0
     //   -0 -0.258691   0.96596         0
@@ -376,15 +377,11 @@ void D435I::PublishPointCloud() {
     AWARN << "POINT CLOUD SIZE :" << (*cloud_).size();
     for (size_t i = 0; i < (*cloud_).size(); i++) {
       if ((*cloud_)[i].z) {
-        // apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
-        // p->set_x((*cloud_)[i].x);
-        // p->set_y((*cloud_)[i].y);
-        // p->set_z((*cloud_)[i].z);
-        ::Eigen::Vector4d pos((*cloud_)[i].x, (*cloud_)[i].x, (*cloud_)[i].z,
+        ::Eigen::Vector4d pos((*cloud_)[i].x, (*cloud_)[i].y, (*cloud_)[i].z,
                               1);
         auto pos_trans = transform * pos;
         if (pos_trans[1] > -0.05 && pos_trans[1] < 0.1) {
-          if ((counter % 8) == 0) {
+          if ((counter % 24) == 0) {
             apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
             p->set_x(static_cast<float>(pos_trans[0]));
             p->set_y(static_cast<float>(pos_trans[1]));
@@ -401,6 +398,8 @@ void D435I::PublishPointCloud() {
 
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
+
+    core_->Proc(point_cloud_out);
 
     point_cloud_writer_->Write(point_cloud_out);
   }
