@@ -46,9 +46,11 @@ class EuClusterCore {
  private:
   std::shared_ptr<Writer<PerceptionObstacles>> obstacles_writer_ = nullptr;
 
+  std::shared_ptr<PerceptionObstacles>() obstalces;
+
   // 欧几里德聚类最重要的参数是聚类半径阈值，为了达到更好的聚类效果，
   // 我们在不同距离的区域使用不同的聚类半径阈值
-  std::vector<double> seg_distance_ = {0.05, 0.1, 0.15, 0.2};
+  std::vector<double> seg_distance_ = {0.1, 0.5, 0.9, 1.3, 1.7};
   std::vector<double> cluster_distance_ = {0.01, 0.015, 0.020, 0.025, 0.03};
 
   // 聚类是一个费时运算，为了减少计算量，我们通常先进行降采样
