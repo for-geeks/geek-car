@@ -46,8 +46,6 @@ class EuClusterCore {
  private:
   std::shared_ptr<Writer<PerceptionObstacles>> obstacles_writer_ = nullptr;
 
-  std::shared_ptr<PerceptionObstacles>() obstalces;
-
   // 欧几里德聚类最重要的参数是聚类半径阈值，为了达到更好的聚类效果，
   // 我们在不同距离的区域使用不同的聚类半径阈值
   std::vector<double> seg_distance_ = {0.1, 0.5, 0.9, 1.3, 1.7};
