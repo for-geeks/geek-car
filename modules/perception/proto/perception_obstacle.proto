@@ -8,18 +8,9 @@ import "modules/common/proto/geometry.proto";
 
 message BBox2D {
   optional double xmin = 1;  // in pixels.
-  optional double ymin = 2;  // in pixels.
+  optional double zmin = 2;  // in pixels.
   optional double xmax = 3;  // in pixels.
-  optional double ymax = 4;  // in pixels.
-}
-
-message BBox3D {
-  optional double xmin = 1;  // in pixels.
-  optional double ymin = 2;  // in pixels.
-  optional double zmin = 3;  // in pixels.
-  optional double xmax = 4;  // in pixels.
-  optional double ymax = 5;  // in pixels.
-  optional double zmax = 6;  // in pixels.
+  optional double zmax = 4;  // in pixels.
 }
 
 message PerceptionObstacle {
@@ -46,7 +37,7 @@ message PerceptionObstacle {
   // position defined above is the obstacle bounding box ground center
   optional apollo.common.Point3D anchor_point = 11;
   // optional BBox2D bbox2d = 18;
-  optional BBox3D bbox3d = 12;
+  optional BBox2D bbox2d = 12;
 }
 
 message PerceptionObstacles {

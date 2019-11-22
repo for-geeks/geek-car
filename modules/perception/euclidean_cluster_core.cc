@@ -85,7 +85,7 @@ void EuClusterCore::ClusterSegment(
 
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> euclid;
   euclid.setInputCloud(cloud_2d);
-  euclid.setClusterTolerance(0.1);
+  euclid.setClusterTolerance(in_max_cluster_distance);
   euclid.setMinClusterSize(MIN_CLUSTER_SIZE);
   euclid.setMaxClusterSize(MAX_CLUSTER_SIZE);
   euclid.setSearchMethod(tree);
@@ -132,13 +132,11 @@ void EuClusterCore::ClusterSegment(
     obj_info.set_id(static_cast<int32_t>(i));
 
     // min, max points
-    auto bbox3d = obj_info.mutable_bbox3d();
-    bbox3d->set_xmin(min_x);
-    bbox3d->set_ymin(min_y);
-    bbox3d->set_zmin(min_z);
-    bbox3d->set_xmax(max_x);
-    bbox3d->set_ymax(max_y);
-    bbox3d->set_zmax(max_z);
+    auto bbox2d = obj_info.mutable_bbox2d();
+    bbox2d->set_xmin(min_x);
+    bbox2d->set_zmin(min_z);
+    bbox2d->set_xmax(max_x);
+    bbox2d->set_zmax(max_z);
 
     // calculate centroid, average
     // if (local_indices[i].indices.size() > 0) {
