@@ -140,11 +140,11 @@ int main(int argc, char **argv) {
     j++;
     *add_cloud += *cloud_cluster;
   }
-  
+
   auto endTime = std::chrono::steady_clock::now();
   auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
       endTime - startTime);
-  std::cout << "Euclidean Cluster Extraction took " << elapsedTime.count() 
+  std::cout << "Euclidean Cluster Extraction took " << elapsedTime.count()
             << "milliseconds" << std::endl;
   // pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
 

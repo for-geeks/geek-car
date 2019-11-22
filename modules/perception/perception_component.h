@@ -26,9 +26,9 @@
 #include <memory>
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
+#include "modules/perception/euclidean_cluster_core.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
-#include "modules/perception/euclidean_cluster_core.h"
 
 namespace apollo {
 namespace perception {

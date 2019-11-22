@@ -158,9 +158,6 @@ void D435I::Run() {
     }
 
     if (FLAGS_publish_point_cloud) {
-      // Point Cloud Transform
-      PointCloudTransform();
-
       rs2::frame depth_frame = frames.get_depth_frame();
       OnPointCloud(depth_frame);
     }
@@ -232,40 +229,6 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
   filtered_data.enqueue(depth_frame);
 }
 
-void D435I::PointCloudTransform() {
-  if (FLAGS_enable_point_cloud_transform) {
-    transform = Eigen::Matrix4d::Identity();
-    AINFO << "FLAGS ANGLE X :" << FLAGS_angle_x << " angle z:" << FLAGS_angle_z;
-    ::Eigen::Vector3d ea0(0, FLAGS_angle_x, FLAGS_angle_z);
-    ::Eigen::Matrix3d R;
-    R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
-        ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
-        ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
-    // std::cout << "ROTATION :" << R << std::endl;
-    // ROTATION :        1        -0         0
-    //     0   0.96596  0.258691
-    //    -0 -0.258691   0.96596
-    transform(0, 0) = R(0, 0);
-    transform(0, 1) = R(0, 1);
-    transform(0, 2) = R(0, 2);
-    transform(1, 0) = R(1, 0);
-    transform(1, 1) = R(1, 1);
-    transform(1, 2) = R(1, 2);
-    transform(2, 0) = R(2, 0);
-    transform(2, 1) = R(2, 1);
-    transform(2, 2) = R(2, 2);
-    // std::cout << "TRANSFORM:" << transform << std::endl;
-    // TRANSFORM:        1        -0         0         0
-    //    0   0.96596  0.258691         0
-    //   -0 -0.258691   0.96596         0
-    //    0         0         0         1
-    // transform << 1,         -0,        0,         0,
-    //             0,          0.96596,  0.258691,  0,
-    //            -0,         -0.258691, 0.96596,   0,
-    //             0,         0,         0,         1;
-  }
-}
-
 void D435I::PublishPointCloud() {
   while (!stop_) {
     // Declare pointcloud object, for calculating pointclouds
@@ -299,6 +262,8 @@ void D435I::PublishPointCloud() {
       // AWARN << "Time for point cloud transform:" << t4 - t3;
     }
     *cloud_ = *pcl_points;
+    pcl_ptr cloud_out(new pcl::PointCloud<pcl::PointXYZ>);
+    cloud_out->clear();
 
 #if 0
     auto t5 = Time::Now().ToSecond();
@@ -330,10 +295,7 @@ void D435I::PublishPointCloud() {
     auto t8 = Time::Now().ToSecond();
     AWARN << "Time for Y PASSTHROUGH :" << t8 - t7;
 #endif
-    if (FLAGS_save_pcd) {
-      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-      //                      *cloud_);
-    }
+
 #if 0
     // PCL VISUALIZATION TEST
     ///////////////////////////////////////////////////////////////////////////
@@ -370,7 +332,6 @@ void D435I::PublishPointCloud() {
       return;
     }
     point_cloud_out->Clear();
-
     point_cloud_out->set_is_dense(false);
     point_cloud_out->set_measurement_time(Time::Now().ToSecond());
     int counter = 0;
@@ -380,17 +341,22 @@ void D435I::PublishPointCloud() {
         ::Eigen::Vector4d pos((*cloud_)[i].x, (*cloud_)[i].y, (*cloud_)[i].z,
                               1);
         auto pos_trans = transform * pos;
-        if (pos_trans[1] > -0.05 && pos_trans[1] < 0.1) {
+        if ((pos_trans[1] > -0.05) && (pos_trans[1] < 0.1) &&
+            (pos_trans[2] < 2)) {
           if ((counter % 24) == 0) {
             apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
+            if (FLAGS_save_pcd) {
+              cloud_out->push_back(
+                  pcl::PointXYZ(static_cast<float>(pos_trans[0]),
+                                static_cast<float>(pos_trans[1]),
+                                static_cast<float>(pos_trans[2])));
+            }
             p->set_x(static_cast<float>(pos_trans[0]));
             p->set_y(static_cast<float>(pos_trans[1]));
             p->set_z(static_cast<float>(pos_trans[2]));
           }
           counter++;
         }
-        // p->set_intensity(0);
-        // p->set_timestamp(depth_frame.get_timestamp());
       }
     }
     point_cloud_out->set_width(point_cloud_out->point_size());
@@ -398,6 +364,11 @@ void D435I::PublishPointCloud() {
 
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
+
+    if (FLAGS_save_pcd) {
+      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+      //                      *cloud_);
+    }
 
     core_->Proc(point_cloud_out);
 

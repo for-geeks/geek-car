@@ -1,14 +1,14 @@
 #include "modules/perception/euclidean_cluster_core.h"
 
-#include "modules/common/global_gflags.h"
 #include <math.h>
+#include "modules/common/global_gflags.h"
 namespace apollo {
 namespace perception {
 using apollo::cyber::Time;
 
 void PbMsg2PointCloud(std::shared_ptr<PointCloud> pb_cloud, pcl_ptr pcl_pc) {
-  if(pb_cloud->point_size() <= 0) {
-    return ;
+  if (pb_cloud->point_size() <= 0) {
+    return;
   }
   pcl_pc->width = pb_cloud->width();
   pcl_pc->height = pb_cloud->height();
@@ -56,18 +56,21 @@ void EuClusterCore::ClusterSegment(
 
   // create 2d pc
   pcl_ptr cloud_2d(new pcl::PointCloud<pcl::PointXYZ>);
-  //pcl::copyPointCloud(*in_pc, *cloud_2d);
+  // pcl::copyPointCloud(*in_pc, *cloud_2d);
   *cloud_2d = *in_pc;
   // make it flat
   for (size_t i = 0; i < in_pc->points.size(); i++) {
-    if (std::isnan(cloud_2d->points[i].y) || std::isinf(cloud_2d->points[i].y)){
-        cloud_2d->points[i].y = -1;
+    if (std::isnan(cloud_2d->points[i].y) ||
+        std::isinf(cloud_2d->points[i].y)) {
+      cloud_2d->points[i].y = -1;
     }
-    if (std::isnan(cloud_2d->points[i].x) || std::isinf(cloud_2d->points[i].x)){
-        cloud_2d->points[i].x = -1;
+    if (std::isnan(cloud_2d->points[i].x) ||
+        std::isinf(cloud_2d->points[i].x)) {
+      cloud_2d->points[i].x = -1;
     }
-    if (std::isnan(cloud_2d->points[i].z) || std::isinf(cloud_2d->points[i].z)){
-        cloud_2d->points[i].z = -1;
+    if (std::isnan(cloud_2d->points[i].z) ||
+        std::isinf(cloud_2d->points[i].z)) {
+      cloud_2d->points[i].z = -1;
     }
     cloud_2d->points[i].y = 0;
   }
@@ -82,12 +85,13 @@ void EuClusterCore::ClusterSegment(
 
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> euclid;
   euclid.setInputCloud(cloud_2d);
-  euclid.setClusterTolerance(in_max_cluster_distance);
+  euclid.setClusterTolerance(0.1);
   euclid.setMinClusterSize(MIN_CLUSTER_SIZE);
   euclid.setMaxClusterSize(MAX_CLUSTER_SIZE);
   euclid.setSearchMethod(tree);
   euclid.extract(local_indices);
-  AWARN << "AFTER EUCLIDEAN CLUSTER EXTRACTION, INDICES IS: " << local_indices.size();
+  AWARN << "AFTER EUCLIDEAN CLUSTER EXTRACTION, INDICES IS: "
+        << local_indices.size();
   auto t2 = Time::Now().ToSecond();
   AWARN << "Time for Euclidean Cluster Extraction:" << t2 - t1;
 
@@ -143,21 +147,21 @@ void EuClusterCore::ClusterSegment(
     //   obj_info->centroid.z /= local_indices[i].indices.size();
     // }
 
-    // calculate bounding box
-    double length_ = max_x - min_x;
-    double width_ = max_y - min_y;
-    double height_ = max_z - min_z;
+    // calculate bounding box by REALSENSE coordinate system
+    double length_ = max_z - min_z;
+    double width_ = max_x - min_x;
+    double height_ = max_y - min_y;
 
     // // Position
     auto position = obj_info.mutable_position();
-    position->set_x(min_x + length_ / 2);
-    position->set_y(min_y + width_ / 2);
-    position->set_z(min_z + height_ / 2);
+    position->set_x(min_x + width_ / 2);
+    position->set_y(min_y + height_ / 2);
+    position->set_z(min_z + length_ / 2);
 
     obj_info.set_length((length_ < 0) ? -1 * length_ : length_);
     obj_info.set_width((width_ < 0) ? -1 * width_ : width_);
     obj_info.set_height((height_ < 0) ? -1 * height_ : height_);
-    
+
     // Length < 5, width < 5, height > 0.2 for now
     if (obj_info.length() < 5 && obj_info.mutable_position()->y() < 8 &&
         obj_info.mutable_position()->y() > -5 && obj_info.width() < 5 &&
@@ -195,7 +199,8 @@ void EuClusterCore::ClusterByDistance(
 
     double origin_distance =
         std::sqrt(std::pow(current_point.x, 2) + std::pow(current_point.z, 2));
-    // AINFO << "point: " <<  std::to_string(i) << " origin_distance: " << origin_distance;
+    // AINFO << "point: " <<  std::to_string(i) << " origin_distance: " <<
+    // origin_distance;
 
     // 如果点的距离大于3m, 忽略该点
     if (origin_distance >= 3) {
@@ -215,18 +220,18 @@ void EuClusterCore::ClusterByDistance(
       segment_pc_array[4]->points.push_back(current_point);
     }
   }
-  AINFO << "PC_ARRAY POINT SIZE: " <<  pc_array->points.size();
+  AINFO << "PC_ARRAY POINT SIZE: " << pc_array->points.size();
   ClusterSegment(pc_array, cluster_distance_[0], obstacles);
-  AWARN << "RADIUS : " << seg_distance_[0]<< " CLUSTER DISTANCE:" 
-        << cluster_distance_[0] << " POINT SIZE IS :" 
-        <<  pc_array->points.size();
+  AWARN << "RADIUS : " << seg_distance_[0]
+        << " CLUSTER DISTANCE:" << cluster_distance_[0]
+        << " POINT SIZE IS :" << pc_array->points.size();
 
   // for (size_t i = 0; i < segment_pc_array.size(); i++) {
   //   if(segment_pc_array[i]->points.size() <= 0) {
   //     continue;
   //   }
-  //   AINFO << " CLUSTER DISTANCE:" 
-  //         << cluster_distance_[i] << " POINT SIZE IS :" 
+  //   AINFO << " CLUSTER DISTANCE:"
+  //         << cluster_distance_[i] << " POINT SIZE IS :"
   //         <<  segment_pc_array[i]->points.size();
   //   ClusterSegment(segment_pc_array[i], cluster_distance_[i], obstacles);
   // }
@@ -262,9 +267,7 @@ void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
   obstacles_writer_->Write(obstacles);
 }
 
-EuClusterCore::~EuClusterCore() { 
-  AINFO << "Destructor from EuClusterCore";
-}
+EuClusterCore::~EuClusterCore() { AINFO << "Destructor from EuClusterCore"; }
 
 }  // namespace perception
 }  // namespace apollo

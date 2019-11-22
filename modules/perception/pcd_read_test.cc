@@ -1,8 +1,8 @@
-#include <iostream>
 #include <pcl/io/pcd_io.h>
+#include <iostream>
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr
-read_cloud_point(std::string const &file_path) {
+pcl::PointCloud<pcl::PointXYZ>::Ptr read_cloud_point(
+    std::string const &file_path) {
   // Loading first scan.
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
   if (pcl::io::loadPCDFile<pcl::PointXYZ>(file_path, *cloud) == -1) {

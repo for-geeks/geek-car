@@ -35,9 +35,9 @@
 #include "cyber/node/node.h"
 #include "cyber/node/writer.h"
 
+#include "modules/perception/euclidean_cluster_core.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
-#include "modules/perception/euclidean_cluster_core.h"
 
 namespace apollo {
 namespace sensors {
@@ -47,13 +47,19 @@ using apollo::cyber::Node;
 using apollo::cyber::Time;
 using apollo::cyber::Writer;
 using apollo::cyber::base::CCObjectPool;
+using apollo::perception::EuClusterCore;
 using apollo::sensors::Acc;
 using apollo::sensors::CompressedImage;
 using apollo::sensors::Gyro;
 using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
 using apollo::sensors::realsense::DeviceBase;
-using apollo::perception::EuClusterCore;
+
+// const transform by y 15 deg
+static const ::Eigen::Matrix4d transform =
+    (::Eigen::Matrix4d() << 1, -0, 0, 0, 0, 0.96596, 0.258691, 0, -0, -0.258691,
+     0.96596, 0, 0, 0, 0, 1)
+        .finished();
 
 class D435I : public DeviceBase {
  public:
@@ -69,7 +75,6 @@ class D435I : public DeviceBase {
   void OnColorImage(const rs2::frame &f);
   void OnDepthImage(const rs2::frame &f);
   void OnPointCloud(rs2::frame depth_frame);
-  void PointCloudTransform();
   void PublishPointCloud();
   std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
   std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
@@ -85,12 +90,10 @@ class D435I : public DeviceBase {
 
   // Declare object that handles camera pose calculations
   rotation_estimator algo_;
-  Eigen::Matrix4d transform;
-
   std::thread realsense_t1;
   std::thread realsense_t2;
 
-  EuClusterCore* core_ = nullptr;
+  EuClusterCore *core_ = nullptr;
 
   std::atomic<bool> stop_ = {false};
 };
