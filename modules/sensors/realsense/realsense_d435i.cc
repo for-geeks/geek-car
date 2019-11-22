@@ -217,8 +217,6 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
                         float(FLAGS_point_cloud_max_distance));
   depth_frame = thr_filter.process(depth_frame);
 
-  AWARN << "point_cloud_max_distance:" << FLAGS_point_cloud_max_distance;
-
   rs2::temporal_filter temp_filter;
   temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA,
                          float(FLAGS_temp_filter_alpha));

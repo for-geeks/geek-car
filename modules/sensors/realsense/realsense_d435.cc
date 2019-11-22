@@ -77,9 +77,6 @@ void D435::DeviceConfig() {
   cfg.enable_stream(RS2_STREAM_DEPTH, FLAGS_color_image_width,
                     FLAGS_color_image_height, RS2_FORMAT_Z16,
                     FLAGS_color_image_frequency);
-  // Add streams of gyro and accelerometer to configuration
-  cfg.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F);
-  cfg.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F);
 
   // Instruct pipeline to start streaming with the requested configuration
   auto profile = pipe.start(cfg);
@@ -106,16 +103,6 @@ void D435::InitChannelWriter(std::shared_ptr<Node> node_) {
   if (FLAGS_publish_point_cloud) {
     point_cloud_writer_ =
         node_->CreateWriter<PointCloud>(FLAGS_point_cloud_channel);
-  }
-
-  // acc channel
-  if (FLAGS_publish_realsense_acc) {
-    acc_writer_ = node_->CreateWriter<Acc>(FLAGS_realsense_acc_channel);
-  }
-
-  // gyro channel
-  if (FLAGS_publish_realsense_gyro) {
-    gyro_writer_ = node_->CreateWriter<Gyro>(FLAGS_realsense_gyro_channel);
   }
 
   // compreessed image channel
@@ -150,9 +137,6 @@ void D435::Run() {
     }
 
     if (FLAGS_publish_point_cloud) {
-      // Calculate the angle
-      PointCloudTransform();
-
       rs2::frame depth_frame = frames.get_depth_frame();
       OnPointCloud(depth_frame);
     }
@@ -203,42 +187,23 @@ void D435::OnDepthImage(const rs2::frame &f) {
 }
 
 void D435::OnPointCloud(rs2::frame depth_frame) {
-  rs2::threshold_filter thr_filter(
-      static_cast<float>(FLAGS_point_cloud_min_distance),
-      static_cast<float>(FLAGS_point_cloud_max_distance));
+  // Post processing
+  rs2::threshold_filter thr_filter;
 
+  thr_filter.set_option(RS2_OPTION_MIN_DISTANCE,
+                        float(FLAGS_point_cloud_min_distance));
+  thr_filter.set_option(RS2_OPTION_MAX_DISTANCE,
+                        float(FLAGS_point_cloud_max_distance));
   depth_frame = thr_filter.process(depth_frame);
 
   rs2::temporal_filter temp_filter;
+  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA,
+                         float(FLAGS_temp_filter_alpha));
+  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA,
+                         float(FLAGS_temp_filter_delta));
   depth_frame = temp_filter.process(depth_frame);
 
   filtered_data.enqueue(depth_frame);
-}
-
-void D435::PointCloudTransform() {
-  if (FLAGS_enable_point_cloud_transform) {
-    auto angle = algo_.get_theta();
-    AINFO << "CALCULATED ANGLE X:" << angle.x << " Z:" << angle.z;
-
-    transform = Eigen::Matrix4f::Identity();
-    ::Eigen::Vector3d ea0(0, angle.x, angle.z);
-    ::Eigen::Matrix3d R;
-    R = ::Eigen::AngleAxisd(ea0[0], ::Eigen::Vector3d::UnitZ()) *
-        ::Eigen::AngleAxisd(ea0[1], ::Eigen::Vector3d::UnitY()) *
-        ::Eigen::AngleAxisd(ea0[2], ::Eigen::Vector3d::UnitX());
-    std::cout << "ROTATION :" << R << std::endl << std::endl;
-    Eigen::MatrixXf RR = R.cast<float>();
-    transform(0, 0) = RR(0, 0);
-    transform(0, 1) = RR(0, 1);
-    transform(0, 2) = RR(0, 2);
-    transform(1, 0) = RR(1, 0);
-    transform(1, 1) = RR(1, 1);
-    transform(1, 2) = RR(1, 2);
-    transform(2, 0) = RR(2, 0);
-    transform(2, 1) = RR(2, 1);
-    transform(2, 2) = RR(2, 2);
-    std::cout << "TRANSFORM:" << transform << std::endl << std::endl;
-  }
 }
 
 void D435::PublishPointCloud() {
@@ -265,13 +230,10 @@ void D435::PublishPointCloud() {
     AINFO << "Time for realsense point to point cloud:" << t2 - t1;
 
     pcl_ptr cloud_(new pcl::PointCloud<pcl::PointXYZ>);
+    *cloud_ = *pcl_points;
 
-    if (FLAGS_enable_point_cloud_transform) {
-      // Apply an affine transform defined by an Eigen Transform.
-      pcl::transformPointCloud(*pcl_points, *cloud_, transform);
-    } else {
-      *cloud_ = *pcl_points;
-    }
+    pcl_ptr cloud_out(new pcl::PointCloud<pcl::PointXYZ>);
+    cloud_out->clear();
 
     std::shared_ptr<PointCloud> point_cloud_out =
         point_cloud_pool_->GetObject();
@@ -285,25 +247,43 @@ void D435::PublishPointCloud() {
       return;
     }
     point_cloud_out->Clear();
-
     point_cloud_out->set_is_dense(false);
     point_cloud_out->set_measurement_time(Time::Now().ToSecond());
-    point_cloud_out->set_width(FLAGS_color_image_width);
-    point_cloud_out->set_height(FLAGS_color_image_height);
-
+    int counter = 0;
+    AWARN << "POINT CLOUD SIZE :" << (*cloud_).size();
     for (size_t i = 0; i < (*cloud_).size(); i++) {
       if ((*cloud_)[i].z) {
-        apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
-        p->set_x((*cloud_)[i].x);
-        p->set_y((*cloud_)[i].y);
-        p->set_z((*cloud_)[i].z);
-        // p->set_intensity(0);
-        // p->set_timestamp(depth_frame.get_timestamp());
+        ::Eigen::Vector4d pos((*cloud_)[i].x, (*cloud_)[i].y, (*cloud_)[i].z,
+                              1);
+        auto pos_trans = transforms * pos;
+        if ((pos_trans[1] > -0.05) && (pos_trans[1] < 0.1) &&
+            (pos_trans[2] < 2)) {
+          if ((counter % 24) == 0) {
+            apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
+            if (FLAGS_save_pcd) {
+              cloud_out->push_back(
+                  pcl::PointXYZ(static_cast<float>(pos_trans[0]),
+                                static_cast<float>(pos_trans[1]),
+                                static_cast<float>(pos_trans[2])));
+            }
+            p->set_x(static_cast<float>(pos_trans[0]));
+            p->set_y(static_cast<float>(pos_trans[1]));
+            p->set_z(static_cast<float>(pos_trans[2]));
+          }
+          counter++;
+        }
       }
     }
+    point_cloud_out->set_width(point_cloud_out->point_size());
+    point_cloud_out->set_height(1);
 
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
+
+    if (FLAGS_save_pcd) {
+      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+      //                      *cloud_);
+    }
 
     point_cloud_writer_->Write(point_cloud_out);
   }

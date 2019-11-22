@@ -26,6 +26,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <thread>
 #include <typeinfo>
 #include <utility>
@@ -33,10 +34,12 @@
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
 
-#include "modules/sensors/realsense.h"
-
 namespace apollo {
 namespace sensors {
+
+std::map<std::string, int> device_map{{"Intel RealSense T265", 0},
+                                      {"Intel RealSense D435", 1},
+                                      {"Intel RealSense D435I", 2}};
 
 bool RealsenseComponent::Init() {
   // TODO(FENGZONGBAO): READ DEVICE CONFIG
@@ -55,15 +58,25 @@ void RealsenseComponent::InitDeviceAndSensor() {
   auto sensor = device_.first<rs2::depth_sensor>();
   RealSense::getSensorOption(sensor);
 
-  if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "T265")) {
-    device_object_ = new T265();
-  } else if (std::strstr(device_.get_info(RS2_CAMERA_INFO_NAME), "D435I")) {
-    device_object_ = new D435I();
-  } else {
-    AERROR << "The device data is not yet supported for parsing";
-  }
+  AWARN << "RS2 CAMERA INFO: " << device_.get_info(RS2_CAMERA_INFO_NAME);
+  std::string camera_info = device_.get_info(RS2_CAMERA_INFO_NAME);
 
-  AINFO << "INIT device OBJECT IS " << typeid(device_object_).name();
+  AWARN << "CAMERA MODEL: " << device_map[camera_info];
+  switch (device_map[camera_info]) {
+    case 0:
+      device_object_ = new T265();
+      break;
+    case 1:
+      device_object_ = new D435();
+      break;
+    case 2:
+      device_object_ = new D435I();
+      break;
+
+    default:
+      AERROR << "The device data is not yet supported for parsing";
+      break;
+  }
 
   // Channel writer
   if (!device_object_->Init(node_)) {

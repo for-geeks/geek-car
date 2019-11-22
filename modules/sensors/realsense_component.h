@@ -44,6 +44,7 @@
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/realsense/device_base.h"
+#include "modules/sensors/realsense/realsense_d435.h"
 #include "modules/sensors/realsense/realsense_d435i.h"
 #include "modules/sensors/realsense/realsense_t265.h"
 
@@ -53,6 +54,7 @@ namespace sensors {
 using apollo::control::Chassis;
 using apollo::cyber::Component;
 using apollo::sensors::PointCloud;
+using apollo::sensors::realsense::D435;
 using apollo::sensors::realsense::D435I;
 using apollo::sensors::realsense::DeviceBase;
 using apollo::sensors::realsense::T265;
@@ -67,7 +69,7 @@ class RealsenseComponent : public Component<> {
  private:
   rs2::device device_;  // realsense device
 
-  // realsense device model like T265 OR D435I
+  // realsense device model like T265\D435I\D435
   DeviceBase *device_object_;
 };
 

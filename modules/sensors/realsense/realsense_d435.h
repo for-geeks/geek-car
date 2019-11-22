@@ -54,6 +54,12 @@ using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
 using apollo::sensors::realsense::DeviceBase;
 
+// const transform by y 15 deg
+static const ::Eigen::Matrix4d transforms =
+    (::Eigen::Matrix4d() << 1, -0, 0, 0, 0, 0.96596, 0.258691, 0, -0, -0.258691,
+     0.96596, 0, 0, 0, 0, 1)
+        .finished();
+
 class D435 : public DeviceBase {
  public:
   D435(){};
@@ -68,7 +74,6 @@ class D435 : public DeviceBase {
   void OnColorImage(const rs2::frame &f);
   void OnDepthImage(const rs2::frame &f);
   void OnPointCloud(rs2::frame depth_frame);
-  void PointCloudTransform();
   void PublishPointCloud();
   std::shared_ptr<Writer<Image>> color_image_writer_ = nullptr;
   std::shared_ptr<Writer<Image>> depth_image_writer_ = nullptr;
@@ -81,10 +86,6 @@ class D435 : public DeviceBase {
 
   const int pool_size_ = 8;
   const int point_size_ = 160000;
-
-  // Declare object that handles camera pose calculations
-  rotation_estimator algo_;
-  Eigen::Matrix4f transform;
 
   std::thread realsense_t1;
   std::thread realsense_t2;

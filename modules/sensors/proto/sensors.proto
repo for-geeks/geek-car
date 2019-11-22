@@ -6,6 +6,7 @@ message RealSenseDeviceModel {
   enum DeviceModel {
     T265 = 0;
     D435I = 1;
+    D435 = 2;
   }
 }
 
