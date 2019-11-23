@@ -88,5 +88,6 @@ cc_library(
         "//cyber",
         "//modules/control/proto:control_cc_proto",
         "@opencv",
+        "@eigen",
     ],
 )

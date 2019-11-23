@@ -6,7 +6,8 @@ namespace apollo {
 namespace perception {
 using apollo::cyber::Time;
 
-void PbMsg2PointCloud(std::shared_ptr<PointCloud> pb_cloud, pcl_ptr pcl_pc) {
+void PbMsg2PointCloud(std::shared_ptr<PointCloud> pb_cloud,
+                      std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> pcl_pc) {
   if (pb_cloud->point_size() <= 0) {
     return;
   }
@@ -26,6 +27,18 @@ void PbMsg2PointCloud(std::shared_ptr<PointCloud> pb_cloud, pcl_ptr pcl_pc) {
 EuClusterCore::EuClusterCore(std::shared_ptr<Node> node_) {
   obstacles_writer_ =
       node_->CreateWriter<PerceptionObstacles>(FLAGS_obstacle_channel);
+
+  //  Concurrent object pool for point cloud
+  point_cloud_pool_.reset(
+      new CCObjectPool<pcl::PointCloud<pcl::PointXYZ>>(pool_size_));
+  point_cloud_pool_->ConstructAll();
+  for (int i = 0; i < pool_size_; i++) {
+    auto point_cloud = point_cloud_pool_->GetObject();
+    if (point_cloud == nullptr) {
+      AERROR << "Failed to Getobject, i: " << i;
+    }
+    point_cloud->points.resize(point_size_);
+  }
 }
 
 void EuClusterCore::VoxelGridFilter(pcl_ptr in, pcl_ptr out) {
@@ -47,7 +60,8 @@ void EuClusterCore::CropBoxFilter(pcl_ptr in, pcl_ptr out) {
 }
 
 void EuClusterCore::ClusterSegment(
-    pcl_ptr in_pc, double in_max_cluster_distance,
+    std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> in_pc,
+    double in_max_cluster_distance,
     std::shared_ptr<PerceptionObstacles> obstacles) {
   auto t1 = Time::Now().ToSecond();
 
@@ -152,9 +166,9 @@ void EuClusterCore::ClusterSegment(
 
     // // Position
     auto position = obj_info.mutable_position();
-    position->set_x(min_x + width_ / 2);
+    position->set_x(min_x + length_ / 2);
     position->set_y(min_y + height_ / 2);
-    position->set_z(min_z + length_ / 2);
+    position->set_z(min_z + width_ / 2);
 
     obj_info.set_length((length_ < 0) ? -1 * length_ : length_);
     obj_info.set_width((width_ < 0) ? -1 * width_ : width_);
@@ -165,7 +179,20 @@ void EuClusterCore::ClusterSegment(
         obj_info.mutable_position()->y() > -5 && obj_info.width() < 5 &&
         obj_info.mutable_position()->z() > 0.0) {
       auto next_obstacle = obstacles->add_perception_obstacle();
-      next_obstacle->CopyFrom(obj_info);
+      // next_obstacle->CopyFrom(obj_info);
+      next_obstacle->set_id(static_cast<int32_t>(i));
+      next_obstacle->mutable_bbox2d()->set_xmin(min_x);
+      next_obstacle->mutable_bbox2d()->set_xmax(max_x);
+      next_obstacle->mutable_bbox2d()->set_zmin(min_z);
+      next_obstacle->mutable_bbox2d()->set_zmax(max_z);
+
+      next_obstacle->set_length((length_ < 0) ? -1 * length_ : length_);
+      next_obstacle->set_width((width_ < 0) ? -1 * width_ : width_);
+      next_obstacle->set_height((height_ < 0) ? -1 * height_ : height_);
+
+      next_obstacle->mutable_position()->set_x(min_x + length_ / 2);
+      next_obstacle->mutable_position()->set_y(min_y + height_ / 2);
+      next_obstacle->mutable_position()->set_z(min_z + width_ / 2);
     } else {
       AINFO << "OBSTACLE SKIPPED :" << obj_info.DebugString();
       AINFO
@@ -177,12 +204,14 @@ void EuClusterCore::ClusterSegment(
 }
 
 void EuClusterCore::ClusterByDistance(
-    pcl_ptr in_pc, std::shared_ptr<PerceptionObstacles> obstacles) {
+    std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> in_pc,
+    std::shared_ptr<PerceptionObstacles> obstacles) {
   // cluster the pointcloud according to the distance of the points using
   // different thresholds (not only one for the entire pc) in this way, the
   // points farther in the pc will also be clustered
   std::vector<pcl_ptr> segment_pc_array(5);
-  pcl_ptr pc_array(new pcl::PointCloud<pcl::PointXYZ>);
+  std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> pc_array(
+      new pcl::PointCloud<pcl::PointXYZ>);
 
   for (size_t i = 0; i < segment_pc_array.size(); i++) {
     pcl_ptr tmp(new pcl::PointCloud<pcl::PointXYZ>);
@@ -224,6 +253,7 @@ void EuClusterCore::ClusterByDistance(
         << " CLUSTER DISTANCE:" << cluster_distance_[0]
         << " POINT SIZE IS :" << pc_array->points.size();
 
+  // Euclidean Cluster by different distance
   // for (size_t i = 0; i < segment_pc_array.size(); i++) {
   //   if(segment_pc_array[i]->points.size() <= 0) {
   //     continue;
@@ -237,22 +267,34 @@ void EuClusterCore::ClusterByDistance(
 
 void EuClusterCore::Proc(std::shared_ptr<PointCloud> in_cloud_ptr) {
   auto startTime = std::chrono::steady_clock::now();
-  pcl_ptr current_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>);
+  AINFO << "RECEIVED POINT SIZE IS : " << in_cloud_ptr->point_size();
+  std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> point_cloud_in_ptr =
+      point_cloud_pool_->GetObject();
+  if (point_cloud_in_ptr == nullptr) {
+    AWARN << "Point cloud pool return nullptr, will be create new.";
+    point_cloud_in_ptr = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    point_cloud_in_ptr->points.resize(point_size_);
+  }
+  if (point_cloud_in_ptr == nullptr) {
+    AWARN << "Point cloud out is nullptr";
+    return;
+  }
+  point_cloud_in_ptr->clear();
+  // pcl_ptr current_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>);
   // pcl_ptr voxel_grid_filtered_pc_ptr(new
   // pcl::PointCloud<pcl::PointXYZ>); pcl_ptr
   // CropBox_filtered_pc_ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
-  AINFO << "RECEIVED POINT SIZE IS : " << in_cloud_ptr->point_size();
-
-  PbMsg2PointCloud(in_cloud_ptr, current_pc_ptr);
+  PbMsg2PointCloud(in_cloud_ptr, point_cloud_in_ptr);
   // down sampling the point cloud before cluster
   // VoxelGridFilter(current_pc_ptr, current_pc_ptr);
   // CropBoxFilter(current_pc_ptr, current_pc_ptr);
-  AINFO << "BEFORE CLUSTER, POINT SIZE IS : " << current_pc_ptr->points.size();
+  AINFO << "BEFORE CLUSTER, POINT SIZE IS : "
+        << point_cloud_in_ptr->points.size();
 
   auto obstacles = std::make_shared<PerceptionObstacles>();
   // ClusterByDistance(filtered_pc_ptr, obstacles);
-  ClusterByDistance(current_pc_ptr, obstacles);
+  ClusterByDistance(point_cloud_in_ptr, obstacles);
   // ClusterByDistance(CropBox_filtered_pc_ptr, obstacles);
 
   AINFO << "OBSTACLES OUTPUT DEBUG MSG:" << obstacles->DebugString();

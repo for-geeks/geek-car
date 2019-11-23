@@ -16,6 +16,7 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/segmentation/sac_segmentation.h>
 
+#include "cyber/base/concurrent_object_pool.h"
 #include "cyber/common/log.h"
 #include "cyber/node/node.h"
 #include "cyber/node/writer.h"
@@ -31,6 +32,7 @@ namespace perception {
 
 using apollo::cyber::Node;
 using apollo::cyber::Writer;
+using apollo::cyber::base::CCObjectPool;
 using apollo::perception::PerceptionObstacle;
 using apollo::perception::PerceptionObstacles;
 using apollo::sensors::PointCloud;
@@ -51,15 +53,22 @@ class EuClusterCore {
   std::vector<double> seg_distance_ = {0.5, 0.9, 1.3, 1.7};
   std::vector<double> cluster_distance_ = {0.05, 0.055, 0.060, 0.065, 0.07};
 
+  std::shared_ptr<CCObjectPool<pcl::PointCloud<pcl::PointXYZ>>>
+      point_cloud_pool_ = nullptr;
+
+  const int pool_size_ = 8;
+  const int point_size_ = 1000;
+
   // 聚类是一个费时运算，为了减少计算量，我们通常先进行降采样
   void VoxelGridFilter(pcl_ptr in, pcl_ptr out);
 
   void CropBoxFilter(pcl_ptr in, pcl_ptr out);
 
-  void ClusterByDistance(pcl_ptr in_pc,
+  void ClusterByDistance(std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> in_pc,
                          std::shared_ptr<PerceptionObstacles> obstacles);
 
-  void ClusterSegment(pcl_ptr in_pc, double in_max_cluster_distance,
+  void ClusterSegment(std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> in_pc,
+                      double in_max_cluster_distance,
                       std::shared_ptr<PerceptionObstacles> obstacles);
 };
 

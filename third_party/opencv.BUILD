@@ -12,5 +12,6 @@ cc_library(
         "-lopencv_highgui",
         "-lopencv_imgproc",
         "-lopencv_imgcodecs",
+        "-lopencv_calib3d",
     ],
 )

@@ -27,6 +27,9 @@
 #include <string>
 #include <vector>
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 
@@ -49,6 +52,12 @@ using apollo::cyber::Writer;
 using apollo::sensors::CompressedImage;
 using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
+
+// const transform by y 15 deg
+static const ::Eigen::Matrix4d transform =
+    (::Eigen::Matrix4d() << 1, -0, 0, 0, 0, 0.96596, 0.258691, 0, -0, -0.258691,
+     0.96596, 0, 0, 0, 0, 1)
+        .finished();
 
 class DeviceBase {
  public:

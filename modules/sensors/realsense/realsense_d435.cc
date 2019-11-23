@@ -255,7 +255,7 @@ void D435::PublishPointCloud() {
       if ((*cloud_)[i].z) {
         ::Eigen::Vector4d pos((*cloud_)[i].x, (*cloud_)[i].y, (*cloud_)[i].z,
                               1);
-        auto pos_trans = transforms * pos;
+        auto pos_trans = transform * pos;
         if ((pos_trans[1] > -0.05) && (pos_trans[1] < 0.1) &&
             (pos_trans[2] < 2)) {
           if ((counter % 24) == 0) {
@@ -281,8 +281,10 @@ void D435::PublishPointCloud() {
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
 
     if (FLAGS_save_pcd) {
-      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-      //                      *cloud_);
+#ifdef __aarch64__
+      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+                           *cloud_out);
+#endif
     }
 
     point_cloud_writer_->Write(point_cloud_out);
@@ -290,7 +292,6 @@ void D435::PublishPointCloud() {
 }
 
 D435::~D435() {
-  // delete data members
   AINFO << "Destructor from D435";
 
   if (!stop_.load()) {

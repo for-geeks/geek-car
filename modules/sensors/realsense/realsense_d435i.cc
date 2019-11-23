@@ -35,7 +35,7 @@
 #include "pcl/io/pcd_io.h"
 #include "pcl/visualization/cloud_viewer.h"
 
-#if 1
+#if 0
 #include "pcl/visualization/pcl_visualizer.h"
 #endif
 
@@ -49,7 +49,7 @@ namespace realsense {
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 bool D435I::Init(std::shared_ptr<Node> node_) {
-  core_ = new EuClusterCore(node_);
+  // core_ = new EuClusterCore(node_);
   // 1. Init Device
   DeviceConfig();
   // 2. Channel Writer Config
@@ -246,11 +246,9 @@ void D435I::PublishPointCloud() {
     points = pc.calculate(depth_frame);
 
     auto t1 = Time::Now().ToSecond();
-    auto pcl_points = points_to_pcl(points);
+    auto cloud_ = points_to_pcl(points);
     auto t2 = Time::Now().ToSecond();
     AWARN << "Time for realsense point to point cloud:" << t2 - t1;
-
-    pcl_ptr cloud_(new pcl::PointCloud<pcl::PointXYZ>);
 
     if (FLAGS_enable_point_cloud_transform) {
       // auto t3 = Time::Now().ToSecond();
@@ -259,7 +257,6 @@ void D435I::PublishPointCloud() {
       // auto t4 = Time::Now().ToSecond();
       // AWARN << "Time for point cloud transform:" << t4 - t3;
     }
-    *cloud_ = *pcl_points;
     pcl_ptr cloud_out(new pcl::PointCloud<pcl::PointXYZ>);
     cloud_out->clear();
 
@@ -363,19 +360,20 @@ void D435I::PublishPointCloud() {
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
 
+#ifdef __aarch64__
     if (FLAGS_save_pcd) {
-      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-      //                      *cloud_);
+      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+                           *cloud_out);
     }
+#endif
 
-    core_->Proc(point_cloud_out);
+    // core_->Proc(point_cloud_out);
 
     point_cloud_writer_->Write(point_cloud_out);
   }
 }
 
 D435I::~D435I() {
-  // delete data members
   AINFO << "Destructor from D435I";
 
   if (!stop_.load()) {

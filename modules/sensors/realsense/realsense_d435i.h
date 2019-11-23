@@ -55,12 +55,6 @@ using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
 using apollo::sensors::realsense::DeviceBase;
 
-// const transform by y 15 deg
-static const ::Eigen::Matrix4d transform =
-    (::Eigen::Matrix4d() << 1, -0, 0, 0, 0, 0.96596, 0.258691, 0, -0, -0.258691,
-     0.96596, 0, 0, 0, 0, 1)
-        .finished();
-
 class D435I : public DeviceBase {
  public:
   D435I(){};
@@ -86,14 +80,12 @@ class D435I : public DeviceBase {
   rs2::frame_queue filtered_data;
 
   const int pool_size_ = 8;
-  const int point_size_ = 160000;
+  const int point_size_ = 10000;
 
-  // Declare object that handles camera pose calculations
-  rotation_estimator algo_;
   std::thread realsense_t1;
   std::thread realsense_t2;
 
-  EuClusterCore *core_ = nullptr;
+  // EuClusterCore *core_ = nullptr;
 
   std::atomic<bool> stop_ = {false};
 };

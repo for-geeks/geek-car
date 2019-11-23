@@ -23,14 +23,6 @@
 ******************************************************************************/
 #include "modules/sensors/realsense_component.h"
 
-#include <chrono>
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <thread>
-#include <typeinfo>
-#include <utility>
-
 #include "cyber/common/log.h"
 #include "cyber/cyber.h"
 
