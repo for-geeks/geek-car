@@ -10,10 +10,6 @@ cc_library(
         "-DMODULE_NAME=\\\"sensors\\\"",
     ],
     linkopts = [
-        "-lopencv_core",
-        "-lopencv_imgproc",
-        "-lopencv_calib3d",
-        "-lopencv_highgui",
         "-lrealsense2",
     ],
     deps = [
@@ -25,6 +21,7 @@ cc_library(
         "//modules/sensors/proto:sensors_cc_proto",
         "@eigen",
         "@pcl",
+        "@opencv",
     ],
 )
 
@@ -38,10 +35,6 @@ cc_library(
         "-DMODULE_NAME=\\\"sensors\\\"",
     ],
     linkopts = [
-        "-lopencv_core",
-        "-lopencv_imgproc",
-        "-lopencv_calib3d",
-        "-lopencv_highgui",
         "-lrealsense2",
     ],
     deps = [
@@ -55,6 +48,7 @@ cc_library(
         "@eigen",
         "@pcl",
         "@vtk",
+        "@opencv",
     ],
 )
 
@@ -68,10 +62,6 @@ cc_library(
         "-DMODULE_NAME=\\\"sensors\\\"",
     ],
     linkopts = [
-        "-lopencv_core",
-        "-lopencv_imgproc",
-        "-lopencv_calib3d",
-        "-lopencv_highgui",
         "-lrealsense2",
     ],
     deps = [
@@ -81,6 +71,7 @@ cc_library(
         "//modules/sensors:realsense_api",
         "//modules/sensors:realsense_motion",
         "//modules/sensors/proto:sensors_cc_proto",
+        "@opencv",
     ],
 )
 
@@ -91,14 +82,11 @@ cc_library(
         "-DMODULE_NAME=\\\"sensors\\\"",
     ],
     linkopts = [
-        "-lopencv_core",
-        "-lopencv_imgproc",
-        "-lopencv_calib3d",
-        "-lopencv_highgui",
         "-lrealsense2",
     ],
     deps = [
         "//cyber",
         "//modules/control/proto:control_cc_proto",
+        "@opencv",
     ],
 )

@@ -37,9 +37,6 @@ cc_library(
         "//modules/sensors/realsense:device_base",
         "//modules/sensors/realsense:t265_lib",
         "//modules/sensors/realsense:d435_lib",
-        "@eigen",
-        "@opencv",
-        "@pcl",
     ],
 )
 

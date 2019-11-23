@@ -23,16 +23,10 @@
 ******************************************************************************/
 #pragma once
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
 #include <memory>
 #include <string>
 
 #include "librealsense2/rs.hpp"
-#include "opencv2/opencv.hpp"
-#include "pcl/point_cloud.h"
-#include "pcl/point_types.h"
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
