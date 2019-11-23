@@ -49,7 +49,6 @@ namespace realsense {
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 
 bool D435I::Init(std::shared_ptr<Node> node_) {
-  // core_ = new EuClusterCore(node_);
   // 1. Init Device
   DeviceConfig();
   // 2. Channel Writer Config
@@ -366,8 +365,6 @@ void D435I::PublishPointCloud() {
                            *cloud_out);
     }
 #endif
-
-    // core_->Proc(point_cloud_out);
 
     point_cloud_writer_->Write(point_cloud_out);
   }

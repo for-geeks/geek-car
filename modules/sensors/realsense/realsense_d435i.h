@@ -85,8 +85,6 @@ class D435I : public DeviceBase {
   std::thread realsense_t1;
   std::thread realsense_t2;
 
-  // EuClusterCore *core_ = nullptr;
-
   std::atomic<bool> stop_ = {false};
 };
 }  // namespace realsense

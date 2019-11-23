@@ -143,14 +143,7 @@ void EuClusterCore::ClusterSegment(
 
     AWARN << "MIN_X:" << min_x << " MAX_X: " << max_x;
 
-    obj_info.set_id(static_cast<int32_t>(i));
-
     // min, max points
-    auto bbox2d = obj_info.mutable_bbox2d();
-    bbox2d->set_xmin(min_x);
-    bbox2d->set_zmin(min_z);
-    bbox2d->set_xmax(max_x);
-    bbox2d->set_zmax(max_z);
 
     // calculate centroid, average
     // if (local_indices[i].indices.size() > 0) {
