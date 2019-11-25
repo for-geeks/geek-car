@@ -68,7 +68,7 @@ class EuClusterCore {
                          std::shared_ptr<PerceptionObstacles> obstacles);
 
   void ClusterSegment(std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> in_pc,
-                      double in_max_cluster_distance,
+                      double cluster_distance,
                       std::shared_ptr<PerceptionObstacles> obstacles);
 };
 

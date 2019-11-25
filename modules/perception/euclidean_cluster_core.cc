@@ -61,8 +61,7 @@ void EuClusterCore::CropBoxFilter(pcl_ptr in, pcl_ptr out) {
 
 void EuClusterCore::ClusterSegment(
     std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> in_pc,
-    double in_max_cluster_distance,
-    std::shared_ptr<PerceptionObstacles> obstacles) {
+    double cluster_distance, std::shared_ptr<PerceptionObstacles> obstacles) {
   auto t1 = Time::Now().ToSecond();
 
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
@@ -99,7 +98,7 @@ void EuClusterCore::ClusterSegment(
 
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> euclid;
   euclid.setInputCloud(cloud_2d);
-  euclid.setClusterTolerance(in_max_cluster_distance);
+  euclid.setClusterTolerance(cluster_distance);
   euclid.setMinClusterSize(MIN_CLUSTER_SIZE);
   euclid.setMaxClusterSize(MAX_CLUSTER_SIZE);
   euclid.setSearchMethod(tree);
