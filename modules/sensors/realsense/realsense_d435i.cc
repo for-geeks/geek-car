@@ -30,14 +30,11 @@
 #include <vector>
 
 #include <pcl/filters/voxel_grid.h>
-#include "pcl/common/transforms.h"
-#include "pcl/filters/passthrough.h"
-#include "pcl/io/pcd_io.h"
-#include "pcl/visualization/cloud_viewer.h"
-
-#if 0
-#include "pcl/visualization/pcl_visualizer.h"
-#endif
+#include <pcl/common/transforms.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 #include "modules/common/global_gflags.h"
 #include "modules/sensors/realsense.h"
@@ -72,7 +69,7 @@ bool D435I::Init(std::shared_ptr<Node> node_) {
   // 4.2 Thread to get point cloud from frame queue, and publish
   realsense_t2 = std::thread(&D435I::PublishPointCloud, this);
 
-  AINFO << "Realsense Device D435I Init Successfuly";
+  AINFO << "Realsense Device D435I Init Successfully";
   return true;
 }
 
@@ -141,9 +138,13 @@ void D435I::Run() {
     rs2::frame color_frame = frames.get_color_frame();
     OnColorImage(color_frame);
 
+    rs2::frame depth_frame = frames.get_depth_frame();
     if (FLAGS_publish_depth_image) {
-      rs2::frame depth_frame = frames.get_depth_frame();
       OnDepthImage(depth_frame);
+    }
+
+    if (FLAGS_publish_point_cloud) {
+      OnPointCloud(depth_frame);
     }
 
     if (FLAGS_publish_realsense_acc) {
@@ -154,11 +155,6 @@ void D435I::Run() {
     if (FLAGS_publish_realsense_gyro) {
       rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
       OnGyro(gyro_frame);
-    }
-
-    if (FLAGS_publish_point_cloud) {
-      rs2::frame depth_frame = frames.get_depth_frame();
-      OnPointCloud(depth_frame);
     }
   }
 }
@@ -359,12 +355,10 @@ void D435I::PublishPointCloud() {
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
 
-#ifdef __aarch64__
     if (FLAGS_save_pcd) {
       pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
                            *cloud_out);
     }
-#endif
 
     point_cloud_writer_->Write(point_cloud_out);
   }

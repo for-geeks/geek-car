@@ -64,7 +64,7 @@ bool D435::Init(std::shared_ptr<Node> node_) {
   // 4.2 Thread to get point cloud from frame queue, and publish
   realsense_t2 = std::thread(&D435::PublishPointCloud, this);
 
-  AINFO << "Realsense Device D435 Init Successfuly";
+  AINFO << "Realsense Device D435 Init Successfully";
   return true;
 }
 
@@ -121,9 +121,13 @@ void D435::Run() {
     rs2::frame color_frame = frames.get_color_frame();
     OnColorImage(color_frame);
 
+    rs2::frame depth_frame = frames.get_depth_frame();
     if (FLAGS_publish_depth_image) {
-      rs2::frame depth_frame = frames.get_depth_frame();
       OnDepthImage(depth_frame);
+    }
+
+    if (FLAGS_publish_point_cloud) {
+      OnPointCloud(depth_frame);
     }
 
     if (FLAGS_publish_realsense_acc) {
@@ -134,11 +138,6 @@ void D435::Run() {
     if (FLAGS_publish_realsense_gyro) {
       rs2::motion_frame gyro_frame = frames.first_or_default(RS2_STREAM_GYRO);
       OnGyro(gyro_frame);
-    }
-
-    if (FLAGS_publish_point_cloud) {
-      rs2::frame depth_frame = frames.get_depth_frame();
-      OnPointCloud(depth_frame);
     }
   }
 }
