@@ -29,9 +29,9 @@
 #include <string>
 #include <vector>
 
-#include <pcl/filters/voxel_grid.h>
 #include <pcl/common/transforms.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/visualization/pcl_visualizer.h>
@@ -204,19 +204,14 @@ void D435I::OnDepthImage(const rs2::frame &f) {
 
 void D435I::OnPointCloud(rs2::frame depth_frame) {
   // Post processing
-  rs2::threshold_filter thr_filter;
-
-  thr_filter.set_option(RS2_OPTION_MIN_DISTANCE,
-                        float(FLAGS_point_cloud_min_distance));
-  thr_filter.set_option(RS2_OPTION_MAX_DISTANCE,
-                        float(FLAGS_point_cloud_max_distance));
+  rs2::threshold_filter thr_filter(
+      static_cast<float>(FLAGS_point_cloud_min_distance),
+      static_cast<float>(FLAGS_point_cloud_max_distance));
   depth_frame = thr_filter.process(depth_frame);
 
-  rs2::temporal_filter temp_filter;
-  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA,
-                         float(FLAGS_temp_filter_alpha));
-  temp_filter.set_option(RS2_OPTION_FILTER_SMOOTH_DELTA,
-                         float(FLAGS_temp_filter_delta));
+  rs2::temporal_filter temp_filter(static_cast<float>(FLAGS_temp_filter_alpha),
+                                   static_cast<float>(FLAGS_temp_filter_delta),
+                                   0);
   depth_frame = temp_filter.process(depth_frame);
 
   filtered_data.enqueue(depth_frame);
@@ -354,11 +349,10 @@ void D435I::PublishPointCloud() {
 
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
-
-    if (FLAGS_save_pcd) {
-      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-                           *cloud_out);
-    }
+#ifdef __aarch64__
+    pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+                         *cloud_out);
+#endif
 
     point_cloud_writer_->Write(point_cloud_out);
   }
