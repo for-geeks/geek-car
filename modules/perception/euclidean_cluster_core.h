@@ -24,7 +24,7 @@
 #include "modules/perception/proto/perception_obstacle.pb.h"
 #include "modules/sensors/proto/pointcloud.pb.h"
 
-#define MIN_CLUSTER_SIZE 1
+#define MIN_CLUSTER_SIZE 50
 #define MAX_CLUSTER_SIZE 500
 
 namespace apollo {

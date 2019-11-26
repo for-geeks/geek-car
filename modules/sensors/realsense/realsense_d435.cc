@@ -29,8 +29,9 @@
 #include <string>
 #include <vector>
 
-#include <pcl/common/transforms.h>
-#include <pcl/filters/passthrough.h>
+#include "pcl/common/transforms.h"
+#include "pcl/filters/passthrough.h"
+#include "pcl/io/pcd_io.h"
 
 #include "modules/common/global_gflags.h"
 
@@ -279,11 +280,9 @@ void D435::PublishPointCloud() {
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
 
-    if (FLAGS_save_pcd) {
-#ifdef __aarch64__
+    if (FLAGS_save_pcd && cloud_out->points.size() > 0) {
       pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
                            *cloud_out);
-#endif
     }
 
     point_cloud_writer_->Write(point_cloud_out);

@@ -83,6 +83,7 @@ DEFINE_bool(publish_nooploop_acc, true,
 DEFINE_bool(publish_nooploop_gyro, true,
             "enable publish gyro for device nooploop");
 DEFINE_bool(save_pcd, false, "save pcl data");
+DEFINE_bool(pcl_visualization, false, "pcl_visualization");
 
 // const
 DEFINE_double(cruise_speed, 0.5, "cruise speed ");

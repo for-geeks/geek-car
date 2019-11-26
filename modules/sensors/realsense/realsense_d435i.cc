@@ -29,12 +29,12 @@
 #include <string>
 #include <vector>
 
-#include <pcl/common/transforms.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/visualization/cloud_viewer.h>
-#include <pcl/visualization/pcl_visualizer.h>
+#include "pcl/common/transforms.h"
+#include "pcl/filters/passthrough.h"
+#include "pcl/filters/voxel_grid.h"
+#include "pcl/io/pcd_io.h"
+#include "pcl/visualization/cloud_viewer.h"
+#include "pcl/visualization/pcl_visualizer.h"
 
 #include "modules/common/global_gflags.h"
 #include "modules/sensors/realsense.h"
@@ -281,29 +281,29 @@ void D435I::PublishPointCloud() {
     AWARN << "Time for Y PASSTHROUGH :" << t8 - t7;
 #endif
 
-#if 0
-    // PCL VISUALIZATION TEST
-    ///////////////////////////////////////////////////////////////////////////
-    std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(
-        new pcl::visualization::PCLVisualizer("3D Viewer"));
-    viewer->setBackgroundColor(0, 0, 0);
-    pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ>
-        target_color(cloud_, 255, 0, 0);
-    viewer->addPointCloud<pcl::PointXYZ>(cloud_, target_color, "target cloud");
-    viewer->setPointCloudRenderingProperties(
-        pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "target cloud");
+    if (FLAGS_pcl_visualization) {
+      // PCL VISUALIZATION
+      std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(
+          new pcl::visualization::PCLVisualizer("3D Viewer"));
+      viewer->setBackgroundColor(0, 0, 0);
+      pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ>
+          target_color(cloud_, 255, 0, 0);
+      viewer->addPointCloud<pcl::PointXYZ>(cloud_, target_color,
+                                           "target cloud");
+      viewer->setPointCloudRenderingProperties(
+          pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "target cloud");
 
-    // Starting Visualizer
-    viewer->addCoordinateSystem(1.0, "global");
-    viewer->initCameraParameters();
-    // Wait until visualizer window is closed.
-    while (!viewer->wasStopped()) {
-      viewer->updatePointCloud<pcl::PointXYZ>(cloud_, target_color, "new point cloud");
-      viewer->spinOnce(100);
-      // std::this_thread::sleep_for(std::chrono::microseconds(100000));
+      // Starting Visualizer
+      viewer->addCoordinateSystem(1.0, "global");
+      viewer->initCameraParameters();
+      // Wait until visualizer window is closed.
+      while (!viewer->wasStopped()) {
+        viewer->updatePointCloud<pcl::PointXYZ>(cloud_, target_color,
+                                                "new point cloud");
+        viewer->spinOnce(100);
+        // std::this_thread::sleep_for(std::chrono::microseconds(100000));
+      }
     }
-    ///////////////////////////////////////////////////////////////////////////
-#endif
 
     std::shared_ptr<PointCloud> point_cloud_out =
         point_cloud_pool_->GetObject();
@@ -349,10 +349,11 @@ void D435I::PublishPointCloud() {
 
     auto tt = Time::Now().ToSecond();
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
-#ifdef __aarch64__
-    pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-                         *cloud_out);
-#endif
+
+    if (FLAGS_save_pcd && cloud_out->points.size() > 0) {
+      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+                           *cloud_out);
+    }
 
     point_cloud_writer_->Write(point_cloud_out);
   }

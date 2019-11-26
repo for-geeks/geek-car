@@ -74,6 +74,7 @@ DECLARE_bool(publish_nooploop_acc);
 DECLARE_bool(publish_nooploop_gyro);
 
 DECLARE_bool(save_pcd);
+DECLARE_bool(pcl_visualization);
 
 // CONST
 DECLARE_double(cruise_speed);
