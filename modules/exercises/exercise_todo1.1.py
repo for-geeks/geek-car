@@ -25,7 +25,7 @@ class Exercise(object):
 if __name__ == '__main__':
     cyber.init()
     # TODO update node to your name
-    exercise_node = cyber.Node("your_name")
+    exercise_node = cyber.Node("exercise1_node_name")
     exercise = Exercise(exercise_node)
 
     exercise_node.spin()

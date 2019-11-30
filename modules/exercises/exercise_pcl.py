@@ -25,16 +25,8 @@ class Exercise(object):
 
         # TODO create reader
         self.node.create_reader("/realsense/point_cloud", Image, self.callback)
-        # TODO create writer
 
     def callback(self, data):
-        # TODO
-        print(data.frame_no)
-        # TODO reshape
-        #self.msg = data
-        #self.msg.data = util.reshape(data.data)
-        # TODO publish, write to channel
-        #self.write_to_channel()
         # pcl::PointCloud<pcl::PointXYZRGB> cloud;
         cloud = pcl.PointCloud_PointXYZRGB()
 
@@ -87,10 +79,6 @@ class Exercise(object):
         # pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
         inliers, model = seg.segment()
 
-        # if inliers.size
-        #   return
-        # end
-
         print(model)
         # std::cerr << "Model coefficients: " << coefficients->values[0] << " "
         # << coefficients->values[1] << " "
@@ -122,10 +110,6 @@ class Exercise(object):
         v = True
         while v:
             v = not(visual.WasStopped())
-
-    def write_to_channel(self):
-        # TODO
-        self.writer.write(self.msg)
 
 
 if __name__ == '__main__':

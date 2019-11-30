@@ -16,23 +16,23 @@ class Exercise(object):
         self.node = node
         self.msg = Image()
 
-        # TODO create reader
-        self.node.create_reader("/realsense/raw_image", Image, self.callback)
-        # TODO create writer
+        # create reader
+        self.node.create_reader("/realsense/color_image", Image, self.callback)
+        # create writer
         self.writer = self.node.create_writer(
-            "/realsense/compressed_image", Image)
+            "/realsense/color_image/compressed", Image)
 
     def callback(self, data):
-        # TODO
+        # print frame number
         print(data.frame_no)
-        # TODO reshape
+        # api to reshape image
         self.msg = data
         self.msg.data = util.reshape(data.data)
-        # TODO publish, write to channel
+        # publish, write to channel
         self.write_to_channel()
 
     def write_to_channel(self):
-        # TODO
+        # write compressed image
         self.writer.write(self.msg)
 
 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     cyber.init()
 
     # TODO update node to your name
-    exercise_node = cyber.Node("your_name")
+    exercise_node = cyber.Node("exercise1_node_name")
     exercise = Exercise(exercise_node)
 
     exercise_node.spin()
