@@ -1,6 +1,6 @@
 # Dag all comes in DAG streming.
 module_config {
-  module_library : "../bazel-bin/modules/control/tools/libcalibration_component.so"
+  module_library : "/apollo/bazel-bin/modules/control/tools/libcalibration_component.so"
   components {
     class_name : "CalibrationComponent"
     config {

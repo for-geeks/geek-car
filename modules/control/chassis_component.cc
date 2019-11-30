@@ -130,7 +130,7 @@ void ChassisComponent::OnChassis() {
       auto proto_chassis = std::make_shared<Chassis>();
       proto_chassis->set_steer_angle(vehicle_info.steerangle);
       proto_chassis->set_throttle(vehicle_info.throttle);
-      proto_chassis->set_speed(vehicle_info.speed_now / 5544 *
+      proto_chassis->set_speed(vehicle_info.speed_now *
                                static_cast<float>(FLAGS_speed_feedback));
       proto_chassis->set_v_bat(vehicle_info.v_bat);
       proto_chassis->set_nano_current(vehicle_info.nano_current);
