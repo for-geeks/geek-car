@@ -99,6 +99,8 @@ DECLARE_double(angle_x);
 DECLARE_double(angle_y);
 DECLARE_double(angle_z);
 DECLARE_double(leaf_size);
+DECLARE_int32(min_cluster_size);
+DECLARE_int32(max_cluster_size);
 
 // IMAGE
 DECLARE_int32(compress_rate);

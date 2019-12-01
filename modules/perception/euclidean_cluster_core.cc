@@ -1,3 +1,26 @@
+/******************************************************************************
+ * MIT License
+
+ * Copyright (c) 2019 Geekstyle
+
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+******************************************************************************/
 #include "modules/perception/euclidean_cluster_core.h"
 
 #include <math.h>
@@ -99,8 +122,8 @@ void EuClusterCore::ClusterSegment(
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> euclid;
   euclid.setInputCloud(cloud_2d);
   euclid.setClusterTolerance(cluster_distance);
-  euclid.setMinClusterSize(MIN_CLUSTER_SIZE);
-  euclid.setMaxClusterSize(MAX_CLUSTER_SIZE);
+  euclid.setMinClusterSize(FLAGS_min_cluster_size);
+  euclid.setMaxClusterSize(FLAGS_max_cluster_size);
   euclid.setSearchMethod(tree);
   euclid.extract(local_indices);
   AWARN << "AFTER EUCLIDEAN CLUSTER EXTRACTION, INDICES IS: "
@@ -110,7 +133,7 @@ void EuClusterCore::ClusterSegment(
 
   for (size_t i = 0; i < local_indices.size(); i++) {
     // the structure to save one detected object
-    PerceptionObstacle obj_info;
+    // PerceptionObstacle obj_info;
 
     float min_x = std::numeric_limits<float>::max();  //编译器允许的最大值
     float max_x = -std::numeric_limits<float>::max();
@@ -140,8 +163,6 @@ void EuClusterCore::ClusterSegment(
       if (p.z > max_z) max_z = p.z;
     }
 
-    AWARN << "MIN_X:" << min_x << " MAX_X: " << max_x;
-
     // min, max points
 
     // calculate centroid, average
@@ -157,24 +178,21 @@ void EuClusterCore::ClusterSegment(
     double height_ = max_y - min_y;
 
     // // Position
-    auto position = obj_info.mutable_position();
-    position->set_x(min_x + length_ / 2);
-    position->set_y(min_y + height_ / 2);
-    position->set_z(min_z + width_ / 2);
+    // auto position = obj_info.mutable_position();
+    auto position_x = min_x + length_ / 2;
+    auto position_y = min_y + height_ / 2;
+    auto position_z = min_z + width_ / 2;
 
-    obj_info.set_length((length_ < 0) ? -1 * length_ : length_);
-    obj_info.set_width((width_ < 0) ? -1 * width_ : width_);
-    obj_info.set_height((height_ < 0) ? -1 * height_ : height_);
+    auto real_length = (length_ < 0) ? -1 * length_ : length_;
+    auto real_width = (width_ < 0) ? -1 * width_ : width_;
+    auto real_height = (height_ < 0) ? -1 * height_ : height_;
 
-    // Length < 5, width < 5, height > 0.2 for now
-    if (obj_info.length() < 5 && obj_info.mutable_position()->y() < 8 &&
-        obj_info.mutable_position()->y() > -5 && obj_info.width() < 5 &&
-        obj_info.mutable_position()->z() > 0.0) {
+    // Length < 5, width < 5 for now
+    if (real_length > 0.03&& real_length < 5  &&  real_width > 0.03 && real_width < 5) {
       auto next_obstacle = obstacles->add_perception_obstacle();
-      // next_obstacle->CopyFrom(obj_info);
       next_obstacle->set_id(static_cast<int32_t>(i));
       next_obstacle->mutable_bbox2d()->set_xmin(min_x);
-      next_obstacle->mutable_bbox2d()->set_xmax(max_x);
+      next_obstacle->mutable_bbox2d()->set_xmax(max_x);  
       next_obstacle->mutable_bbox2d()->set_zmin(min_z);
       next_obstacle->mutable_bbox2d()->set_zmax(max_z);
 
@@ -186,7 +204,7 @@ void EuClusterCore::ClusterSegment(
       next_obstacle->mutable_position()->set_y(min_y + height_ / 2);
       next_obstacle->mutable_position()->set_z(min_z + width_ / 2);
     } else {
-      AINFO << "OBSTACLE SKIPPED :" << obj_info.DebugString();
+      // AINFO << "OBSTACLE SKIPPED :" << obj_info.DebugString();
       AINFO
           << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP FOR THIS CLUSTER";
     }

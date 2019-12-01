@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane(
       new pcl::PointCloud<pcl::PointXYZ>());
 
-  //   pcl::PCDWriter writer;
+  pcl::PCDWriter writer;
   seg.setOptimizeCoefficients(true);
   seg.setModelType(pcl::SACMODEL_PLANE);  //分割模型
   seg.setMethodType(pcl::SAC_RANSAC);     //随机参数估计方法
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     std::cout << "PointCloud representing the planar component: "
               << cloud_plane->points.size() << " data points." << std::endl;
 
-    //  // 移去平面局内点，提取剩余点云
+    // 移去平面局内点，提取剩余点云
     extract.setNegative(true);
     extract.filter(*cloud_f);
     *cloud_filtered = *cloud_f;
@@ -134,7 +134,9 @@ int main(int argc, char **argv) {
               << cloud_cluster->points.size() << " data points." << std::endl;
     std::stringstream ss;
     ss << "cloud_cluster_" << j << ".pcd";
-    // writer.write<pcl::PointXYZ>(ss.str(), *cloud_cluster, false);
+    if (cloud_cluster->points.size() > 0) {
+      writer.write<pcl::PointXYZ>(ss.str(), *cloud_cluster, false);
+    }
 
     // Result visualization
     j++;
@@ -145,8 +147,10 @@ int main(int argc, char **argv) {
   auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
       endTime - startTime);
   std::cout << "Euclidean Cluster Extraction took " << elapsedTime.count()
-            << "milliseconds" << std::endl;
-  // pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
+            << " milliseconds" << std::endl;
+  if (add_cloud->points.size()) {
+    pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
+  }
 
   return 0;
 }

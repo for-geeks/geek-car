@@ -240,46 +240,9 @@ void D435I::PublishPointCloud() {
     auto t2 = Time::Now().ToSecond();
     AWARN << "Time for realsense point to point cloud:" << t2 - t1;
 
-    if (FLAGS_enable_point_cloud_transform) {
-      // auto t3 = Time::Now().ToSecond();
-      // Apply an affine transform defined by an Eigen Transform.
-      // pcl::transformPointCloud(*pcl_points, *cloud_, transform);
-      // auto t4 = Time::Now().ToSecond();
-      // AWARN << "Time for point cloud transform:" << t4 - t3;
-    }
+    // Point Cloud save
     pcl_ptr cloud_out(new pcl::PointCloud<pcl::PointXYZ>);
     cloud_out->clear();
-
-#if 0
-    auto t5 = Time::Now().ToSecond();
-    // 下采样，体素叶子大小为0.01
-    pcl::VoxelGrid<pcl::PointXYZ> vg;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(
-        new pcl::PointCloud<pcl::PointXYZ>);
-    vg.setInputCloud(cloud_);
-    vg.setLeafSize(float(FLAGS_leaf_size), float(FLAGS_leaf_size),
-                   float(FLAGS_leaf_size));
-    vg.filter(*cloud_filtered);
-    std::cout << "PointCloud after Voxel Grid filtering has: "
-              << cloud_filtered->points.size() << " data points." << std::endl;
-    auto t6 = Time::Now().ToSecond();
-    AWARN << "Time for voxel grid filter:" << t6 - t5;
-
-    auto t7 = Time::Now().ToSecond();
-    //直通滤波
-    pcl::PassThrough<pcl::PointXYZ> pass_y;  //设置滤波器对象
-
-    //参数设置
-    pass_y.setInputCloud(cloud_);
-    pass_y.setFilterFieldName("y");
-    // y轴区间设置
-    pass_y.setFilterLimits(float(FLAGS_passthrough_y_min),
-                           float(FLAGS_passthrough_y_max));
-    pass_y.setFilterLimitsNegative(false);
-    pass_y.filter(*cloud_);
-    auto t8 = Time::Now().ToSecond();
-    AWARN << "Time for Y PASSTHROUGH :" << t8 - t7;
-#endif
 
     if (FLAGS_pcl_visualization) {
       // PCL VISUALIZATION
