@@ -239,6 +239,7 @@ function warn_proprietary_sw() {
   echo -e "${RED}(see file license).${NO_COLOR}"
 }
 
+# realse cyber binary and shared libraries
 function release() {
   RELEASE_DIR="${HOME}/.cache/apollo_release"
   if [ -d "${RELEASE_DIR}" ]; then
@@ -253,11 +254,13 @@ function release() {
     cp -a --parent ${LIB} ${APOLLO_RELEASE_DIR}
   done
   mkdir ${APOLLO_RELEASE_DIR}/bazel-bin
-  mv ${APOLLO_RELEASE_DIR}/bazel-out/local-opt/bin/* ${APOLLO_RELEASE_DIR}/bazel-bin/
+  mv ${APOLLO_RELEASE_DIR}/bazel-out/local-dbg/bin/* ${APOLLO_RELEASE_DIR}/bazel-bin/
   rm -rf ${APOLLO_RELEASE_DIR}/bazel-out
 
   # reset softlinks
   cd ${APOLLO_RELEASE_DIR}/bazel-bin
+
+  # for X86 platform
   LIST=("_solib_k8")
   for DIR in "${LIST[@]}"; do
     LINKS=$(find ${DIR}/* -name "*.so" -type l | sed '/.*@.*/d')
@@ -275,58 +278,28 @@ function release() {
   done
   cd -
 
-  # setup cyber binaries and convert from //path:target to path/target
-  CYBERBIN=$(bazel query "kind(cc_binary, //...)" | sed 's/^\/\///' | sed 's/:/\//' | sed '/.*.so$/d')
-  for BIN in ${CYBERBIN}; do
-    cp -P --parent "bazel-bin/${BIN}" ${APOLLO_RELEASE_DIR}
-  done
-  cp --parent "cyber/setup.bash" "${APOLLO_RELEASE_DIR}"
-  cp --parent -a "cyber/tools/cyber_launch" "${APOLLO_RELEASE_DIR}"
-  cp --parent -a "cyber/tools/cyber_tools_auto_complete.bash" "${APOLLO_RELEASE_DIR}"
-  cp --parent -a "cyber/python" "${APOLLO_RELEASE_DIR}"
+  cp -r -a "cyber/tools" ~/cyber/
+  cp -r -a "cyber/python" ~/cyber/
 
+  # setup cyber binaries and convert from //path:target to path/target
+  # //cyber:mainboard to cyber/mainboard
+  CYBERBIN=$(bazel query "kind(cc_binary, //cyber/...)" | sed 's/^\/\///' | sed 's/:/\//' | sed '/.*.so$/d')
+  for BIN in ${CYBERBIN}; do
+    cp "bazel-out/local-dbg/bin/${BIN}" ~/cyber/bin
+  done
 
   # setup tools
   TOOLSBIN=$(bazel query "kind(cc_binary, //modules/tools/...)" | sed 's/^\/\///' | sed 's/:/\//' | sed '/.*.so$/d')
   for BIN in ${TOOLSBIN}; do
-    cp -P --parent "bazel-bin/${BIN}" ${APOLLO_RELEASE_DIR}
-  done
-  TOOLSPY=$(find modules/tools/* -name "*.py")
-  for PY in ${TOOLSPY}; do
-    cp -P --parent "${PY}" "${APOLLO_RELEASE_DIR}/bazel-bin"
+    if [ -d "bazel-out/local-dbg/bin/${BIN}" ]; then
+      cp -P --parent "bazel-out/local-dbg/bin/${BIN}" ${APOLLO_RELEASE_DIR}
+    fi
   done
 
   # modules data, conf and dag
-  CONFS=$(find modules/ cyber/ -name "conf")
-  DATAS=$(find modules/ -name "data" | grep -v "testdata")
-  DAGS=$(find modules/ -name "dag")
-  LAUNCHS=$(find modules/ -name "launch")
-  PARAMS=$(find modules/ -name "params" | grep -v "testdata")
+  CONFS=$(find cyber/ -name "conf")
 
   rm -rf test/*
-  for CONF in $CONFS; do
-    cp -P --parent -a "${CONF}" "${APOLLO_RELEASE_DIR}"
-  done
-  for DATA in $DATAS; do
-    if [[ $DATA != *"map"* ]]; then
-        cp -P --parent -a "${DATA}" "${APOLLO_RELEASE_DIR}"
-    fi
-  done
-  for DAG in $DAGS; do
-    cp -P --parent -a "${DAG}" "${APOLLO_RELEASE_DIR}"
-  done
-  for LAUNCH in $LAUNCHS; do
-    cp -P --parent -a "${LAUNCH}" "${APOLLO_RELEASE_DIR}"
-  done
-  for PARAM in $PARAMS; do
-    cp -P --parent -a "${PARAM}" "${APOLLO_RELEASE_DIR}"
-  done
-  # perception model
-  MODEL="modules/perception/model"
-  cp -P --parent -a "${MODEL}" "${APOLLO_RELEASE_DIR}"
-
-  # dreamview frontend
-  cp -a modules/dreamview/frontend $APOLLO_RELEASE_DIR/modules/dreamview
 
   # remove all pyc file in modules/
   find modules/ -name "*.pyc" | xargs -I {} rm {}
@@ -334,34 +307,18 @@ function release() {
   # scripts
   cp -r scripts ${APOLLO_RELEASE_DIR}
 
-  # manual traffic light tool
-  mkdir -p ${APOLLO_RELEASE_DIR}/modules/tools
-  cp -r modules/tools/manual_traffic_light ${APOLLO_RELEASE_DIR}/modules/tools
-
-  # remove mounted models
-  rm -rf ${APOLLO_RELEASE_DIR}/modules/perception/model/yolo_camera_detector/
-
-  # lib
-  LIB_DIR="${APOLLO_RELEASE_DIR}/lib"
-  mkdir "${LIB_DIR}"
-  if $USE_ESD_CAN; then
-    warn_proprietary_sw
-  fi
-  THIRDLIBS=$(find third_party/* -name "*.so*")
-  for LIB in ${THIRDLIBS}; do
-    cp -a "${LIB}" $LIB_DIR
-  done
-  cp -r py_proto/modules $LIB_DIR
-
   # doc
   cp LICENSE "${APOLLO_RELEASE_DIR}"
   cp third_party/ACKNOWLEDGEMENT.txt "${APOLLO_RELEASE_DIR}"
+
+  cp -r -a ${APOLLO_RELEASE_DIR}/bazel-bin/cyber/* ~/cyber/lib/
+  # cp "cyber/setup.bash" ~/cyber/setup.bash
+  cp -r -a "cyber/conf" ~/cyber/
 
   # release info
   META="${APOLLO_RELEASE_DIR}/meta.ini"
   echo "git_commit: $(get_revision)" >> $META
   echo "git_branch: $(get_branch)" >> $META
-  echo "car_type: LINCOLN.MKZ" >> $META
   echo "arch: ${MACHINE_ARCH}" >> $META
 }
 
