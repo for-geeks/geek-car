@@ -30,10 +30,9 @@ STEER_ANGLE_STEP = 0.8
 
 class Exercise(object):
     def __init__(self, node):
-        self.node = node
         self.msg = Control_Command()
         # create writer
-        self.writer = self.node.create_writer(
+        self.writer = node.create_writer(
             "/control", Control_Command)
         # keyboard event listen
         keyboard.add_hotkey('w', self.hotkey_w)
@@ -62,14 +61,9 @@ class Exercise(object):
         while not cyber.is_shutdown():
             # self.msg.steer_angle = random.random()
             # self.msg.throttle = random.random()
-            self.write_to_channel()
+            self.writer.write(self.msg)
             # ratio domain 100hz
             time.sleep(0.01)
-
-    def write_to_channel(self):
-        # write control command message
-        self.writer.write(self.msg)
-
 
 if __name__ == '__main__':
     cyber.init()
