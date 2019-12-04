@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Exercise 1.2 write a control script, need to run with root
+1. sudo -s 
+2. source /apollo/scripts/apollo_base.sh
+3. python or python3 run this script
+"""
 import time
 import sys
+import random
 
 # pip install keyboard
 import keyboard
@@ -28,21 +34,36 @@ class Exercise(object):
         self.loop()
 
     def hotkey_w(self):
-        self.msg.throttle == 20.0 if self.msg.throttle > 20.0 else self.msg.throttle += 2.0
+        if self.msg.throttle > 20.0:
+            self.msg.throttle = 20.0
+        else:
+            self.msg.throttle += 2.0
 
     def hotkey_s(self):
-        self.msg.throttle == -20.0 if self.msg.throttle < -20.0 else self.msg.throttle -= 2.0
+        if self.msg.throttle < -20.0:
+            self.msg.throttle = -20.0
+        else:
+            self.msg.throttle -= 2.0
 
     def hotkey_a(self):
-        self.msg.steer_angle = 45.0 if self.msg.steer_angle > 45.0 else self.msg.steer_angle += 2.0
+        if self.msg.steer_angle > 45.0:
+            self.msg.steer_angle = 45.0
+        else:
+            self.msg.steer_angle+= 2.0
 
     def hotkey_d(self):
-        self.msg.steer_angle = -45.0 if self.msg.steer_angle < -45.0 else self.msg.steer_angle -= 2.0
+        if self.msg.steer_angle < -45.0:
+            self.msg.steer_angle = -45.0
+        else:
+            self.msg.steer_angle-= 2.0
 
     def loop(self):
-        rate = cyber_time.Rate(100)
-        self.write_to_channel()
-        rate.sleep()
+        while not cyber.is_shutdown():
+            # self.msg.steer_angle = random.random()
+            # self.msg.throttle = random.random()
+            self.write_to_channel()
+            # ratio domain 100hz
+            time.sleep(0.01)
 
     def write_to_channel(self):
         # write control command message
@@ -57,5 +78,4 @@ if __name__ == '__main__':
     exercise = Exercise(exercise_node)
 
     exercise_node.spin()
-
     cyber.shutdown()
