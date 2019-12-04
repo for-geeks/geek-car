@@ -18,6 +18,15 @@ from modules.control.proto.control_pb2 import Control_Command
 
 sys.path.append("../")
 
+THROTTLE_MAX = 20.0
+THROTTLE_MIN = -20.0
+
+THROTTLE_STEP = 0.5
+
+STEER_ANGLE_MAX = 45.0
+STEER_ANGLE_MIN = -45.0
+STEER_ANGLE_STEP = 0.8
+
 
 class Exercise(object):
     def __init__(self, node):
@@ -34,28 +43,20 @@ class Exercise(object):
         self.loop()
 
     def hotkey_w(self):
-        if self.msg.throttle > 20.0:
-            self.msg.throttle = 20.0
-        else:
-            self.msg.throttle += 2.0
+        throttle = self.msg.throttle + THROTTLE_STEP
+        self.msg.throttle = THROTTLE_MAX if throttle >= THROTTLE_MAX else throttle
 
     def hotkey_s(self):
-        if self.msg.throttle < -20.0:
-            self.msg.throttle = -20.0
-        else:
-            self.msg.throttle -= 2.0
+        throttle = self.msg.throttle - THROTTLE_STEP
+        self.msg.throttle = THROTTLE_MIN if throttle <= THROTTLE_MIN else throttle
 
     def hotkey_a(self):
-        if self.msg.steer_angle > 45.0:
-            self.msg.steer_angle = 45.0
-        else:
-            self.msg.steer_angle+= 2.0
+        steer_angle = self.msg.steer_angle + STEER_ANGLE_STEP
+        self.msg.steer_angle = STEER_ANGLE_MAX if steer_angle >= STEER_ANGLE_MAX else steer_angle
 
     def hotkey_d(self):
-        if self.msg.steer_angle < -45.0:
-            self.msg.steer_angle = -45.0
-        else:
-            self.msg.steer_angle-= 2.0
+        steer_angle = self.msg.steer_angle - STEER_ANGLE_STEP
+        self.msg.steer_angle = STEER_ANGLE_MIN if steer_angle <= STEER_ANGLE_MIN else steer_angle
 
     def loop(self):
         while not cyber.is_shutdown():

@@ -13,3 +13,4 @@ dependencies:
     - python-gflags
     - utm
     - jupyter
+    - keyboard
