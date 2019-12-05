@@ -9,8 +9,7 @@ import time
 import sys
 import random
 
-# pip install keyboard
-import keyboard
+import termios, fcntl, os
 
 from cyber_py import cyber
 from cyber_py import cyber_time
@@ -18,9 +17,18 @@ from modules.control.proto.control_pb2 import Control_Command
 
 sys.path.append("../")
 
+fd = sys.stdin.fileno()
+
+oldterm = termios.tcgetattr(fd)
+newattr = termios.tcgetattr(fd)
+newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+termios.tcsetattr(fd, termios.TCSANOW, newattr)
+
+oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
+fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
+
 THROTTLE_MAX = 20.0
 THROTTLE_MIN = -20.0
-
 THROTTLE_STEP = 0.5
 
 STEER_ANGLE_MAX = 45.0
@@ -34,11 +42,6 @@ class Exercise(object):
         # create writer
         self.writer = node.create_writer(
             "/control", Control_Command)
-        # keyboard event listen
-        keyboard.add_hotkey('w', self.hotkey_w)
-        keyboard.add_hotkey('s', self.hotkey_s)
-        keyboard.add_hotkey('a', self.hotkey_a)
-        keyboard.add_hotkey('d', self.hotkey_d)
         self.loop()
 
     def hotkey_w(self):
@@ -58,12 +61,24 @@ class Exercise(object):
         self.msg.steer_angle = STEER_ANGLE_MIN if steer_angle <= STEER_ANGLE_MIN else steer_angle
 
     def loop(self):
-        while not cyber.is_shutdown():
-            # self.msg.steer_angle = random.random()
-            # self.msg.throttle = random.random()
-            self.writer.write(self.msg)
-            # ratio domain 100hz
-            time.sleep(0.01)
+        try:
+            while not cyber.is_shutdown():
+                try :
+                    c = sys.stdin.read(1)
+                    if c:
+                        # print("Got character", repr(c))
+                        if c == 'w': self.hotkey_w()
+                        if c == 's': self.hotkey_s()
+                        if c == 'a': self.hotkey_a()
+                        if c == 'd': self.hotkey_d()
+                        print(self.msg)
+                        self.writer.write(self.msg)
+                        # ratio domain 100hz
+                        time.sleep(0.01)
+                except IOError: pass
+        finally:
+            termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+            fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
 
 if __name__ == '__main__':
     cyber.init()
