@@ -35,10 +35,6 @@ cc_library(
     copts = [
         "-DMODULE_NAME=\\\"localization\\\"",
     ],
-    linkopts = [
-        "-lrealsense2",
-        "-lapriltag",
-    ],
     deps = [
         "//cyber",
         "//modules/common:global_gflags",
