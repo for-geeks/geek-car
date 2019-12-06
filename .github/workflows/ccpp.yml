@@ -14,6 +14,4 @@ jobs:
     - name: docker pull and build 
       run: bash docker/scripts/start_geek.sh
     - name: docker exec 
-      run: bash docker/scripts/into_geek.sh
-    - name: build
-      run: bash apollo.sh build
+      run: docker exec -u $USER geek_dev_$USER bash -c "./apollo.sh build"
