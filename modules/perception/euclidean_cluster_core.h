@@ -79,7 +79,6 @@ class EuClusterCore {
   const int pool_size_ = 8;
   const int point_size_ = 1000;
 
-  // 聚类是一个费时运算，为了减少计算量，我们通常先进行降采样
   void VoxelGridFilter(pcl_ptr in, pcl_ptr out);
 
   void CropBoxFilter(pcl_ptr in, pcl_ptr out);

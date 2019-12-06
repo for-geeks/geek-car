@@ -64,10 +64,10 @@ bool D435I::Init(std::shared_ptr<Node> node_) {
   }
 
   // 4.1 Thread to handle frames
-  realsense_t1 = std::thread(&D435I::Run, this);
+  // realsense_t1 = std::thread(&D435I::Run, this);
 
   // 4.2 Thread to get point cloud from frame queue, and publish
-  realsense_t2 = std::thread(&D435I::PublishPointCloud, this);
+  // realsense_t2 = std::thread(&D435I::PublishPointCloud, this);
 
   AINFO << "Realsense Device D435I Init Successfully";
   return true;

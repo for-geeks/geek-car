@@ -75,18 +75,17 @@ void D435::DeviceConfig() {
                     FLAGS_color_image_height, RS2_FORMAT_BGR8,
                     FLAGS_color_image_frequency);
   // Use a configuration object to request only depth from the pipeline
-  cfg.enable_stream(RS2_STREAM_DEPTH, FLAGS_color_image_width,
-                    FLAGS_color_image_height, RS2_FORMAT_Z16,
-                    FLAGS_color_image_frequency);
+  cfg.enable_stream(RS2_STREAM_DEPTH, FLAGS_depth_image_width,
+                    FLAGS_depth_image_height, RS2_FORMAT_Z16,
+                    FLAGS_depth_image_frequency);
 
   // Instruct pipeline to start streaming with the requested configuration
   auto profile = pipe.start(cfg);
   auto sensor = profile.get_device().first<rs2::depth_sensor>();
 
-  // Set the device to High Accuracy preset of the D400 stereoscopic cameras
+  // Set the device to High Accuracy preset of the D400 stereoscopic
   if (sensor && sensor.is<rs2::depth_stereo_sensor>()) {
-    sensor.set_option(RS2_OPTION_VISUAL_PRESET,
-                      RS2_RS400_VISUAL_PRESET_HIGH_ACCURACY);
+    sensor.set_option(RS2_OPTION_VISUAL_PRESET, RS2_RS400_VISUAL_PRESET_HAND);
   }
 }
 
@@ -218,7 +217,7 @@ void D435::PublishPointCloud() {
     filtered_data.poll_for_frame(&depth_frame);
     if (!depth_frame) {
       AINFO << "POINT CLOUD FRAME QUEUE IS EMPTY, WAIT FOR ENQUEUE;";
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
       continue;
     }
     // Generate the pointcloud and texture mappings

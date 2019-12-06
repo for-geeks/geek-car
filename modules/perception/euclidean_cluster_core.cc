@@ -185,7 +185,7 @@ void EuClusterCore::ClusterSegment(
 
     auto real_length = (length_ < 0) ? -1 * length_ : length_;
     auto real_width = (width_ < 0) ? -1 * width_ : width_;
-    auto real_height = (height_ < 0) ? -1 * height_ : height_;
+    // auto real_height = (height_ < 0) ? -1 * height_ : height_;
 
     // Length < 5, width < 5 for now
     if (real_length > 0.03&& real_length < 5  &&  real_width > 0.03 && real_width < 5) {
@@ -200,9 +200,9 @@ void EuClusterCore::ClusterSegment(
       next_obstacle->set_width((width_ < 0) ? -1 * width_ : width_);
       next_obstacle->set_height((height_ < 0) ? -1 * height_ : height_);
 
-      next_obstacle->mutable_position()->set_x(min_x + length_ / 2);
-      next_obstacle->mutable_position()->set_y(min_y + height_ / 2);
-      next_obstacle->mutable_position()->set_z(min_z + width_ / 2);
+      next_obstacle->mutable_position()->set_x(position_x);
+      next_obstacle->mutable_position()->set_y(position_y);
+      next_obstacle->mutable_position()->set_z(position_z);
     } else {
       // AINFO << "OBSTACLE SKIPPED :" << obj_info.DebugString();
       AINFO
