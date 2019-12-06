@@ -3,7 +3,7 @@
 # Usage:
 #   ./build_geek_pcl.sh geek.Dockerfile
 # Commit 
-# docker commit 5a69f1c7051c geekstyle/geek_lite:geek_pcl
+# docker commit 5a69f1c7051c geekstyle/geek_lite:geek_lite-${ARCH}-18.04-${TIME}
 
 REPO=geekstyle/geek_lite
 ARCH=$(uname -m)
@@ -11,7 +11,7 @@ TIME=$(date +%Y%m%d_%H%M)
 
 TAG="${REPO}:geek_lite-${ARCH}-18.04-${TIME}"
 
-CONTAINER_ID=$(docker ps | grep geek_${USER}| awk '{print $1}')
+CONTAINER_ID=$(docker ps | grep geek_dev_${USER}| awk '{print $1}')
 
 docker commit "$CONTAINER_ID" "$TAG"
 # docker tag "$TAG" "$RELEASE_NAME"

@@ -1,3 +1,0 @@
-/home/car/student_terminal/cyber_bridge/exercise1/CMakeFiles/edit_cache.dir
-/home/car/student_terminal/cyber_bridge/exercise1/CMakeFiles/rebuild_cache.dir
-/home/car/student_terminal/cyber_bridge/exercise1/CMakeFiles/image_reader.dir
