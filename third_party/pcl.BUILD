@@ -11,7 +11,8 @@ cc_library(
     linkopts = select(
         {
             ":x86_mode": [
-                "-L/usr/lib/x86_64-linux-gnu/",
+                # "-L/usr/lib/x86_64-linux-gnu/",# pcl 1.8
+                "-L/usr/local/lib/",# for pcl 1.9.1
             ],
             ":arm_mode": [
                 "-L/usr/lib/aarch64-linux-gnu/",
@@ -27,6 +28,7 @@ cc_library(
         "-lpcl_io",
         "-lpcl_kdtree",
         "-lpcl_keypoints",
+        "-lpcl_ml",
         "-lpcl_octree",
         "-lpcl_outofcore",
         "-lpcl_people",
@@ -35,6 +37,7 @@ cc_library(
         "-lpcl_sample_consensus",
         "-lpcl_search",
         "-lpcl_segmentation",
+        "-lpcl_stereo",
         "-lpcl_surface",
         "-lpcl_tracking",
         "-lpcl_visualization",

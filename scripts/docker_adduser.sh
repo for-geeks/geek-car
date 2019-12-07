@@ -40,24 +40,6 @@ lcov_branch_coverage = 1
 chown ${DOCKER_USER}:${DOCKER_GRP} /home/${DOCKER_USER}
 ls -ad /home/${DOCKER_USER}/.??* | xargs chown -R ${DOCKER_USER}:${DOCKER_GRP}
 
-# setup GPS device
-if [ -e /dev/novatel0 ]; then
-  chmod a+rw /dev/novatel0
-fi
-if [ -e /dev/novatel1 ]; then
-  chmod a+rw /dev/novatel1
-fi
-if [ -e /dev/novatel2 ]; then
-  chmod a+rw /dev/novatel2
-fi
 if [ -e /dev/ttyACM0 ]; then
   chmod a+rw /dev/ttyACM0
-fi
-
-# setup camera device
-if [ -e /dev/camera/obstacle ]; then
-  chmod a+rw /dev/camera/obstacle
-fi
-if [ -e /dev/camera/trafficlights ]; then
-  chmod a+rw /dev/camera/trafficlights
 fi

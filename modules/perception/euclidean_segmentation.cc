@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane(
       new pcl::PointCloud<pcl::PointXYZ>());
 
-  // pcl::PCDWriter writer;
+  pcl::PCDWriter writer;
   seg.setOptimizeCoefficients(true);
   seg.setModelType(pcl::SACMODEL_PLANE);  //分割模型
   seg.setMethodType(pcl::SAC_RANSAC);     //随机参数估计方法
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     std::stringstream ss;
     ss << "cloud_cluster_" << j << ".pcd";
     if (cloud_cluster->points.size() > 0) {
-      // writer.write<pcl::PointXYZ>(ss.str(), *cloud_cluster, false);
+      writer.write<pcl::PointXYZ>(ss.str(), *cloud_cluster, false);
     }
 
     // Result visualization
@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
   std::cout << "Euclidean Cluster Extraction took " << elapsedTime.count()
             << " milliseconds" << std::endl;
   if (add_cloud->points.size()) {
-    // pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
+    pcl::io::savePCDFileASCII("add_cloud.pcd", *add_cloud);
   }
 
   return 0;

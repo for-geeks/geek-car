@@ -280,8 +280,8 @@ void D435::PublishPointCloud() {
     AINFO << "Time for point cloud from collect to publish :" << tt - t1;
 
     if (FLAGS_save_pcd && cloud_out->points.size() > 0) {
-      // pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
-      //                      *cloud_out);
+      pcl::io::savePCDFile("/apollo/data/" + std::to_string(t1) + ".pcd",
+                           *cloud_out);
     }
 
     point_cloud_writer_->Write(point_cloud_out);
