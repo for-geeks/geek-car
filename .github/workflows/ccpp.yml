@@ -9,9 +9,9 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    - name: bash executable
+      run: chmod +x scripts/docker_adduser.sh
     - name: docker pull and build 
-      run: bash docker/build/start_geek.sh
+      run: bash docker/scripts/start_geek.sh
     - name: docker exec 
-      run: bash docker/build/into_geek.sh
-    - name: build
-      run: ./apollo.sh build
+      run: docker exec -u $USER geek_dev_$USER bash -c "./apollo.sh build"
