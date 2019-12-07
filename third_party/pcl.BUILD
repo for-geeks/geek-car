@@ -11,8 +11,7 @@ cc_library(
     linkopts = select(
         {
             ":x86_mode": [
-                # "-L/usr/lib/x86_64-linux-gnu/",# pcl 1.8
-                "-L/usr/local/lib/",# for pcl 1.9.1
+                "-L/usr/local/lib/",
             ],
             ":arm_mode": [
                 "-L/usr/lib/aarch64-linux-gnu/",
