@@ -69,7 +69,6 @@ new_local_repository(
 new_local_repository(
     name = "pcl",
     build_file = "third_party/pcl.BUILD",
-    #path = "/usr/include/pcl-1.8",
     path = "/usr/local/include/pcl-1.9",
 )
 
@@ -118,10 +117,4 @@ new_local_repository(
     name = "opencv",
     build_file = "third_party/opencv.BUILD",
     path="/usr/include",
-)
-
-new_local_repository(
-    name = "realsense",
-    build_file = "third_party/realsense.BUILD",
-    path="/usr/include/librealsense2",
 )
