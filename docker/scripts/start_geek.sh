@@ -257,7 +257,7 @@ function main(){
         ok "Add user $USER"
     fi
 
-    ok "Finished setting up Apollo docker environment. Now you can enter with: \nbash docker/scripts/dev_into_geek.sh"
+    ok "Finished setting up Apollo docker environment. Now you can enter with: \nbash docker/scripts/into_geek.sh"
     ok "Enjoy!"
 }
 

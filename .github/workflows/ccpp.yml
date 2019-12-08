@@ -9,8 +9,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: bash executable
-      run: chmod +x scripts/docker_adduser.sh
     - name: docker pull and build 
       run: bash docker/scripts/start_geek.sh
     - name: docker exec 
