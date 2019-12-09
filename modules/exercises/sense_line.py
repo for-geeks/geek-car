@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import time
 from modules.perception.proto.perception_pb2 import LaneInfo
-from modules.sensors.proto.sensors_pb2 import Image
+from modules.sensors.proto.sensor_image_pb2 import Image
 from cyber_py import cyber
 import sys
 

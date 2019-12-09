@@ -3,7 +3,7 @@ import sys
 
 sys.path.append("../")
 from cyber_py import cyber
-from modules.sensors.proto.sensors_pb2 import Image
+from modules.sensors.proto.sensor_image_pb2 import Image
 
 def callback(data):
     print("="*80)

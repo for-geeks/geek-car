@@ -4,7 +4,7 @@
 import cv2
 import numpy as np
 import os
-from modules.sensors.proto.sensors_pb2 import Image
+from modules.sensors.proto.sensor_image_pb2 import Image
 from modules.planning.proto.planning_pb2 import Trajectory
 from modules.planning.proto.planning_pb2 import Point
 from cyber_py import cyber

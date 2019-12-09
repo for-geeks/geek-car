@@ -11,7 +11,7 @@ import cv2
 
 import pcl.pcl_visualization
 
-from modules.sensors.proto.sensors_pb2 import Image
+from modules.sensors.proto.sensor_image_pb2 import Image
 from cyber_py import cyber
 import modules.exercises.common.util as util
 
