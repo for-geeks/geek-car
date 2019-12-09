@@ -34,8 +34,6 @@ std::map<std::string, int> device_map{{"Intel RealSense T265", 0},
                                       {"Intel RealSense D435I", 2}};
 
 bool RealsenseComponent::Init() {
-  // TODO(FENGZONGBAO): READ DEVICE CONFIG
-
   // Init by config device
   InitDeviceAndSensor();
   AINFO << "Init realsense device successfuly";

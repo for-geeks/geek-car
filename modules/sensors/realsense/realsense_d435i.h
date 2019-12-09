@@ -23,13 +23,12 @@
 ******************************************************************************/
 #pragma once
 
-#include "modules/sensors/realsense/device_base.h"
+#include <memory>
+#include <thread>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
-#include <memory>
-#include <thread>
 
 #include "cyber/base/concurrent_object_pool.h"
 #include "cyber/node/node.h"
@@ -38,6 +37,7 @@
 #include "modules/perception/euclidean_cluster_core.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense/device_base.h"
 
 namespace apollo {
 namespace sensors {
@@ -77,7 +77,7 @@ class D435I : public DeviceBase {
   std::shared_ptr<CCObjectPool<PointCloud>> point_cloud_pool_ = nullptr;
 
   // filtered point cloud frame
-  rs2::frame_queue filtered_data;
+  rs2::frame_queue filtered_data_;
 
   const int pool_size_ = 8;
   const int point_size_ = 10000;

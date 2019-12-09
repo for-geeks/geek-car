@@ -23,8 +23,6 @@
 ******************************************************************************/
 #pragma once
 
-#include "modules/sensors/realsense/device_base.h"
-
 #include <memory>
 
 #include "cyber/node/node.h"
@@ -34,6 +32,7 @@
 #include "modules/control/proto/chassis.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
+#include "modules/sensors/realsense/device_base.h"
 
 namespace apollo {
 namespace sensors {

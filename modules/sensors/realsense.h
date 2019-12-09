@@ -28,6 +28,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 #include "pcl/point_cloud.h"
@@ -47,7 +48,6 @@ cv::Mat depth_frame_to_meters(const rs2::pipeline& pipe,
 pcl_ptr points_to_pcl(const rs2::points& points);
 
 /**
- * https://github.com/IntelRealSense/librealsense/blob/master/examples/sensor-control/api_how_to.h
  * The RealSense class provides several functions for common usages of the
  * sensor API
  */

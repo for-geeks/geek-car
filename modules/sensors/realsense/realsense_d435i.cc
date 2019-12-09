@@ -29,9 +29,6 @@
 #include <string>
 #include <vector>
 
-#include "pcl/common/transforms.h"
-#include "pcl/filters/passthrough.h"
-#include "pcl/filters/voxel_grid.h"
 #include "pcl/io/pcd_io.h"
 #include "pcl/visualization/cloud_viewer.h"
 #include "pcl/visualization/pcl_visualizer.h"
@@ -64,10 +61,10 @@ bool D435I::Init(std::shared_ptr<Node> node_) {
   }
 
   // 4.1 Thread to handle frames
-  // realsense_t1 = std::thread(&D435I::Run, this);
+  realsense_t1 = std::thread(&D435I::Run, this);
 
   // 4.2 Thread to get point cloud from frame queue, and publish
-  // realsense_t2 = std::thread(&D435I::PublishPointCloud, this);
+  realsense_t2 = std::thread(&D435I::PublishPointCloud, this);
 
   AINFO << "Realsense Device D435I Init Successfully";
   return true;
@@ -214,7 +211,7 @@ void D435I::OnPointCloud(rs2::frame depth_frame) {
                                    0);
   depth_frame = temp_filter.process(depth_frame);
 
-  filtered_data.enqueue(depth_frame);
+  filtered_data_.enqueue(depth_frame);
 }
 
 void D435I::PublishPointCloud() {
@@ -226,7 +223,7 @@ void D435I::PublishPointCloud() {
     rs2::points points;
 
     rs2::frame depth_frame;
-    filtered_data.poll_for_frame(&depth_frame);
+    filtered_data_.poll_for_frame(&depth_frame);
     if (!depth_frame) {
       AINFO << "POINT CLOUD FRAME QUEUE IS EMPTY, WAIT FOR ENQUEUE;";
       std::this_thread::sleep_for(std::chrono::milliseconds(10));

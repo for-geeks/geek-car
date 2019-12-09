@@ -29,8 +29,6 @@
 #include <string>
 #include <vector>
 
-#include "pcl/common/transforms.h"
-#include "pcl/filters/passthrough.h"
 #include "pcl/io/pcd_io.h"
 
 #include "modules/common/global_gflags.h"
@@ -202,7 +200,7 @@ void D435::OnPointCloud(rs2::frame depth_frame) {
                          float(FLAGS_temp_filter_delta));
   depth_frame = temp_filter.process(depth_frame);
 
-  filtered_data.enqueue(depth_frame);
+  filtered_data_.enqueue(depth_frame);
 }
 
 void D435::PublishPointCloud() {
@@ -214,7 +212,7 @@ void D435::PublishPointCloud() {
     rs2::points points;
 
     rs2::frame depth_frame;
-    filtered_data.poll_for_frame(&depth_frame);
+    filtered_data_.poll_for_frame(&depth_frame);
     if (!depth_frame) {
       AINFO << "POINT CLOUD FRAME QUEUE IS EMPTY, WAIT FOR ENQUEUE;";
       std::this_thread::sleep_for(std::chrono::milliseconds(10));

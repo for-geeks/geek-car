@@ -23,8 +23,6 @@
 ******************************************************************************/
 #include "modules/sensors/realsense.h"
 
-#include "pcl/filters/passthrough.h"
-
 #include "cyber/cyber.h"
 
 namespace apollo {
@@ -92,8 +90,6 @@ pcl_ptr points_to_pcl(const rs2::points& points) {
   cloud->height = sp.height();
   cloud->is_dense = false;
   cloud->points.resize(points.size());
-  // sample from log DEPTH POINTS SIZE(424*240) IS:101760
-  // AINFO << "DEPTH POINTS SIZE(424*240) IS:" << points.size();
   auto ptr = points.get_vertices();
   for (auto& p : cloud->points) {
     p.x = ptr->x;

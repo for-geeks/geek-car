@@ -28,8 +28,6 @@
 #include <vector>
 
 #include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
 #include "librealsense2/rs.hpp"
 #include "opencv2/opencv.hpp"
 
@@ -53,7 +51,7 @@ using apollo::sensors::CompressedImage;
 using apollo::sensors::Image;
 using apollo::sensors::PointCloud;
 
-// const transform by y 15 deg
+// const transform by 15 deg in y axis
 static const ::Eigen::Matrix4d transform =
     (::Eigen::Matrix4d() << 1, -0, 0, 0, 0, 0.96596, 0.258691, 0, -0, -0.258691,
      0.96596, 0, 0, 0, 0, 1)
@@ -77,8 +75,6 @@ class DeviceBase {
 
   void OnAcc(const rs2::motion_frame &accel_frame) {
     rs2_vector acc = accel_frame.get_motion_data();
-    // Computes the angle of motion based on the retrieved measures
-    algo_.process_accel(acc);
     AINFO << "Accel:" << acc.x << ", " << acc.y << ", " << acc.z;
     auto proto_accel = std::make_shared<Acc>();
     proto_accel->mutable_acc()->set_x(acc.x);
@@ -90,8 +86,6 @@ class DeviceBase {
 
   void OnGyro(const rs2::motion_frame &gyro_frame) {
     rs2_vector gyro = gyro_frame.get_motion_data();
-    // Computes the angle of motion based on the retrieved measures
-    algo_.process_gyro(gyro, gyro_frame.get_timestamp());
     AINFO << "Gyro:" << gyro.x << ", " << gyro.y << ", " << gyro.z;
     auto proto_gyro = std::make_shared<Gyro>();
     proto_gyro->mutable_gyro()->set_x(gyro.x);
@@ -138,10 +132,6 @@ class DeviceBase {
 
   // Configuring the pipeline with a non default profile
   rs2::config cfg;
-
- private:
-  // Declare object that handles camera pose calculations
-  rotation_estimator algo_;
 };
 
 }  // namespace realsense
