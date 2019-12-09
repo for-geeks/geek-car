@@ -21,7 +21,7 @@ FAST_BUILD_MODE="no"
 FAST_TEST_MODE="no"
 VERSION=""
 ARCH=$(uname -m)
-VERSION_X86_64="geek_lite-x86_64-18.04-20191207_1853"
+VERSION_X86_64="geek_lite-x86_64-18.04-20191209_1556"
 VERSION_AARCH64="dev-aarch64-20170927_1111"
 VERSION_OPT=""
 
@@ -225,8 +225,6 @@ function main(){
         -d \
         --privileged \
         --name $APOLLO_DEV \
-        ${MAP_VOLUME_CONF} \
-        ${OTHER_VOLUME_CONF} \
         -e DISPLAY=$display \
         -e DOCKER_USER=$USER \
         -e USER=$USER \
