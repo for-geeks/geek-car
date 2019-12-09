@@ -39,7 +39,7 @@ STEER_ANGLE_STEP = 2
 class Exercise(object):
     def __init__(self, node):
         self.msg = Control_Command()
-        # TODO create writer
+        # TODO 2 create writer
         self.writer = node.create_writer(
             "/control", Control_Command)
         self.loop()
@@ -67,12 +67,14 @@ class Exercise(object):
                     c = sys.stdin.read(1)
                     if c:
                         # print("Got character", repr(c))
-                        if c == 'w': self.hotkey_w()
-                        if c == 's': self.hotkey_s()
-                        if c == 'a': self.hotkey_a()
-                        if c == 'd': self.hotkey_d()
+                        # TODO 3 update your logic by keyboad
+                        # if c == 'w': self.hotkey_w()
+                        # if c == 's': self.hotkey_s()
+                        # if c == 'a': self.hotkey_a()
+                        # if c == 'd': self.hotkey_d()
                         print(self.msg)
-                        self.writer.write(self.msg)
+                        # TODO 4 write control message to channel /control
+                        # self.writer.write(self.msg)
                         # ratio domain 100hz
                         time.sleep(0.01)
                 except IOError: pass
@@ -83,7 +85,7 @@ class Exercise(object):
 if __name__ == '__main__':
     cyber.init()
 
-    # TODO update node to your name
+    # TODO 1 update node to your name
     exercise_node = cyber.Node("exercise1.2_node_name")
     exercise = Exercise(exercise_node)
 
