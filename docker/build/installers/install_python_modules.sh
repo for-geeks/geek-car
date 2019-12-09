@@ -32,7 +32,7 @@ apt-get -y update && \
     python3-psutil \
     python-numpy
 
-pip install -r py27_requirements.txt
-
+pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple some-package -r py27_requirements.txt
+pip3 install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple some-package -r py3_requrements.txt
 # Clean up.
 apt-get clean && rm -rf /var/lib/apt/lists/*

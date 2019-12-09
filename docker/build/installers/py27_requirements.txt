@@ -25,3 +25,4 @@ pyproj
 shapely
 
 keyboard
+opencv-python
