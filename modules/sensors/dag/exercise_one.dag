@@ -5,7 +5,7 @@ module_config {
     class_name : "RealsenseComponent"
     config {
       name: "realsense_component"
-      flag_file_path:  "/apollo/modules/sensors/conf/realsense.conf"
+      flag_file_path:  "/apollo/modules/sensors/conf/exercise_one.conf"
     }
   }
 }
