@@ -39,7 +39,7 @@ STEER_ANGLE_STEP = 2
 class Exercise(object):
     def __init__(self, node):
         self.msg = Control_Command()
-        # create writer
+        # TODO create writer
         self.writer = node.create_writer(
             "/control", Control_Command)
         self.loop()
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     cyber.init()
 
     # TODO update node to your name
-    exercise_node = cyber.Node("exercise1.1_node_name")
+    exercise_node = cyber.Node("exercise1.2_node_name")
     exercise = Exercise(exercise_node)
 
     exercise_node.spin()
