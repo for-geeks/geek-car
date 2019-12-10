@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 import sys
-import time
 
 import cv2
 import numpy as np
 
 from cyber_py import cyber
-
 from modules.sensors.proto.sensor_image_pb2 import Image
+from common.image_utils import reshape
 
 sys.path.append("../")
 
@@ -21,27 +20,17 @@ class Exercise(object):
         # create reader
         self.node.create_reader("/realsense/color_image", Image, self.callback)
         # create writer
-        self.writer = self.node.create_writer(
-            "/realsense/color_image/compressed", Image)
+        self.writer = self.node.create_writer("/realsense/color_image/compressed", Image)
 
     def callback(self, data):
         # print frame number
         print('Frame number is :%s' % data.frame_no)
         # api to reshape image
         self.msg = data
-        self.msg.data = self.reshape(data.data)
-        # publish, write to channel
-        # write compressed image
+        self.msg.data = reshape(data.data)
+        # publish, write compressed image to channel
         self.writer.write(self.msg)
-
-    def reshape(self, data):
-        """api to reshape and encodes image, you can call self.reshape(data)"""
-        new_image = np.frombuffer(data, dtype=np.uint8)
-        img_param = [int(cv2.IMWRITE_JPEG_QUALITY), 30]
-        new_image = new_image.reshape((360, 640, 3))
-        img_encode = cv2.imencode('.jpeg', new_image, img_param)[1]
-        data_encode = np.array(img_encode)
-        return data_encode.tostring()
+        print('Comressed image have wrote to channel /realsense/color_image/compressed')
 
 
 if __name__ == '__main__':

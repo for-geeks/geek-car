@@ -7,7 +7,6 @@
 """
 import time
 import sys
-import random
 
 import termios, fcntl, os
 
