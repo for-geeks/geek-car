@@ -45,7 +45,8 @@ class Exercise(object):
         self.head_y = 0
         self.v_y = 0
         self.direction_lag = 0
-
+	self.x_tag = 0
+	self.y_tag = 0
 	signal.signal(signal.SIGINT, self.sigint_handler)
         signal.signal(signal.SIGHUP, self.sigint_handler)
         signal.signal(signal.SIGTERM, self.sigint_handler)
@@ -113,6 +114,8 @@ class Exercise(object):
         self.calcu_loss_fun(self.x, self.maxTimes, self.alpha, datas)
         v_x = tag.vel.x
         v_y = tag.vel.y
+	self.x_tag = tag.pos.x
+	self.y_tag = tag.pos.y
         #if (v_x * v_x + v_y * v_y) > 0.2:
         vel_head = math.atan2(v_y, v_x)
         self.fuseflag = 0
@@ -190,8 +193,8 @@ class Exercise(object):
         self.localization.predict.y = -1
         self.localization.predict.z = x[1]
         self.localization.predict.yaw = -1
-        self.pos.x = x[0]
-        self.pos.y = x[1]
+        self.pos.x = self.x_tag
+        self.pos.y = self.y_tag
         #self.pos.x = self.head_x
         #self.pos.y = self.head_y
         self.pos.z = self.vel_head
