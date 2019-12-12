@@ -3,6 +3,5 @@
     <name>realsense_component</name>
     <dag_conf>/apollo/modules/sensors/dag/exercise_one.dag</dag_conf>
     <process_name>realsense_exercise1_component</process_name>
-    <exception_handler>respawn</exception_handler>
   </module>
 </cyber>

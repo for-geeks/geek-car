@@ -1,0 +1,7 @@
+<cyber>
+  <module>
+    <name>realsense_component</name>
+    <dag_conf>/apollo/modules/sensors/dag/exercise_two.dag</dag_conf>
+    <process_name>realsense_exercise2_component</process_name>
+  </module>
+</cyber>
