@@ -139,31 +139,26 @@ class Exercise(object):
             self.vel_head = self.vel_head
             
             self.fuseflag = 0
-        #print self.vel_head
+
             
         
-    # 定义函数f(x)
+    # 定义函数f(x), 需学生完成
     def problem(self, x, data):
-        #e = 2.71828182845904590
-        return (x[0] - data[0,0]) ** 2 +  (x[1] - data[0,1])**2 - data[0,2]**2  
 
-    #定义损失函数
+        return 0
+
+    #定义损失函数, 需学生完成
     def loss_fun(self, x, datas):
         sum_err = 0;
-        for data in datas:
-          sum_err += 0.5 * (self.problem(x, data) - 0)**2
         return sum_err
 
-    #计算损失函数的斜率
+    #计算损失函数的斜率, 需学生完成
     def slope_fx(self, x, datas):
-        d = 0.01;
-        delta1  = np.array([d, 0]);
-        delta2  = np.array([0, d]);
-        J1 = (self.loss_fun(x+delta1, datas) - self.loss_fun(x-delta1, datas)) / (2.0*d)
-        J2 = (self.loss_fun(x+delta2, datas) - self.loss_fun(x-delta2, datas)) / (2.0*d)
+        
+        J1 = 0
+        J2 = 0
         return [J1, J2]
 
-    #代入f(x)，计算数值
     def calcu_loss_fun(self, x, maxTimes, alpha, datas):
         for i in range(maxTimes):
                 ret = self.slope_fx(x, datas)
@@ -174,22 +169,7 @@ class Exercise(object):
             return
         #print 'times %d, x: %.13f,y: %.13f f(x): %.13f' % (i, x[0],x[1], self.loss_fun(x, datas))
         
-        self.localization.apriltag0.x = x[0]
-        self.localization.apriltag0.y = -1
-        self.localization.apriltag0.z = x[1]
-        self.localization.apriltag0.yaw = -1
-        self.localization.apriltag1.x = x[0]
-        self.localization.apriltag1.y = -1
-        self.localization.apriltag1.z = x[1]
-        self.localization.apriltag1.yaw = -1
-        self.localization.apriltag.x = x[0]
-        self.localization.apriltag.y = -1
-        self.localization.apriltag.z = x[1]
-        self.localization.apriltag.yaw = -1
-        self.localization.predict.x = x[0]
-        self.localization.predict.y = -1
-        self.localization.predict.z = x[1]
-        self.localization.predict.yaw = -1
+
         self.pos.x = x[0]
         self.pos.y = x[1]
         #self.pos.x = self.head_x
