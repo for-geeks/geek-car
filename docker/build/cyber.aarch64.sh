@@ -59,7 +59,8 @@ apt update -y && \
     libopenni2-dev \
     openjdk-8-jdk \
     software-properties-common \
-    libconsole-bridge-dev
+    libconsole-bridge-dev \
+    liblz4-tool liblz4-dev liblz4-1 liblz4-1-dbg
 
 # move eigen include
 cp -r /usr/include/eigen3/Eigen /usr/local/include/
