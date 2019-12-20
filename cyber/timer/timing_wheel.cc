@@ -83,7 +83,7 @@ void TimingWheel::AddTask(const std::shared_ptr<TimerTask>& task,
       work_wheel_[real_work_wheel_index].AddTask(task);
       ADEBUG << "add task to work wheel. index :" << real_work_wheel_index;
     } else {
-      auto assistant_wheel_index = 0;
+      uint64_t assistant_wheel_index = 0;
       {
         std::lock_guard<std::mutex> lock(current_assistant_wheel_index_mutex_);
         assistant_wheel_index = GetAssistantWheelIndex(
