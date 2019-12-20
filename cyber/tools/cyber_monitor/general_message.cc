@@ -14,14 +14,15 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include "./general_message.h"
-#include "./general_channel_message.h"
-#include "./screen.h"
+#include "cyber/tools/cyber_monitor/general_message.h"
 
 #include <iomanip>
 #include <numeric>
 #include <sstream>
 #include <vector>
+
+#include "cyber/tools/cyber_monitor/general_channel_message.h"
+#include "cyber/tools/cyber_monitor/screen.h"
 
 namespace {
 
@@ -36,29 +37,33 @@ std::vector<int> SortProtobufMapByKeys(
   if (0 == size) {
     return output;
   }
-  const ::google::protobuf::Message& item =
-      reflection.GetRepeatedMessage(message, field, 0);
-  const ::google::protobuf::FieldDescriptor* item_fd =
-      item.GetDescriptor()->FindFieldByName("key");
-  if (item_fd && field->is_map() &&
-      ::google::protobuf::FieldDescriptor::Type::TYPE_STRING ==
-          item_fd->type()) {
-    std::vector<std::pair<std::string, int>> key_indices;
-    key_indices.reserve(size);
-    for (int i = 0; i < size; ++i) {
-      const ::google::protobuf::Message& item =
-          reflection.GetRepeatedMessage(message, field, i);
-      const ::google::protobuf::FieldDescriptor* item_fd =
-          item.GetDescriptor()->FindFieldByName("key");
-      const std::string key(item.GetReflection()->GetString(item, item_fd));
-      key_indices.emplace_back(key, i);
+  if (field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+    const ::google::protobuf::Message& item =
+        reflection.GetRepeatedMessage(message, field, 0);
+    const ::google::protobuf::FieldDescriptor* item_fd =
+        item.GetDescriptor()->FindFieldByName("key");
+    if (item_fd && field->is_map() &&
+        ::google::protobuf::FieldDescriptor::Type::TYPE_STRING ==
+            item_fd->type()) {
+      std::vector<std::pair<std::string, int>> key_indices;
+      key_indices.reserve(size);
+      for (int i = 0; i < size; ++i) {
+        const ::google::protobuf::Message& item =
+            reflection.GetRepeatedMessage(message, field, i);
+        const ::google::protobuf::FieldDescriptor* item_fd =
+            item.GetDescriptor()->FindFieldByName("key");
+        const std::string key(item.GetReflection()->GetString(item, item_fd));
+        key_indices.emplace_back(key, i);
+      }
+      std::sort(key_indices.begin(), key_indices.end());
+      output.reserve(size);
+      for (const std::pair<std::string, int>& key_index : key_indices) {
+        output.push_back(key_index.second);
+      }
     }
-    std::sort(key_indices.begin(), key_indices.end());
-    output.reserve(size);
-    for (const std::pair<std::string, int>& key_index : key_indices) {
-      output.push_back(key_index.second);
-    }
-  } else {
+  }
+
+  if (output.empty()) {
     output.resize(size);
     std::iota(output.begin(), output.end(), 0);
   }
