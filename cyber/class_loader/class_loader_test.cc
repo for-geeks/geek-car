@@ -15,11 +15,13 @@
  *****************************************************************************/
 #include "cyber/class_loader/class_loader.h"
 
-#include <gtest/gtest.h>
 #include <iostream>
 #include <string>
 #include <thread>
 #include <vector>
+
+#include "gtest/gtest.h"
+
 #include "cyber/class_loader/class_loader_manager.h"
 #include "cyber/class_loader/test/base.h"
 #include "cyber/cyber.h"
@@ -80,8 +82,6 @@ TEST(ClassLoaderTest, multiTimesLoadunload) {
   ASSERT_TRUE(IsLibraryLoadedByAnybody(LIBRARY_1));
   loader1.UnloadLibrary();
   ASSERT_FALSE(IsLibraryLoadedByAnybody(LIBRARY_1));
-
-  return;
 }
 
 TEST(ClassLoaderManagerTest, testClassLoaderManager) {
@@ -185,5 +185,7 @@ TEST(ClassLoaderTest, util_test) {
 int main(int argc, char** argv) {
   apollo::cyber::Init(argv[0]);
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  const int output = RUN_ALL_TESTS();
+  google::protobuf::ShutdownProtobufLibrary();
+  return output;
 }

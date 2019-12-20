@@ -3,18 +3,18 @@ load("//tools:cpplint.bzl", "cpplint")
 package(default_visibility = ["//visibility:public"])
 
 cc_binary(
-    name = "_cyber_init.so",
+    name = "_cyber.so",
     linkshared = True,
     linkstatic = False,
     deps = [
-        ":py_init",
+        ":py_cyber",
     ],
 )
 
 cc_library(
-    name = "py_init",
-    srcs = ["py_init.cc"],
-    hdrs = ["py_init.h"],
+    name = "py_cyber",
+    srcs = ["py_cyber.cc"],
+    hdrs = ["py_cyber.h"],
     deps = [
         "//cyber:cyber_core",
         "@python27",
@@ -22,50 +22,32 @@ cc_library(
 )
 
 cc_binary(
-    name = "_cyber_init_py3.so",
+    name = "_cyber_py3.so",
     linkshared = True,
+    linkstatic = False,
     deps = [
-        ":py3_init",
+        ":py3_cyber",
     ],
 )
 
 cc_library(
-    name = "py3_init",
-    srcs = ["py_init.cc"],
-    hdrs = ["py_init.h"],
+    name = "py3_cyber",
+    srcs = ["py_cyber.cc"],
+    hdrs = ["py_cyber.h"],
     defines = ["PY_MAJOR_VERSION=3"],
     deps = [
         "//cyber:cyber_core",
-        "@fastrtps",
         "@python3",
     ],
 )
 
 cc_test(
-    name = "py_init_test",
-    srcs = ["py_init_test.cc"],
+    name = "py_cyber_test",
+    srcs = ["py_cyber_test.cc"],
     deps = [
-        ":py3_init",
-        "@gtest//:main",
-    ],
-)
-
-cc_binary(
-    name = "_cyber_node.so",
-    linkshared = True,
-    linkstatic = False,
-    deps = [
-        ":py_node",
-    ],
-)
-
-cc_library(
-    name = "py_node",
-    srcs = ["cyber_node_wrap.cc"],
-    hdrs = ["py_node.h"],
-    deps = [
-        "//cyber:cyber_core",
-        "@python27",
+        ":py3_cyber",
+        "//cyber/proto:unit_test_cc_proto",
+        "@gtest",
     ],
 )
 
@@ -206,14 +188,32 @@ cc_binary(
 
 cc_library(
     name = "py_parameter",
-    srcs = ["cyber_parameter_wrap.cc"],
-    hdrs = [
-        "py_node.h",
-        "py_parameter.h",
-    ],
+    srcs = ["py_parameter.cc"],
+    hdrs = ["py_parameter.h"],
     deps = [
+        ":py_cyber",
         "//cyber:cyber_core",
         "@python27",
+    ],
+)
+
+cc_binary(
+    name = "_cyber_parameter_py3.so",
+    linkshared = True,
+    deps = [
+        ":py3_parameter",
+    ],
+)
+
+cc_library(
+    name = "py3_parameter",
+    srcs = ["py_parameter.cc"],
+    hdrs = ["py_parameter.h"],
+    defines = ["PY_MAJOR_VERSION=3"],
+    deps = [
+        ":py3_cyber",
+        "//cyber:cyber_core",
+        "@python3",
     ],
 )
 
