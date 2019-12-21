@@ -1,15 +1,18 @@
-# -*- coding: utf-8 -*-
-from modules.planning.proto.planning_pb2 import Trajectory
-import numpy as np
+#!/usr/bin/env python
 import signal
 import math
 import time
+import sys
+
+import numpy as np
+
+from cyber_py3 import cyber
+
 from modules.control.proto.chassis_pb2 import Chassis
+from modules.planning.proto.planning_pb2 import Trajectory
 from modules.planning.proto.planning_pb2 import Point
 from modules.control.proto.control_pb2 import Control_Command
 from modules.control.proto.control_pb2 import Control_Reference
-from cyber_py import cyber
-import sys
 
 sys.path.append("../")
 
