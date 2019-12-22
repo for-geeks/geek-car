@@ -133,7 +133,6 @@ void EuClusterCore::ClusterSegment(
 
   for (size_t i = 0; i < local_indices.size(); i++) {
     // the structure to save one detected object
-    // PerceptionObstacle obj_info;
 
     float min_x = std::numeric_limits<float>::max();  //编译器允许的最大值
     float max_x = -std::numeric_limits<float>::max();
@@ -150,11 +149,6 @@ void EuClusterCore::ClusterSegment(
       p.y = in_pc->points[*pit].y;
       p.z = in_pc->points[*pit].z;
 
-      // auto centroid = obj_info.mutable_centroid();
-      // centroid->set_x(centroid->x() + p.x);
-      // centroid->set_y(centroid->y() + p.y);
-      // centroid->set_z(centroid->z() + p.z);
-
       if (p.x < min_x) min_x = p.x;
       if (p.y < min_y) min_y = p.y;
       if (p.z < min_z) min_z = p.z;
@@ -163,22 +157,12 @@ void EuClusterCore::ClusterSegment(
       if (p.z > max_z) max_z = p.z;
     }
 
-    // min, max points
-
-    // calculate centroid, average
-    // if (local_indices[i].indices.size() > 0) {
-    //   centroid->set_x(centroid.x() / local_indices[i].indices.size());
-    //   obj_info->centroid.y /= local_indices[i].indices.size();
-    //   obj_info->centroid.z /= local_indices[i].indices.size();
-    // }
-
     // calculate bounding box by REALSENSE coordinate system
     double length_ = max_z - min_z;
     double width_ = max_x - min_x;
     double height_ = max_y - min_y;
 
     // // Position
-    // auto position = obj_info.mutable_position();
     auto position_x = min_x + length_ / 2;
     auto position_y = min_y + height_ / 2;
     auto position_z = min_z + width_ / 2;
@@ -204,7 +188,6 @@ void EuClusterCore::ClusterSegment(
       next_obstacle->mutable_position()->set_y(position_y);
       next_obstacle->mutable_position()->set_z(position_z);
     } else {
-      // AINFO << "OBSTACLE SKIPPED :" << obj_info.DebugString();
       AINFO
           << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP FOR THIS CLUSTER";
     }
