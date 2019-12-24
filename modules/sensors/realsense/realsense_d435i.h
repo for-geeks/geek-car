@@ -34,7 +34,6 @@
 #include "cyber/node/node.h"
 #include "cyber/node/writer.h"
 
-#include "modules/perception/euclidean_cluster_core.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
 #include "modules/sensors/realsense/device_base.h"
@@ -47,7 +46,6 @@ using apollo::cyber::Node;
 using apollo::cyber::Time;
 using apollo::cyber::Writer;
 using apollo::cyber::base::CCObjectPool;
-using apollo::perception::EuClusterCore;
 using apollo::sensors::Acc;
 using apollo::sensors::CompressedImage;
 using apollo::sensors::Gyro;

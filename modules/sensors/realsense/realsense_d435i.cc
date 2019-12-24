@@ -288,7 +288,7 @@ void D435I::PublishPointCloud() {
         auto pos_trans = transform * pos;
         if ((pos_trans[1] > -0.05) && (pos_trans[1] < 0.1) &&
             (pos_trans[2] < 2)) {
-          if ((counter % 24) == 0) {
+          if ((counter % 40) == 0) {
             apollo::sensors::PointXYZIT *p = point_cloud_out->add_point();
             if (FLAGS_save_pcd) {
               cloud_out->push_back(

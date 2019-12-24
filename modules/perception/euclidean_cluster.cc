@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "modules/perception/euclidean_cluster_core.h"
+#include "modules/perception/euclidean_cluster.h"
 
 #include <math.h>
 #include "modules/common/global_gflags.h"
@@ -121,7 +121,7 @@ void EuClusterCore::ClusterSegment(
 
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> euclid;
   euclid.setInputCloud(cloud_2d);
-  euclid.setClusterTolerance(0.25);
+  euclid.setClusterTolerance(FLAGS_cluster_radius);
   euclid.setMinClusterSize(FLAGS_min_cluster_size);
   euclid.setMaxClusterSize(FLAGS_max_cluster_size);
   euclid.setSearchMethod(tree);
@@ -132,7 +132,7 @@ void EuClusterCore::ClusterSegment(
   AWARN << "Time for Euclidean Cluster Extraction:" << t2 - t1;
 
   for (size_t i = 0; i < local_indices.size(); i++) {
-    // the structure to save one detected object
+    // Basic structure to save one detected object
     float min_x = std::numeric_limits<float>::max();
     float max_x = -std::numeric_limits<float>::max();
     float min_y = std::numeric_limits<float>::max();
@@ -142,7 +142,7 @@ void EuClusterCore::ClusterSegment(
 
     for (auto pit = local_indices[i].indices.begin();
          pit != local_indices[i].indices.end(); ++pit) {
-      // fill new cluster point by point
+      // Fill obstacle point by cluster point
       pcl::PointXYZ p;
       p.x = in_pc->points[*pit].x;
       p.y = in_pc->points[*pit].y;
@@ -156,18 +156,18 @@ void EuClusterCore::ClusterSegment(
       if (p.z > max_z) max_z = p.z;
     }
 
-    // calculate bounding box by REALSENSE coordinate system
+    // Calculate bounding box by REALSENSE coordinate system
     double length_ = max_z - min_z;
     double width_ = max_x - min_x;
     double height_ = max_y - min_y;
 
-    // // Position
+    // Position
     auto position_x = min_x + length_ / 2;
     auto position_y = min_y + height_ / 2;
     auto position_z = min_z + width_ / 2;
 
-    auto real_length = (length_ < 0) ? -1 * length_ : length_;
-    auto real_width = (width_ < 0) ? -1 * width_ : width_;
+    // auto real_length = (length_ < 0) ? -1 * length_ : length_;
+    // auto real_width = (width_ < 0) ? -1 * width_ : width_;
     // auto real_height = (height_ < 0) ? -1 * height_ : height_;
 
     // Length < 5, width < 5 for now
@@ -243,8 +243,7 @@ void EuClusterCore::ClusterByDistance(
   }
   AINFO << "PC_ARRAY POINT SIZE: " << pc_array->points.size();
   ClusterSegment(pc_array, cluster_distance_[0], obstacles);
-  AWARN << "RADIUS : " << seg_distance_[0]
-        << " CLUSTER DISTANCE:" << cluster_distance_[0]
+  AWARN << "RADIUS : " << FLAGS_cluster_radius
         << " POINT SIZE IS :" << pc_array->points.size();
 
   // Euclidean Cluster by different distance
