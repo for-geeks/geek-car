@@ -109,6 +109,7 @@ DEFINE_double(angle_x, 0, "angle x");
 DEFINE_double(angle_y, 0, "angle y");
 DEFINE_double(angle_z, -0.261667, "angle z");
 DEFINE_double(leaf_size, 0.01f, "voxel grid leaf size");
+DEFINE_double(cluster_radius, 0.01f, "segmentation cluster radius");
 DEFINE_int32(min_cluster_size, 5, "min_cluster_size");
 DEFINE_int32(max_cluster_size, 500, "max_cluster_size");
 

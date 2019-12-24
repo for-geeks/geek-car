@@ -121,7 +121,7 @@ void EuClusterCore::ClusterSegment(
 
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> euclid;
   euclid.setInputCloud(cloud_2d);
-  euclid.setClusterTolerance(cluster_distance);
+  euclid.setClusterTolerance(0.25);
   euclid.setMinClusterSize(FLAGS_min_cluster_size);
   euclid.setMaxClusterSize(FLAGS_max_cluster_size);
   euclid.setSearchMethod(tree);
@@ -133,8 +133,7 @@ void EuClusterCore::ClusterSegment(
 
   for (size_t i = 0; i < local_indices.size(); i++) {
     // the structure to save one detected object
-
-    float min_x = std::numeric_limits<float>::max();  //编译器允许的最大值
+    float min_x = std::numeric_limits<float>::max();
     float max_x = -std::numeric_limits<float>::max();
     float min_y = std::numeric_limits<float>::max();
     float max_y = -std::numeric_limits<float>::max();
@@ -143,7 +142,7 @@ void EuClusterCore::ClusterSegment(
 
     for (auto pit = local_indices[i].indices.begin();
          pit != local_indices[i].indices.end(); ++pit) {
-      // fill new colored cluster point by point
+      // fill new cluster point by point
       pcl::PointXYZ p;
       p.x = in_pc->points[*pit].x;
       p.y = in_pc->points[*pit].y;
@@ -172,25 +171,27 @@ void EuClusterCore::ClusterSegment(
     // auto real_height = (height_ < 0) ? -1 * height_ : height_;
 
     // Length < 5, width < 5 for now
-    if (real_length > 0.03&& real_length < 5  &&  real_width > 0.03 && real_width < 5) {
-      auto next_obstacle = obstacles->add_perception_obstacle();
-      next_obstacle->set_id(static_cast<int32_t>(i));
-      next_obstacle->mutable_bbox2d()->set_xmin(min_x);
-      next_obstacle->mutable_bbox2d()->set_xmax(max_x);  
-      next_obstacle->mutable_bbox2d()->set_zmin(min_z);
-      next_obstacle->mutable_bbox2d()->set_zmax(max_z);
+    // if (real_length > 0.03&& real_length < 5  &&  real_width > 0.03 &&
+    // real_width < 5) {
+    auto next_obstacle = obstacles->add_perception_obstacle();
+    next_obstacle->set_id(static_cast<int32_t>(i));
+    next_obstacle->mutable_bbox2d()->set_xmin(min_x);
+    next_obstacle->mutable_bbox2d()->set_xmax(max_x);
+    next_obstacle->mutable_bbox2d()->set_zmin(min_z);
+    next_obstacle->mutable_bbox2d()->set_zmax(max_z);
 
-      next_obstacle->set_length((length_ < 0) ? -1 * length_ : length_);
-      next_obstacle->set_width((width_ < 0) ? -1 * width_ : width_);
-      next_obstacle->set_height((height_ < 0) ? -1 * height_ : height_);
+    next_obstacle->set_length((length_ < 0) ? -1 * length_ : length_);
+    next_obstacle->set_width((width_ < 0) ? -1 * width_ : width_);
+    next_obstacle->set_height((height_ < 0) ? -1 * height_ : height_);
 
-      next_obstacle->mutable_position()->set_x(position_x);
-      next_obstacle->mutable_position()->set_y(position_y);
-      next_obstacle->mutable_position()->set_z(position_z);
-    } else {
-      AINFO
-          << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP FOR THIS CLUSTER";
-    }
+    next_obstacle->mutable_position()->set_x(position_x);
+    next_obstacle->mutable_position()->set_y(position_y);
+    next_obstacle->mutable_position()->set_z(position_z);
+    // } else {
+    //   AINFO
+    //       << "OBSTACLE AFTER CLUSTER MABYE NOT OBSTACLE. SKIP FOR THIS
+    //       CLUSTER";
+    // }
   }
   auto te = Time::Now().ToSecond();
   AWARN << "Time for DISTANCE segmentation:" << te - t1;
@@ -222,7 +223,7 @@ void EuClusterCore::ClusterByDistance(
     // AINFO << "point: " <<  std::to_string(i) << " origin_distance: " <<
     // origin_distance;
 
-    // 如果点的距离大于3m, 忽略该点
+    // Ignore this point, if distance > 3 meters
     if (origin_distance >= 3) {
       continue;
     }
