@@ -70,7 +70,7 @@ class EuClusterCore {
 
   // 欧几里德聚类最重要的参数是聚类半径阈值，为了达到更好的聚类效果，
   // 我们在不同距离的区域使用不同的聚类半径阈值
-  std::vector<double> seg_distance_ = {0.5, 0.9, 1.3, 1.7};
+  std::vector<double> seg_distance_ = {0.25, 0.9, 1.3, 1.7};
   std::vector<double> cluster_distance_ = {0.05, 0.055, 0.060, 0.065, 0.07};
 
   std::shared_ptr<CCObjectPool<pcl::PointCloud<pcl::PointXYZ>>>

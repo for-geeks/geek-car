@@ -63,10 +63,10 @@ cc_binary(
 cc_library(
     name = "cluster_core_lib",
     srcs = [
-        "euclidean_cluster_core.cc",
+        "euclidean_cluster.cc",
     ],
     hdrs = [
-        "euclidean_cluster_core.h",
+        "euclidean_cluster.h",
     ],
     copts = [
         "-DMODULE_NAME=\\\"perception\\\"",
