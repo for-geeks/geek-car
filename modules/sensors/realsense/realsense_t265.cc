@@ -234,7 +234,7 @@ void T265::WheelOdometry() {
   }
 }
 
-T265::~T265() { AINFO << "Destructor from D435I"; }
+T265::~T265() { AINFO << "Destructor from T265"; }
 
 }  // namespace realsense
 }  // namespace sensors
