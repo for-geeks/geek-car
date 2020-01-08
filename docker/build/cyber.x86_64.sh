@@ -64,8 +64,6 @@ bash /tmp/installers/install_python_modules.sh
 bash /tmp/installers/install_google_styleguide.sh
 bash /tmp/installers/install_osqp.sh
 bash /tmp/installers/install_apriltag.sh
-# bash /tmp/installers/install_qt.sh
-
 
 # Add Bionic source
 echo "deb https://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse" > /etc/apt/sources.list
@@ -124,9 +122,6 @@ bash /tmp/installers/install_realsense.sh
 # fastrtps
 bash /tmp/installers/install_fast-rtps.sh
 
-#pcl 1.9.1for x86 1.7.2 for aarch64
-#bash /tmp/installers/install_pcl.sh build
+bash /tmp/installers/install_pcl.sh
 
 rm -fr /tmp/*
-# install pcl 1.8
-apt install libpcl-dev -y

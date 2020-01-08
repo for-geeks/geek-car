@@ -85,6 +85,7 @@ bash /tmp/installers/install_osqp.sh download
 bash /tmp/installers/install_apriltag.sh
 bash /tmp/installers/install_qt.sh
 bash /tmp/installers/install_opencv4.1.sh
+bash /tmp/installers/install_pcl.sh
 
 apt update -y
 apt install -y --allow-downgrades \
@@ -122,5 +123,3 @@ bash /tmp/installers/install_realsense.sh
 # install fast-rtps
 bash /tmp/installers/install_fast-rtps.sh
 rm -fr /tmp/*
-# install pcl 1.8
-apt install libpcl-dev -y
