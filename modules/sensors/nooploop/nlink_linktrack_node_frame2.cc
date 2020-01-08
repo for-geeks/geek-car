@@ -19,12 +19,12 @@ void unpackNodeFrame2Data(uint8_t *byteArray) {
            sizeof(RawNode2_t));
 
     if (!nodeFrame2Data_.node[rawNode.id]) {
-      nodeFrame2Data_.node[rawNode.id] = malloc(sizeof(Node2_t));
+      nodeFrame2Data_.node[rawNode.id] = (Node2_t*)malloc(sizeof(Node2_t));
     }
     nodeFrame2Data_.node[rawNode.id]->role = rawNode.role;
     nodeFrame2Data_.node[rawNode.id]->id = rawNode.id;
     nodeFrame2Data_.node[rawNode.id]->dis =
-        int24Value(rawNode.disTemp) / kDisMultiply_;
+        static_cast<float>(int24Value(rawNode.disTemp)) / kDisMultiply_;
     nodeFrame2Data_.node[rawNode.id]->fpRssi =
         rawNode.fpRssiTemp / kRssiMultiply_;
     nodeFrame2Data_.node[rawNode.id]->rxRssi =
@@ -33,18 +33,18 @@ void unpackNodeFrame2Data(uint8_t *byteArray) {
   }
 
   int24ToFloat(nodeFrame2Data_.framePart.posTemp, nodeFrame2Data_.pos,
-               sizeof(nodeFrame2Data_.pos) / sizeof(nodeFrame2Data_.pos[0]),
+               static_cast<int>(sizeof(nodeFrame2Data_.pos) / sizeof(nodeFrame2Data_.pos[0])),
                kPosMultiply_);
 
   int24ToFloat(nodeFrame2Data_.framePart.velTemp, nodeFrame2Data_.vel,
-               sizeof(nodeFrame2Data_.vel) / sizeof(nodeFrame2Data_.vel[0]),
+               static_cast<int>(sizeof(nodeFrame2Data_.vel) / sizeof(nodeFrame2Data_.vel[0])),
                kVelMultiply_);
 
   int16ToFloat(nodeFrame2Data_.framePart.angleTemp, nodeFrame2Data_.angle,
-               sizeof(nodeFrame2Data_.angle) / sizeof(nodeFrame2Data_.angle[0]),
+               static_cast<int>(sizeof(nodeFrame2Data_.angle) / sizeof(nodeFrame2Data_.angle[0])),
                kAngleMultiply_);
   uint8ToFloat(nodeFrame2Data_.framePart.eopTemp, nodeFrame2Data_.eop,
-               sizeof(nodeFrame2Data_.eop) / sizeof(nodeFrame2Data_.eop[0]),
+               static_cast<int>(sizeof(nodeFrame2Data_.eop) / sizeof(nodeFrame2Data_.eop[0])),
                kEopMultiply_);
 
   nodeFrame2Data_.supplyVoltage =

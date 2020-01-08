@@ -19,7 +19,7 @@ void unpackNodeFrame1Data(uint8_t *byteArray) {
            sizeof(RawNode1_t));
 
     if (!nodeFrame1Data_.node[rawNode.id]) {
-      nodeFrame1Data_.node[rawNode.id] = malloc(sizeof(Node1_t));
+      nodeFrame1Data_.node[rawNode.id] = (Node1_t*)malloc(sizeof(Node1_t));
     }
     nodeFrame1Data_.node[rawNode.id]->role = rawNode.role;
     nodeFrame1Data_.node[rawNode.id]->id = rawNode.id;
