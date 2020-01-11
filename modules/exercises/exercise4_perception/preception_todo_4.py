@@ -8,8 +8,8 @@ import numpy as np
 from cyber_py3 import cyber
 
 from modules.sensors.proto.sensor_image_pb2 import Image
-from modules.perception.proto.perception_label_box_pb2 import LBox2DList
-from modules.perception.proto.perception_label_box_pb2 import LBox2D
+from modules.planning.proto.planning_pb2 import Trajectory
+from modules.planning.proto.planning_pb2 import Point
 
 import codecs
 import time
@@ -18,7 +18,7 @@ import paddle.fluid as fluid
 sys.path.append("../")
 
 train_parameters = {
-    "data_dir": "data/",
+    "data_dir": "data/data1211",
     "train_list": "train.txt",
     "eval_list": "eval.txt",
     "class_dim": -1,
@@ -30,7 +30,7 @@ train_parameters = {
     "pretrained_model_dir": "./pretrained-model",
     "save_model_dir": "./yolo-model",
     "model_prefix": "yolo-v3",
-    "freeze_dir": "freeze_model",
+    "freeze_dir": "freeze_model_1213",
     "use_tiny": True, 
     "max_box_num": 5, 
     "num_epochs": 80,
@@ -86,6 +86,7 @@ def init_train_parameters():
     """
     :return:
     """
+    file_list = os.path.join(train_parameters['data_dir'], train_parameters['train_list'])
     label_list = os.path.join(train_parameters['data_dir'], "label_list")
     index = 0
     with codecs.open(label_list, encoding='utf-8') as flist:
@@ -95,7 +96,20 @@ def init_train_parameters():
             train_parameters['label_dict'][line.strip()] = index
             index += 1
         train_parameters['class_dim'] = index
+    with codecs.open(file_list, encoding='utf-8') as flist:
+        lines = [line.strip() for line in flist]
+        train_parameters['image_count'] = len(lines)
 
+
+# roll
+src_corners = [[274, 250], [438, 252], [250, 339], [502, 341]]
+
+# turn to
+dst_corners = [[262, 470], [342, 470], [262, 550], [342, 550]]
+
+M = cv2.getPerspectiveTransform(np.float32(src_corners), np.float32(dst_corners))
+
+car_mid_point = 228
 
 init_train_parameters()
 ues_tiny = train_parameters['use_tiny']
@@ -113,13 +127,24 @@ path = train_parameters['freeze_dir']
 [inference_program, feed_target_names, fetch_targets] = fluid.io.load_inference_model(dirname=path, executor=exe)
 
 
+def perspective_transform(image, m, img_size=None):
+    if img_size is None:
+        img_size = (image.shape[1], image.shape[0])
+    warped = cv2.warpPerspective(image, m, img_size, flags=cv2.INTER_LINEAR)
+    return warped
+
+
 def read_image_cv(origin):
     """
     读取图片
     :param img_path:
     :return:
     """
+    #origin = Image.open(img_path)
+    # img = resize_img(origin, target_size)
+    #img = resize_img(origin, target_size)
     img = cv2.resize(origin,(target_size[1:][0],target_size[1:][1]))
+    # img = origin.copy()
     resized_img = img.copy()
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = np.array(img).astype('float32').transpose((2, 0, 1))  # HWC to CHW
@@ -133,28 +158,28 @@ class Exercise(object):
 
     def __init__(self, node):
         self.node = node
-        self.infer_boxs = LBox2DList()
+        self.planning_path = Trajectory()
 
         # TODO create reader
         self.node.create_reader("/realsense/color_image/compressed", Image, self.callback)
         # TODO create writer
         self.writer = self.node.create_writer(
-            "/perception/inference_box", LBox2DList)
+            "/perception/road_mean_point", Trajectory)
 
     def callback(self, data):
         # TODO
         # print(data.frame_no)
-        # TODO infer
-        self.infer(data)
+        # TODO reshape
+        self.getmeanpoint(data)
         # TODO publish, write to channel
         if not cyber.is_shutdown():
             self.write_to_channel()
 
     def write_to_channel(self):
         # TODO
-        self.writer.write(self.infer_boxs)
+        self.writer.write(self.planning_path)
 
-    def infer(self, data):
+    def getmeanpoint(self, data):
 
         # TODO e
         image = np.frombuffer(data.data, dtype=np.uint8)
@@ -172,34 +197,29 @@ class Exercise(object):
                             return_numpy=False)
         period = time.time() - t1
         print("predict cost time:{0}".format("%2.2f sec" % period))
-        bboxs = np.array(batch_outputs[0])
-        # print(bboxs)
+        bboxes = np.array(batch_outputs[0])
+        print(bboxes)
         
-        self.infer_boxs = LBox2DList()
-        if bboxs.shape[1] != 6:
-            print("No object found in this")
-        else:
-            labels = bboxs[:, 0].astype('int32')
-            scores = bboxs[:, 1].astype('float32')
-            boxes = bboxs[:, 2:].astype('int32')
+        self.planning_path = Trajectory()
+        #print("point size:",str(len(mean_y)))
+        """
+        if len(mean_y) > 0:
+            mean_x_real, mean_y_real = translation_view(np.asarray(mean_x), np.asarray(mean_y))
 
-            for box, label, score in zip(boxes, labels, scores):
-                if score > 0.05 and ((box[2]-box[0])>30 and (box[3]-box[1])>30):
-                    box_one = LBox2D()
-                    box_one.xmin = int(box[0])
-                    box_one.ymin = int(box[1])
-                    box_one.xmax = int(box[2])
-                    box_one.ymax = int(box[3])
-                    box_one.label = str(label)
-                    box_one.probability = score
-                    self.infer_boxs.box.append(box_one)
+            for i, point in enumerate(mean_y_real):
+                point_xy = Point()
+
+                point_xy.x = mean_x_real[i]
+                point_xy.y = point
+                self.planning_path.point.append(point_xy)
+        """
 
 
 if __name__ == '__main__':
     cyber.init()
 
     # TODO update node to your name
-    exercise_node = cyber.Node("inference_box")
+    exercise_node = cyber.Node("to_mid_point")
     exercise = Exercise(exercise_node)
 
     exercise_node.spin()

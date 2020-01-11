@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+package apollo.perception;
+
+import "modules/common/proto/header.proto";
+
+message LBox2D {
+  optional int32 xmin = 1;  // in pixels.
+  optional int32 ymin = 2;  // in pixels.
+  optional int32 xmax = 3;  // in pixels.
+  optional int32 ymax = 4;  // in pixels.
+  optional string label = 5;
+  optional double probability =6;
+}
+
+message LBox2DList {
+  optional apollo.common.Header header = 1;
+  repeated LBox2D box = 2;
+}
