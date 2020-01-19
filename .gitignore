@@ -1,10 +1,5 @@
 # Bazel
-bazel-apollo_lite
-bazel-geek_lite
-bazel-bin
-bazel-genfiles
-bazel-out
-bazel-testlogs
+bazel-*
 /Debug/
 *.pyc
 *genrule.log
