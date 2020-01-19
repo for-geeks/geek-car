@@ -10,7 +10,7 @@ python-gflags
 # Web utils.
 flask
 flask-cors
-requests >= 2.18
+#requests >= 2.18
 simplejson
 jupyter
 
@@ -24,6 +24,27 @@ h5py
 pypcd
 pytz
 utm
-scipy
-numpy
+#scipy
+#numpy
 opencv-python
+
+
+
+# PaddlePaddle
+requests>=2.20.0
+numpy>=1.12
+#protobuf>=3.1.0
+matplotlib<=2.2.4 ; python_version<"3.6"
+scipy>=0.19.0, <=1.2.1 ; python_version<"3.5"
+nltk>=3.2.2, <=3.4 ; python_version<"3.5"
+matplotlib ; python_version>="3.6"
+scipy ; python_version>="3.5"
+nltk ; python_version>="3.5"
+rarfile
+Pillow
+graphviz
+six
+funcsigs
+pyyaml
+decorator
+prettytable
