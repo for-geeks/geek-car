@@ -1,0 +1,3 @@
+[submodule "modules/exercises"]
+	path = modules/exercises
+	url = git@github.com:for-geeks/playground.git
