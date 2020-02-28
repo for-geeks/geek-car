@@ -21,6 +21,15 @@ Key benefits of using Apollo Cyber RT:
 
 ## Environment Setup
 
+### Code Clone
+
+1. Clone main codes:  `git clone git@github.com:mickeyouyou/geek_lite.git`
+2. Update submodule:
+```bash
+git submodule init
+git submodule update
+```
+### Installation
 Let's Install Basical Library and Tools:
 
 ARM Platform :
