@@ -36,8 +36,8 @@ cc_binary(
     ],
     deps = [
         "//cyber",
-        "//external:gflags",
         "//modules/control/proto:control_cc_proto",
+        "@com_github_gflags_gflags//:gflags",
     ],
 )
 
