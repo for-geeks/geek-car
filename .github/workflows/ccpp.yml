@@ -11,7 +11,5 @@ jobs:
     - uses: actions/checkout@v1
     - name: docker pull and build 
       run: bash docker/scripts/start_geek.sh
-    - name: remove gtest
-      run: docker exec geek_dev_$USER bash -c "rm -rf /home/tmp/googletest-release-1.8.0.tar.gz"
     - name: docker exec 
       run: docker exec -u $USER geek_dev_$USER bash -c "./apollo.sh build"
