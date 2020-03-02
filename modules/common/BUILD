@@ -14,7 +14,7 @@ cc_library(
         "-DMODULE_NAME=\\\"common\\\"",
     ],
     deps = [
-        "//external:gflags",
+        "@com_github_gflags_gflags//:gflags",
     ],
 )
 
@@ -26,11 +26,10 @@ cc_library(
     ],
 )
 
-
 cc_library(
-    name ="uart",
-    srcs= ["uart.cc"],
-    hdrs= ["uart.h"],
+    name = "uart",
+    srcs = ["uart.cc"],
+    hdrs = ["uart.h"],
     copts = [
         "-DMODULE_NAME=\\\"common\\\"",
     ],
