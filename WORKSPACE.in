@@ -9,6 +9,7 @@ new_http_archive(
     url = "file:///home/tmp/googletest-release-1.8.0.tar.gz",
 )
 
+# Alias to help migrate legacy code in other repos.
 new_local_repository(
     name = "gtest",
     path = "/home/tmp",
