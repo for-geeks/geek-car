@@ -74,7 +74,6 @@ message Image {
   optional string encoding = 6;
   optional uint32 step = 7;  // Full row length in bytes
   optional bytes data = 8;   // actual matrix data, size is (step * rows)
-  optional string frame_id = 9;
 }
 
 message CompressedImage {
