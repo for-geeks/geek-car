@@ -1,6 +1,6 @@
 # Geek Car, An Autonomous Application Based On Cyber RT
 
-![Action Status](https://github.com/mickeyouyou/geek_lite/workflows/Geek%20Style/badge.svg)
+![Action Status](https://github.com/for-geeks/geek-car/workflows/Geek%20Style/badge.svg)
 
 As the basic layer of the Apollo autonomous platform, Cyber provides data reliability and timeliness for the application (perception, planning, control, etc.), based on which you can create your own application layer according to your own situation.
 
@@ -23,7 +23,7 @@ Key benefits of using Apollo Cyber RT:
 
 ### Code Clone
 
-1. Clone main codes:  `git clone git@github.com:mickeyouyou/geek_lite.git`
+1. Clone main codes:  `git clone git@github.com:for-geeks/geek-car.git`
 2. Update submodule:
 ```bash
 git submodule init
@@ -54,3 +54,7 @@ bash apollo.sh build
 More details about teminal.
 
 More details about develop toolschain you can find here：[CyberRT_Developer_Tools](https://github.com/ApolloAuto/apollo/blob/master/docs/cyber/CyberRT_Developer_Tools.md)
+
+
+## Copyright and License
+Geekcar is provided under the MIT License.
