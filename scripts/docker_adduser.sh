@@ -27,6 +27,8 @@ export PATH=${PATH}:/apollo/scripts:/usr/local/miniconda/bin
 if [ -e "/apollo/scripts/apollo_base.sh" ]; then
   source /apollo/scripts/apollo_base.sh
 fi
+source /apollo/cyber/setup.bash
+export CYBER_IP=172.17.0.1
 ulimit -c unlimited
 ' >> "/home/${DOCKER_USER}/.bashrc"
 
