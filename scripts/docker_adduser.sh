@@ -18,8 +18,7 @@
 
 
 addgroup --gid "$DOCKER_GRP_ID" "$DOCKER_GRP"
-adduser --disabled-password --force-badname --gecos '' "$DOCKER_USER" \
-    --uid "$DOCKER_USER_ID" --gid "$DOCKER_GRP_ID" 2>/dev/null
+adduser --disabled-password --force-badname --gecos '' "$DOCKER_USER"
 usermod -aG sudo "$DOCKER_USER"
 echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 cp -r /etc/skel/. /home/${DOCKER_USER}
@@ -38,6 +37,7 @@ lcov_branch_coverage = 1
 
 # Set user files ownership to current user, such as .bashrc, .profile, etc.
 chown ${DOCKER_USER}:${DOCKER_GRP} /home/${DOCKER_USER}
+chown -R ${DOCKER_USER}:${DOCKER_GRP} /apollo
 ls -ad /home/${DOCKER_USER}/.??* | xargs chown -R ${DOCKER_USER}:${DOCKER_GRP}
 
 if [ -e /dev/ttyACM0 ]; then
