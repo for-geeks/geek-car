@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Usage:
-#   ./build_geek_pcl.sh geek.Dockerfile
+#   ./build_geek_release.sh geek.Dockerfile
 # Commit 
-# docker commit 5a69f1c7051c geekstyle/geek_lite:geek_lite-${ARCH}-18.04-${TIME}
+# docker commit 5a69f1c7051c geekstyle/geek_lite:geek-release-${ARCH}-18.04-${TIME}
 
 REPO=geekstyle/geek_lite
 ARCH=$(uname -m)

@@ -1,28 +1,11 @@
 #!/usr/bin/env bash
 
-###############################################################################
-# Copyright 2017 The Apollo Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-###############################################################################
-
 LOCAL_IMAGE="no"
 FAST_BUILD_MODE="no"
 FAST_TEST_MODE="no"
 VERSION=""
 ARCH=$(uname -m)
-VERSION_X86_64="geek-release-x86_64-18.04-20200426_2146"
-VERSION_AARCH64="dev-aarch64-20170927_1111"
+VERSION_X86_64="geek-release-x86_64-18.04-20200427_0027"
 VERSION_OPT=""
 
 function show_usage()
@@ -30,7 +13,6 @@ function show_usage()
 cat <<EOF
 Usage: $(basename $0) [options] ...
 OPTIONS:
-    -C                     Pull docker image from China mirror.
     -b, --fast-build       Light mode for building without pulling all the map volumes
     -f, --fast-test        Light mode for testing without pulling limited set of map volumes
     -h, --help             Display this help and exit.
@@ -126,8 +108,6 @@ if [ ! -z "$VERSION_OPT" ]; then
     VERSION=$VERSION_OPT
 elif [ ${ARCH} == "x86_64" ]; then
     VERSION=${VERSION_X86_64}
-elif [ ${ARCH} == "aarch64" ]; then
-    VERSION=${VERSION_AARCH64}
 else
     echo "Unknown architecture: ${ARCH}"
     exit 0
@@ -226,7 +206,7 @@ function main(){
         -w /home/geek/geek-car \
         --add-host in_dev_docker:127.0.0.1 \
         --add-host ${LOCAL_HOST}:127.0.0.1 \
-        --hostname in_dev_docker \
+        --hostname in_release_docker \
         --shm-size 2G \
         --pid=host \
         -v /dev/null:/dev/raw1394 \
