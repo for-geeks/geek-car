@@ -44,7 +44,6 @@ cc_library(
         "//modules/sensors:realsense_api",
         "//modules/sensors:realsense_motion",
         "//modules/sensors/proto:sensors_cc_proto",
-        "//modules/perception:cluster_core_lib",
         "@eigen",
         "@pcl",
         "@vtk",
