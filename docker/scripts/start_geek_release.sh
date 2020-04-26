@@ -5,7 +5,7 @@ FAST_BUILD_MODE="no"
 FAST_TEST_MODE="no"
 VERSION=""
 ARCH=$(uname -m)
-VERSION_X86_64="geek-release-x86_64-18.04-20200427_0027"
+VERSION_X86_64="geek-release-x86_64-18.04-20200427_0036"
 VERSION_OPT=""
 
 function show_usage()
