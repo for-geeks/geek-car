@@ -4,6 +4,8 @@
 
 <img src="images/red.jpg" style="zoom:80%;display: inline-block; float:middle"/>
 
+## Architecture
+
 <img src="images/system.png" style="zoom:60%;display: inline-block; float:middle"/>
 
 ## Environment Setup
