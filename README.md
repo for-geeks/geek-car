@@ -4,24 +4,9 @@
 
 <img src="images/red.jpg" style="zoom:80%;display: inline-block; float:middle"/>
 
-As the basic layer of the Apollo autonomous platform, Cyber provides data reliability and timeliness for the application (perception, planning, control, etc.), based on which you can create your own application layer according to your own situation.
+## Architecture
 
 <img src="images/system.png" style="zoom:60%;display: inline-block; float:middle"/>
-
-Key benefits of using Apollo Cyber RT:
-
-- Accelerate development
-  + Well defined task interface with data fusion
-  + Array of development tools
-  + Large set of sensor drivers
-- Simplify deployment
-  + Efficient and adaptive message communication
-  + Configurable user level scheduler with resource awareness
-  + Portable with fewer dependencies
-- Empower your own autonomous vehicles
-  + The default open source runtime framework
-  + Building blocks specifically designed for autonomous driving
-  + Plug and play your own AD system
 
 ## Environment Setup
 
