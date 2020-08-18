@@ -5,7 +5,7 @@ FAST_BUILD_MODE="no"
 FAST_TEST_MODE="no"
 VERSION=""
 ARCH=$(uname -m)
-VERSION_X86_64="geek_lite-x86_64-18.04-20200425_1848"
+VERSION_X86_64="geek_lite-x86_64-18.04-20200818_1718"
 VERSION_OPT=""
 
 function show_usage()
@@ -131,21 +131,12 @@ IMG=${DOCKER_REPO}:$VERSION
 function local_volumes() {
     # Apollo root and bazel cache dirs are required.
     volumes="-v $APOLLO_ROOT_DIR:/apollo \
-             -v $HOME/.cache:${DOCKER_HOME}/.cache"
-    case "$(uname -s)" in
-        Linux)
-            volumes="${volumes} -v /dev:/dev \
-                                -v /media:/media \
-                                -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-                                -v /etc/localtime:/etc/localtime:ro \
-                                -v /usr/src:/usr/src \
-                                -v /lib/modules:/lib/modules"
-            ;;
-        Darwin)
-            # MacOS has strict limitations on mapping volumes.
-            chmod -R a+wr ~/.cache/bazel
-            ;;
-    esac
+             -v /dev:/dev \
+             -v /media:/media \
+             -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+             -v /etc/localtime:/etc/localtime:ro \
+             -v /usr/src:/usr/src \
+             -v /lib/modules:/lib/modules"
     echo "${volumes}"
 }
 
