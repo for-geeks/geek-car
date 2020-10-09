@@ -1,0 +1,18 @@
+syntax = "proto2";
+package apollo.sensors;
+
+import "modules/common/proto/header.proto";
+
+
+message LaserScan {
+ optional apollo.common.Header header = 1;
+ optional float angle_min = 2;
+ optional float angle_max = 3;
+ optional float angle_increment = 4;
+ optional float time_increment = 5;
+ optional float scan_time = 6;
+ optional float range_min = 7;
+ optional float range_max = 8;
+ repeated float ranges = 9;
+ repeated float intensities = 10;
+}

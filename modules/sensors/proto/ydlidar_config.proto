@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package apollo.sensors;
+
+message YDlidarDeviceConf {
+  optional string port = 1;
+  optional int32 baudrate = 2;
+  optional string frame_id = 3;
+  optional bool resolution_fixed = 4;
+  optional bool auto_reconnect = 5;
+  optional bool reversion = 6;
+  optional double angle_max = 7;
+  optional double angle_min = 8;
+  optional double range_max = 9;
+  optional double range_min = 10;
+  optional double frequency = 11;
+  optional string ignore_array = 12;
+  optional int32  samp_rate = 13;
+  optional bool isSingleChannel = 14;
+  optional bool isTOFLidar = 15;
+  optional bool in_verted = 16;
+}
