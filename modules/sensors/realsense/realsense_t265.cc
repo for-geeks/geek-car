@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-#include "modules/sensors/realsense.h"
+#include "modules/sensors/realsense/realsense.h"
 
 namespace apollo {
 namespace sensors {

@@ -22,58 +22,32 @@
  * SOFTWARE.
 ******************************************************************************/
 
-/*
- *  YDLIDAR SYSTEM
- *  YDLIDAR ROS Node Client
- *
- *  Copyright 2015 - 2018 EAI TEAM
- *  http://www.ydlidar.com
- *
- */
+#include "modules/sensors/lidar_component.h"
 
-#include <signal.h>
-#include <iostream>
-#include <string>
-#include <vector>
-
-#include "CYdLidar.h"
-#include "core/common/ydlidar_datatype.h"
-
-#include "cyber/common/log.h"
-#include "cyber/cyber.h"
-
-#include "modules/sensors/proto/laserscan.pb.h"
-#include "modules/sensors/proto/ydlidar_config.pb.h"
+namespace apollo {
+namespace sensors {
 
 using namespace ydlidar;
 
-std::vector<float> split(const std::string &s, char delim) {
-  std::vector<float> elems;
-  std::stringstream ss(s);
-  std::string number;
-  while (std::getline(ss, number, delim)) {
-    elems.push_back(static_cast<float>(std::atof(number.c_str())));
-  }
-  return elems;
+bool LidarComponent::Init() {
+  // Init by config device
+  InitSensor();
+  AINFO << "Init Lidar device successfuly";
+  cyber::Async(&LidarComponent::Run, this);
+  return true;
 }
-int main() {
-  apollo::cyber::Init("ydlidar");
 
+void LidarComponent::InitSensor() {
   double angle_max, angle_min;
   std::string list;
   std::vector<float> ignore_array;
   double frequency;
 
-  std::shared_ptr<apollo::cyber::Node> node_ =
-      apollo::cyber::CreateNode("ydlidar_node");
-  std::shared_ptr<apollo::cyber::Writer<apollo::sensors::Scan>> scan_pub =
-      node_->CreateWriter<apollo::sensors::Scan>("scan");
+  std::shared_ptr<Writer<Scan>> scan_writer = node_->CreateWriter<Scan>("scan");
 
-  apollo::sensors::YDlidarDeviceConf device_conf_;
-  std::string config_path = "/apollo/modules/sensors/conf/ydlidar.pb.conf";
-  if (!apollo::cyber::common::GetProtoFromFile(config_path, &device_conf_)) {
-    AERROR << "Unable to load conf file: " << config_path;
-    return false;
+  if (!GetProtoConfig(&device_conf_)) {
+    AERROR << "Unable to load conf file: " << ConfigFilePath();
+    return;
   }
 
   ADEBUG << "Device conf:" << device_conf_.ShortDebugString();
@@ -89,7 +63,6 @@ int main() {
     }
   }
 
-  CYdLidar laser;
   if (device_conf_.frequency() < 3) {
     frequency = 7.0;
   }
@@ -123,6 +96,7 @@ int main() {
   // laser.setInverted(device_conf_.in_verted());
   // laser.setSingleChannel(device_conf_.isSingleChannel());
   // laser.setLidarType(device_conf_.isTOFLidar() ? TYPE_TOF : TYPE_TRIANGLE);
+
   bool ret = laser.initialize();
   if (ret) {
     ret = laser.turnOn();
@@ -132,10 +106,12 @@ int main() {
   } else {
     AERROR << "Error initializing YDLIDAR Comms and Status!!!";
   }
+}
+
+void LidarComponent::Run() {
   apollo::cyber::Rate rate(20.);
 
-  while (ret && !apollo::cyber::IsShutdown()) {
-    // bool hardError;
+  while (!apollo::cyber::IsShutdown()) {
     LaserScan scan;
     if (laser.doProcessSimple(scan)) {
       apollo::sensors::Scan scan_msg;
@@ -168,16 +144,17 @@ int main() {
           scan_msg.set_intensities(index, scan.points[i].intensity);
         }
       }
-      scan_pub->Write(scan_msg);
+      scan_writer->Write(scan_msg);
     }
     rate.Sleep();
   }
+}
 
+LidarComponent::~LidarComponent() {
   laser.turnOff();
   AINFO << "[YDLIDAR INFO] Now YDLIDAR is stopping .......";
   laser.disconnecting();
-
-  apollo::cyber::WaitForShutdown();
-
-  return 0;
 }
+
+}  // namespace sensors
+}  // namespace apollo

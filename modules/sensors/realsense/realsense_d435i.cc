@@ -34,7 +34,7 @@
 #include "pcl/visualization/pcl_visualizer.h"
 
 #include "modules/common/global_gflags.h"
-#include "modules/sensors/realsense.h"
+#include "modules/sensors/realsense/realsense.h"
 
 namespace apollo {
 namespace sensors {

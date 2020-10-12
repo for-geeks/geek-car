@@ -27,8 +27,6 @@ cc_library(
         "-lrealsense2",
     ],
     deps = [
-        ":realsense_api",
-        ":realsense_motion",
         "//cyber",
         "//modules/common:global_gflags",
         "//modules/sensors/proto:sensors_cc_proto",
@@ -37,34 +35,8 @@ cc_library(
         "//modules/sensors/realsense:device_base",
         "//modules/sensors/realsense:t265_lib",
         "//modules/sensors/realsense:d435_lib",
-    ],
-)
-
-cc_library(
-    name = "realsense_api",
-    srcs = ["realsense.cc"],
-    hdrs = ["realsense.h"],
-    copts = [
-        "-DMODULE_NAME=\\\"sensors\\\"",
-    ],
-    linkopts = [
-        "-lrealsense2",
-    ],
-    deps = [
-        "//cyber",
-        "@opencv",
-        "@pcl",
-    ],
-)
-
-cc_library(
-    name = "realsense_motion",
-    srcs = ["realsense_motion.h"],
-    copts = [
-        "-DMODULE_NAME=\\\"sensors\\\"",
-    ],
-    linkopts = [
-        "-lrealsense2",
+        "//modules/sensors/realsense:realsense_api",
+        "//modules/sensors/realsense:realsense_motion",
     ],
 )
 
@@ -96,6 +68,35 @@ cc_library(
         "//modules/sensors/nooploop:linktrack_tag_frame0",
         "//modules/sensors/nooploop:ncommon",
         "//modules/sensors/proto:sensors_cc_proto",
+    ],
+)
+
+cc_binary(
+    name = "liblidar_component.so",
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
+    linkshared = True,
+    linkstatic = False,
+    deps = [
+        ":lidar_component_lib",
+    ],
+)
+
+cc_library(
+    name = "lidar_component_lib",
+    srcs = ["lidar_component.cc"],
+    hdrs = [
+        "lidar_component.h",
+    ],
+    copts = [
+        "-DMODULE_NAME=\\\"sensors\\\"",
+    ],
+    deps = [
+        "//cyber",
+        "//modules/common:global_gflags",
+        "//modules/sensors/proto:sensors_cc_proto",
+        "@ydlidar",
     ],
 )
 

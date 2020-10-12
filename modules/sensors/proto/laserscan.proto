@@ -4,7 +4,7 @@ package apollo.sensors;
 import "modules/common/proto/header.proto";
 
 
-message LaserScan {
+message Scan {
  optional apollo.common.Header header = 1;
  optional float angle_min = 2;
  optional float angle_max = 3;

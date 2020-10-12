@@ -1,0 +1,7 @@
+<cyber>
+  <module>
+    <name>lidar</name>
+    <dag_conf>/apollo/modules/sensors/dag/lidar.dag</dag_conf>
+    <process_name>lidar</process_name>
+  </module>
+</cyber>

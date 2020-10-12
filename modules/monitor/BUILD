@@ -30,7 +30,7 @@ cc_library(
         "//cyber",
         "//modules/common:global_gflags",
         "//modules/monitor/proto:status_cc_proto",
-        "//modules/sensors:realsense_api",
+        "//modules/sensors/realsense:realsense_api",
         "//modules/sensors/proto:sensors_cc_proto",
     ],
 )

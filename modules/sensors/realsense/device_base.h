@@ -39,7 +39,7 @@
 #include "modules/sensors/proto/pointcloud.pb.h"
 #include "modules/sensors/proto/sensor_image.pb.h"
 #include "modules/sensors/proto/sensors.pb.h"
-#include "modules/sensors/realsense_motion.h"
+#include "modules/sensors/realsense/realsense_motion.h"
 
 namespace apollo {
 namespace sensors {

@@ -29,7 +29,7 @@
 #include "librealsense2/rs.hpp"
 #include "modules/common/global_gflags.h"
 #include "modules/monitor/proto/status.pb.h"
-#include "modules/sensors/realsense.h"
+#include "modules/sensors/realsense/realsense.h"
 
 namespace apollo {
 namespace monitor {

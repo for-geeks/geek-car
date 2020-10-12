@@ -1,7 +1,7 @@
 /******************************************************************************
  * MIT License
 
- * Copyright (c) 2019 Geekstyle
+ * Copyright (c) 2020 Geekstyle
 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,48 +27,53 @@
 #include <memory>
 #include <string>
 
-#include "librealsense2/rs.hpp"
+#include "CYdLidar.h"
+#include "core/common/ydlidar_datatype.h"
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/component.h"
 #include "cyber/node/node.h"
+#include "cyber/time/rate.h"
 
 #include "modules/common/global_gflags.h"
-#include "modules/control/proto/chassis.pb.h"
-#include "modules/sensors/proto/pointcloud.pb.h"
-#include "modules/sensors/proto/sensor_image.pb.h"
-#include "modules/sensors/proto/sensors.pb.h"
-#include "modules/sensors/realsense/device_base.h"
-#include "modules/sensors/realsense/realsense_d435.h"
-#include "modules/sensors/realsense/realsense_d435i.h"
-#include "modules/sensors/realsense/realsense_t265.h"
+#include "modules/sensors/proto/laserscan.pb.h"
+#include "modules/sensors/proto/ydlidar_config.pb.h"
 
 namespace apollo {
 namespace sensors {
 
-using apollo::control::Chassis;
 using apollo::cyber::Component;
-using apollo::sensors::PointCloud;
-using apollo::sensors::realsense::D435;
-using apollo::sensors::realsense::D435I;
-using apollo::sensors::realsense::DeviceBase;
-using apollo::sensors::realsense::T265;
+using apollo::cyber::Rate;
+using apollo::cyber::Writer;
+using apollo::sensors::Scan;
+using apollo::sensors::YDlidarDeviceConf;
 
-class RealsenseComponent : public Component<> {
+std::vector<float> split(const std::string &s, char delim) {
+  std::vector<float> elems;
+  std::stringstream ss(s);
+  std::string number;
+  while (std::getline(ss, number, delim)) {
+    elems.push_back(static_cast<float>(std::atof(number.c_str())));
+  }
+  return elems;
+}
+
+class LidarComponent : public Component<> {
  public:
   bool Init() override;
-  void InitDeviceAndSensor();
+  void InitSensor();
   void Run();
-  ~RealsenseComponent();
+  ~LidarComponent();
 
  private:
-  // realsense device
-  rs2::device device_;
+  // lidar device
+  CYdLidar laser;
 
-  // device object like T265\D435I\D435
-  DeviceBase *device_object_;
+  YDlidarDeviceConf device_conf_;
+
+  std::shared_ptr<Writer<Scan>> scan_writer = nullptr;
 };
 
-CYBER_REGISTER_COMPONENT(RealsenseComponent)
+CYBER_REGISTER_COMPONENT(LidarComponent)
 }  // namespace sensors
 }  // namespace apollo

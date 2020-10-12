@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
 ******************************************************************************/
-#include "modules/sensors/realsense.h"
+#include "modules/sensors/realsense/realsense.h"
 
 #include "cyber/cyber.h"
 
