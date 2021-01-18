@@ -15,7 +15,6 @@
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr read_cloud_point(
     std::string const &file_path) {
-  // Loading first scan.
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
   if (pcl::io::loadPCDFile<pcl::PointXYZ>(file_path, *cloud) == -1) {
     PCL_ERROR("Couldn't read the pcd file\n");

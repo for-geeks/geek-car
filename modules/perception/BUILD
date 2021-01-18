@@ -46,6 +46,33 @@ cc_binary(
 )
 
 cc_binary(
+    name = "intensity",
+    srcs = ["intensity.cc"],
+    copts = [
+        "-DMODULE_NAME=\\\"perception\\\"",
+    ],
+    deps = [
+        "@pcl",
+        "@opencv",
+        "@eigen",
+        "@vtk",
+    ],
+)
+
+# cc_binary(
+#     name = "pc2image",
+#     srcs = ["pc2image.cc"],
+#     copts = [
+#         "-DMODULE_NAME=\\\"perception\\\"",
+#     ],
+#     deps = [
+#         "@pcl",
+#         "@opencv",
+#         "@eigen",
+#     ],
+# )
+
+cc_binary(
     name = "euclidean_segmentation",
     srcs = ["euclidean_segmentation.cc"],
     copts = [
